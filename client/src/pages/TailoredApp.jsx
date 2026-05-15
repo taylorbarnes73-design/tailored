@@ -2307,14 +2307,22 @@ const BRANDS = [
 ];
 const SITE_IMAGE_OVERRIDES = {
   5: "https://media.thereformation.com/image/upload/f_auto,q_auto,dpr_1.0/w_800,c_scale//PRD-SFCC/1304134/MERCY/1304134.1.MERCY?_s=RAABAB0",
+  22: "https://www.everlane.com/cdn/shop/files/f545cb46_d23b.jpg?v=1750093768&width=1200",
   7: "https://skims.imgix.net/s/files/1/0259/5448/4284/products/SKIMS-BODYSUIT-BS-TSH-0752-CL-ONX_FR.jpg?v=1624308627&auto=format&q=70&ixlib=react-9.11.0",
   8: "https://skims.imgix.net/s/files/1/0259/5448/4284/products/SKIMS-LOUNGEWEAR-AP-DRS-0596-ONX-FL_grande.jpg?v=1708554715&auto=format&ixlib=react-9.11.0",
   23: "https://www.everlane.com/cdn/shop/files/0ff67047_037f.jpg?v=1753411454&width=1200",
+  38: "https://images.urbndata.com/is/image/FreePeople/58182312_047_m/?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
+  39: "https://images.urbndata.com/is/image/FreePeople/48781546_043_g/?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
   40: "https://images.lululemon.com/is/image/lululemon/LW5DRJS_074050_1",
   41: "https://images.lululemon.com/is/image/lululemon/LW3IG3S_075785_1",
   42: "https://images.lululemon.com/is/image/lululemon/LW3GQ6S_0001_1",
+  43: "https://images.lululemon.com/is/image/lululemon/LW2EB8S_074052_1",
+  45: "https://images.urbndata.com/is/image/Anthropologie/4130646420009_122_b?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
+  66: "https://www.everlane.com/cdn/shop/files/74a7c807_f555.jpg?v=1753411653&width=1200",
+  71: "https://static.nike.com/a/images/w_960,c_limit/3732c58b-d0ad-4c3c-898c-c4b90193312b/image.png",
+  72: "https://static.nike.com/a/images/t_default/694b5c1c-30a7-48c0-bf12-c081ab0708b4/W+NK+ONE+DF+HR+7%2F8+TIGHT+CAPSL.png",
 };
-const LIVE_IMAGE_DISABLED_IDS = new Set([4, 22, 24, 25]);
+const LIVE_IMAGE_DISABLED_IDS = new Set([4, 24, 25]);
 const CATALOG = [
   {
     id: 1,
@@ -2857,7 +2865,7 @@ const CATALOG = [
     category: "Tops",
     trending: true,
     badge: "Trending Now",
-    url: "https://www.everlane.com/products/womens-cashmere-v-neck",
+    url: "https://www.everlane.com/products/womens-cashmere-vneck-black",
     image:
       "https://images.unsplash.com/photo-1620799140408-edc6d560365b?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3259,7 +3267,7 @@ const CATALOG = [
     category: "Bottoms",
     trending: true,
     badge: "Viral on TikTok",
-    url: "https://www.freepeople.com/jeans/",
+    url: "https://www.freepeople.com/shop/jayde-flare-jeans/",
     image:
       "https://images.unsplash.com/photo-1598032895397-b94aa421802d?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3285,7 +3293,7 @@ const CATALOG = [
     category: "Outerwear",
     trending: false,
     badge: "Cozy Pick",
-    url: "https://www.freepeople.com/jackets-outerwear/",
+    url: "https://www.freepeople.com/shop/hit-the-slopes-fleece-jacket/",
     image:
       "https://images.unsplash.com/photo-1594769823243-96c5a3a26034?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3387,7 +3395,7 @@ const CATALOG = [
     category: "Tops",
     trending: false,
     badge: "Staff Pick",
-    url: "https://shop.lululemon.com/c/women-sports-bras/_/N-7z5",
+    url: "https://shop.lululemon.com/p/women-sports-bras/Energy-Bra-Long-Line/_/prod9030660?color=34406",
     image:
       "https://images.unsplash.com/photo-1598554747476-3874fac3d739?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3440,7 +3448,7 @@ const CATALOG = [
     category: "Dresses",
     trending: true,
     badge: "New Arrival",
-    url: "https://www.anthropologie.com/dresses",
+    url: "https://www.anthropologie.com/shop/the-somerset-maxi-dress2/",
     image:
       "https://images.unsplash.com/photo-1626255223936-4d6334d7b348?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3974,7 +3982,7 @@ const CATALOG = [
     category: "Tops",
     trending: false,
     badge: "Summer Essential",
-    url: "https://www.everlane.com/products/womens-linen-relaxed-shirt-white",
+    url: "https://www.everlane.com/products/womens-relaxed-linen-shirt-new-white",
     image:
       "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -4102,7 +4110,7 @@ const CATALOG = [
     category: "Tops",
     trending: false,
     badge: "Everyday Basic",
-    url: "https://www.nike.com/w/womens-tops-t-shirts-5e1x6z9om13",
+    url: "https://www.nike.com/t/sportswear-essential-womens-t-shirt-dFmJ3H/IB8925-051",
     image:
       "https://images.unsplash.com/photo-1622445275463-125386c1526b?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -4127,7 +4135,7 @@ const CATALOG = [
     category: "Bottoms",
     trending: true,
     badge: "Best Seller",
-    url: "https://www.nike.com/w/womens-tights-leggings-5e1x6z6ymx6",
+    url: "https://www.nike.com/t/one-womens-high-waisted-7-8-leggings-4wGHHm/HV2292-010",
     image:
       "https://images.unsplash.com/photo-THALO-xlMMk?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -4572,9 +4580,33 @@ function computeItemFit(userBody, item) {
   };
 }
 function canAttemptRetailImage(url = "") {
-  return /\/products\/|\/product\/|\/p\/|\/_\/prod|\/t\/|\/shop\/us\/p\//i.test(
-    url
-  );
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    const path = parsed.pathname.toLowerCase();
+
+    if (host === "shop.lululemon.com") {
+      return path.includes("/p/") || path.includes("/_/prod");
+    }
+
+    if (host.endsWith("nike.com")) {
+      return path.includes("/t/");
+    }
+
+    if (host.endsWith("freepeople.com") || host.endsWith("anthropologie.com")) {
+      return path.includes("/shop/");
+    }
+
+    if (host.endsWith("abercrombie.com")) {
+      return path.includes("/p/");
+    }
+
+    return /\/products\/|\/product\/|\/p\/|\/_\/prod|\/t\/|\/shop\/us\/p\//i.test(
+      path
+    );
+  } catch {
+    return false;
+  }
 }
 function enrichCatalog(userBody) {
   return CATALOG.map(item => {

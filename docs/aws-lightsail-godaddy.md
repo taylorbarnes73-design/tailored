@@ -51,6 +51,7 @@ Add these repository secrets:
 - `BUILT_IN_FORGE_API_URL`
 - `BUILT_IN_FORGE_API_KEY`
 - `VITE_FRONTEND_FORGE_API_KEY`
+- `ZYTE_API_KEY` (optional, for richer retailer product imagery)
 
 ## 5. First deploy
 

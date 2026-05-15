@@ -57,8 +57,16 @@ type ResolvedProductImage = {
   source: string;
 };
 
+type ZyteImage = string | Record<string, unknown> | null | undefined;
+type ZyteProduct = {
+  mainImage?: ZyteImage;
+  images?: ZyteImage[];
+};
+
 const IMAGE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const TEXT_TIMEOUT_MS = 8000;
+const ZYTE_TIMEOUT_MS = 15000;
+const ZYTE_EXTRACT_URL = "https://api.zyte.com/v1/extract";
 const RETAIL_REQUEST_HEADERS: Record<string, string> = {
   "user-agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
@@ -712,6 +720,10 @@ function extractMetaRefreshUrl(html: string, pageUrl: string) {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 function normalizeImageUrl(rawUrl: string, pageUrl: string) {
   if (!rawUrl || rawUrl.startsWith("data:")) return null;
   const clean = rawUrl
@@ -733,6 +745,7 @@ function normalizeImageUrl(rawUrl: string, pageUrl: string) {
       return null;
     }
     if (/[{}]/.test(absolute) || /%7B|%7D/i.test(absolute)) return null;
+    if (/\/u002f\//i.test(absolute) || /\\u002f/i.test(absolute)) return null;
     if (
       /(android-icon|apple-touch-icon|favicon|icon-192|icon-512|logo[_-]|logo\/|social-share|facebook_1200x630|flyoutnav|nav[-_]?image|placeholder|cookiefailure|error-page|404-image|twitter_4096|image\/list\/|builder\.io\/api\/v1\/image|empty_bag_state)/i.test(
         absolute
@@ -922,6 +935,112 @@ function collectMarkdownImageCandidates(
   return candidates.sort((a, b) => b.score - a.score);
 }
 
+function extractZyteImageUrl(image: ZyteImage, pageUrl: string) {
+  if (!image) return null;
+  if (typeof image === "string") {
+    return normalizeImageUrl(image, pageUrl);
+  }
+  if (!isRecord(image)) return null;
+
+  for (const key of ["url", "src", "imageUrl", "link"]) {
+    const value = image[key];
+    if (typeof value === "string") {
+      const normalized = normalizeImageUrl(value, pageUrl);
+      if (normalized) return normalized;
+    }
+  }
+
+  return null;
+}
+
+function collectZyteImageCandidates(
+  product: ZyteProduct,
+  pageUrl: string,
+  name: string,
+  brand: string
+) {
+  const seen = new Set<string>();
+  const candidates: Array<{ url: string; score: number }> = [];
+  const images: ZyteImage[] = [
+    product.mainImage,
+    ...(Array.isArray(product.images) ? product.images : []),
+  ];
+
+  for (const image of images) {
+    const normalized = extractZyteImageUrl(image, pageUrl);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    candidates.push({
+      url: normalized,
+      score:
+        scoreImageCandidate(
+          normalized,
+          "zyte product image",
+          name,
+          brand,
+          pageUrl
+        ) + 120,
+    });
+  }
+
+  return candidates.sort((a, b) => b.score - a.score);
+}
+
+async function extractFromZyte(
+  url: string,
+  name: string,
+  brand: string
+): Promise<ResolvedProductImage | null> {
+  const apiKey = ENV.zyteApiKey.trim();
+  if (!apiKey) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ZYTE_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(ZYTE_EXTRACT_URL, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        authorization: `Basic ${Buffer.from(`${apiKey}:`).toString("base64")}`,
+      },
+      body: JSON.stringify({
+        url,
+        product: true,
+        productOptions: {
+          extractFrom: "browserHtmlOnly",
+          model: "2024-09-16",
+        },
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as { product?: unknown };
+    if (!isRecord(data.product)) return null;
+
+    const candidates = collectZyteImageCandidates(
+      data.product as ZyteProduct,
+      url,
+      name,
+      brand
+    );
+    if (!candidates[0]) return null;
+
+    return {
+      imageUrl: candidates[0].url,
+      resolved: true,
+      source: "zyte",
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function extractFromDirectPage(
   url: string,
   name: string,
@@ -1032,26 +1151,22 @@ export async function resolveRetailerImage(params: {
   }
 
   const resolutionPromise = (async () => {
-    try {
-      const direct = await extractFromDirectPage(
-        url,
-        params.name || "",
-        params.brand || ""
-      );
-      if (direct?.imageUrl) {
-        return direct;
-      }
+    const name = params.name || "";
+    const brand = params.brand || "";
 
-      const mirrored = await extractFromMirror(
-        url,
-        params.name || "",
-        params.brand || ""
-      );
-      if (mirrored?.imageUrl) {
-        return mirrored;
+    for (const provider of [
+      () => extractFromZyte(url, name, brand),
+      () => extractFromDirectPage(url, name, brand),
+      () => extractFromMirror(url, name, brand),
+    ]) {
+      try {
+        const result = await provider();
+        if (result?.imageUrl) {
+          return result;
+        }
+      } catch {
+        // Move to the next provider when a source blocks or times out.
       }
-    } catch {
-      return { imageUrl: null, resolved: false, source: "error" };
     }
 
     return { imageUrl: null, resolved: false, source: "fallback" };

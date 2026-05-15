@@ -21,3 +21,8 @@ corepack pnpm start
 GitHub Actions is configured to deploy the app to AWS Lightsail using a container workflow.
 
 See `docs/aws-lightsail-godaddy.md` for the AWS and GoDaddy setup steps.
+
+## Optional retailer image enrichment
+
+Add `ZYTE_API_KEY` to enable higher-confidence product-image extraction for
+retailer pages that block or heavily script their product media.
