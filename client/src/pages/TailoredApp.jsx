@@ -2305,6 +2305,16 @@ const BRANDS = [
     sizeNote: "True to size",
   },
 ];
+const SITE_IMAGE_OVERRIDES = {
+  5: "https://media.thereformation.com/image/upload/f_auto,q_auto,dpr_1.0/w_800,c_scale//PRD-SFCC/1304134/MERCY/1304134.1.MERCY?_s=RAABAB0",
+  7: "https://skims.imgix.net/s/files/1/0259/5448/4284/products/SKIMS-BODYSUIT-BS-TSH-0752-CL-ONX_FR.jpg?v=1624308627&auto=format&q=70&ixlib=react-9.11.0",
+  8: "https://skims.imgix.net/s/files/1/0259/5448/4284/products/SKIMS-LOUNGEWEAR-AP-DRS-0596-ONX-FL_grande.jpg?v=1708554715&auto=format&ixlib=react-9.11.0",
+  23: "https://www.everlane.com/cdn/shop/files/0ff67047_037f.jpg?v=1753411454&width=1200",
+  40: "https://images.lululemon.com/is/image/lululemon/LW5DRJS_074050_1",
+  41: "https://images.lululemon.com/is/image/lululemon/LW3IG3S_075785_1",
+  42: "https://images.lululemon.com/is/image/lululemon/LW3GQ6S_0001_1",
+};
+const LIVE_IMAGE_DISABLED_IDS = new Set([4, 22, 24, 25]);
 const CATALOG = [
   {
     id: 1,
@@ -4561,15 +4571,26 @@ function computeItemFit(userBody, item) {
     risk: bestScore >= 90 ? "Low" : bestScore >= 75 ? "Medium" : "High",
   };
 }
+function canAttemptRetailImage(url = "") {
+  return /\/products\/|\/product\/|\/p\/|\/_\/prod|\/t\/|\/shop\/us\/p\//i.test(
+    url
+  );
+}
 function enrichCatalog(userBody) {
   return CATALOG.map(item => {
     const { fit, bestSize, risk } = computeItemFit(userBody, item);
+    const siteImage = SITE_IMAGE_OVERRIDES[item.id] || null;
     return {
       ...item,
+      image: siteImage || item.image,
       fit,
       bestSize,
       risk,
       badgeMeta: getBadgeMeta(item.badge),
+      hasSiteImage: Boolean(siteImage),
+      canResolveRetailImage:
+        canAttemptRetailImage(item.url) &&
+        !LIVE_IMAGE_DISABLED_IDS.has(item.id),
     };
   });
 }
@@ -4867,7 +4888,10 @@ function ProductImage({
   const imageQuery = trpc.style.resolveProductImage.useQuery(
     { url: item.url, name: item.name, brand: item.brand },
     {
-      enabled: Boolean(item?.url),
+      enabled:
+        Boolean(item?.url) &&
+        !item?.hasSiteImage &&
+        item?.canResolveRetailImage,
       staleTime: 1000 * 60 * 60 * 6,
       gcTime: 1000 * 60 * 60 * 24,
       retry: 1,
@@ -4929,7 +4953,7 @@ function ProductImage({
         </div>
       )}
 
-      {revealBadge && imageQuery.data?.resolved && (
+      {revealBadge && (item?.hasSiteImage || imageQuery.data?.resolved) && (
         <div
           style={{
             position: "absolute",

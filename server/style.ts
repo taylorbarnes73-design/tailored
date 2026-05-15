@@ -726,9 +726,22 @@ function normalizeImageUrl(rawUrl: string, pageUrl: string) {
     const pageAbsolute = new URL(pageUrl).toString();
     if (absolute === pageAbsolute) return null;
     if (
-      /(bat\.bing\.com|doubleclick|google-analytics|facebook\.com\/tr|analytics|\/collect(?:\/|\?|$)|\/akam\/|pixel[_/-]|action\/0\?)/i.test(
+      /(bat\.bing\.com|doubleclick|google-analytics|facebook\.com\/tr|analytics|\/collect(?:\/|\?|$)|\/akam\/|pixel[_/-]|action\/0\?|podscribe|verifi|branch\.io|optimizely|segment|datadog|clicktale|tvspix\.com)/i.test(
         absolute
       )
+    ) {
+      return null;
+    }
+    if (/[{}]/.test(absolute) || /%7B|%7D/i.test(absolute)) return null;
+    if (
+      /(android-icon|apple-touch-icon|favicon|icon-192|icon-512|logo[_-]|logo\/|social-share|facebook_1200x630|flyoutnav|nav[-_]?image|placeholder|cookiefailure|error-page|404-image|twitter_4096|image\/list\/|builder\.io\/api\/v1\/image|empty_bag_state)/i.test(
+        absolute
+      )
+    ) {
+      return null;
+    }
+    if (
+      /thereformation\.com\/image\/upload\/f_auto(?:[/?#]|$)/i.test(absolute)
     ) {
       return null;
     }
