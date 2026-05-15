@@ -2,10 +2,35 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { createUserFile, getUserFiles, getUserFileById, deleteUserFile } from "./db";
+import {
+  createUserFile,
+  getUserFiles,
+  getUserFileById,
+  deleteUserFile,
+} from "./db";
 import { storagePut, storageGet } from "./storage";
+import { generateStyleBrief, resolveRetailerImage } from "./style";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+
+const styleCatalogItemSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1),
+  brand: z.string().min(1),
+  brandId: z.string().optional(),
+  category: z.string().min(1),
+  fit: z.number(),
+  risk: z.string().min(1),
+  bestSize: z.string().optional(),
+  fabric: z.string().optional(),
+  sizingNote: z.string().optional(),
+  badge: z.string().optional(),
+  trending: z.boolean().optional(),
+  url: z.string().url().optional(),
+  image: z.string().url().optional(),
+  price: z.number().optional(),
+  color: z.string().optional(),
+});
 
 export const appRouter = router({
   system: systemRouter,
@@ -29,7 +54,9 @@ export const appRouter = router({
           mimeType: z.string().min(1).max(128),
           /** Base64-encoded file content */
           data: z.string().min(1),
-          category: z.enum(["body-scan", "profile-photo", "measurement", "general"]).default("general"),
+          category: z
+            .enum(["body-scan", "profile-photo", "measurement", "general"])
+            .default("general"),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -66,9 +93,13 @@ export const appRouter = router({
     /** List files for the authenticated user, optionally filtered by category */
     list: protectedProcedure
       .input(
-        z.object({
-          category: z.enum(["body-scan", "profile-photo", "measurement", "general"]).optional(),
-        }).optional()
+        z
+          .object({
+            category: z
+              .enum(["body-scan", "profile-photo", "measurement", "general"])
+              .optional(),
+          })
+          .optional()
       )
       .query(async ({ ctx, input }) => {
         return getUserFiles(ctx.user.id, input?.category);
@@ -107,6 +138,42 @@ export const appRouter = router({
         }
         await deleteUserFile(input.id, ctx.user.id);
         return { success: true, deletedId: input.id };
+      }),
+  }),
+
+  style: router({
+    generateBrief: publicProcedure
+      .input(
+        z.object({
+          body: z.object({
+            bust: z.number(),
+            waist: z.number(),
+            hips: z.number(),
+            shoulder: z.number().optional(),
+            inseam: z.number().optional(),
+          }),
+          occasion: z.string().min(1),
+          goal: z.string().min(1),
+          palette: z.string().min(1),
+          dressCode: z.string().min(1),
+          notes: z.string().max(400).optional(),
+          candidates: z.array(styleCatalogItemSchema).min(3).max(24),
+        })
+      )
+      .mutation(async ({ input }) => {
+        return generateStyleBrief(input);
+      }),
+
+    resolveProductImage: publicProcedure
+      .input(
+        z.object({
+          url: z.string().url(),
+          name: z.string().optional(),
+          brand: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return resolveRetailerImage(input);
       }),
   }),
 });
