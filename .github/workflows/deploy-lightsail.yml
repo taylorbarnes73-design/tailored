@@ -57,12 +57,9 @@ jobs:
 
       - name: Ensure container service exists
         run: |
-          COUNT=$(aws lightsail get-container-services \
+          if ! aws lightsail get-container-services \
             --service-name "$LIGHTSAIL_SERVICE_NAME" \
-            --query 'length(containerServices)' \
-            --output text)
-
-          if [ "$COUNT" = "0" ]; then
+            --output json >/dev/null 2>&1; then
             aws lightsail create-container-service \
               --service-name "$LIGHTSAIL_SERVICE_NAME" \
               --power "$LIGHTSAIL_POWER" \
