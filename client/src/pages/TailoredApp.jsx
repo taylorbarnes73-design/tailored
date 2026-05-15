@@ -312,6 +312,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
   const countdownRef = useRef(null), processingRef = useRef(null);
   const frontFramesRef = useRef([]), sideFramesRef = useRef([]);
   const mountedRef = useRef(true);
+  const clamp = useCallback((value, min, max) => Math.max(min, Math.min(max, value)), []);
   const [phase, setPhase] = useState("loading");
   const [feedback, setFeedback] = useState("Initializing AI...");
   const [confidence, setConfidence] = useState(0);
@@ -322,6 +323,13 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
   const [facingMode] = useState("user");
   const [loadProgress, setLoadProgress] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+  const [scanGuide, setScanGuide] = useState({
+    score: 0,
+    bodyFill: 0,
+    centered: false,
+    stable: false,
+    aligned: false,
+  });
 
   // Cleanup on unmount
   useEffect(() => {
@@ -363,9 +371,9 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
             },
             runningMode: "VIDEO",
             numPoses: 1,
-            minPoseDetectionConfidence: 0.5,
-            minPosePresenceConfidence: 0.5,
-            minTrackingConfidence: 0.5
+            minPoseDetectionConfidence: 0.6,
+            minPosePresenceConfidence: 0.6,
+            minTrackingConfidence: 0.6
           });
         } catch (gpuErr) {
           // Fallback to CPU if GPU delegate fails
@@ -377,9 +385,9 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
             },
             runningMode: "VIDEO",
             numPoses: 1,
-            minPoseDetectionConfidence: 0.5,
-            minPosePresenceConfidence: 0.5,
-            minTrackingConfidence: 0.5
+            minPoseDetectionConfidence: 0.6,
+            minPosePresenceConfidence: 0.6,
+            minTrackingConfidence: 0.6
           });
         }
         if (cancelled || !mountedRef.current) return;
@@ -387,7 +395,12 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
         setLoadProgress("Requesting camera access...");
 
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode, width: { ideal: 640 }, height: { ideal: 1136 } },
+          video: {
+            facingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30, max: 30 }
+          },
           audio: false
         });
         if (cancelled || !mountedRef.current) { stream.getTracks().forEach(t => t.stop()); return; }
@@ -444,7 +457,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
     if (!frames.length) return null;
     return frames[0].map((_, idx) => {
       const vals = frames.map(f => f[idx]);
-      const good = vals.filter(v => (v.visibility || 0) > 0.35);
+      const good = vals.filter(v => (v.visibility || 0) > 0.45);
       if (!good.length) return vals[0];
       const nn = good.length;
       return {
@@ -456,6 +469,75 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
     });
   }, []);
 
+  const evaluateFrame = useCallback((lm, ph) => {
+    const nose = lm?.[0], lS = lm?.[11], rS = lm?.[12], lH = lm?.[23], rH = lm?.[24], lA = lm?.[27], rA = lm?.[28];
+    if (!nose || !lS || !rS || !lH || !rH || !lA || !rA) {
+      return {
+        ok: false,
+        score: 0,
+        avgVis: 0,
+        bodyFill: 0,
+        centered: false,
+        stable: false,
+        aligned: false,
+        reason: "Step into frame so your head, hips, and ankles are visible",
+      };
+    }
+
+    const keyPoints = [nose, lS, rS, lH, rH, lA, rA];
+    const avgVis = keyPoints.reduce((sum, point) => sum + (point.visibility || 0), 0) / keyPoints.length;
+    const shoulderMidX = (lS.x + rS.x) / 2;
+    const hipMidX = (lH.x + rH.x) / 2;
+    const centerOffset = Math.abs(((shoulderMidX + hipMidX) / 2) - 0.5);
+    const ankleMidY = (lA.y + rA.y) / 2;
+    const bodyHeight = Math.abs(nose.y - ankleMidY);
+    const shoulderTilt = Math.abs(lS.y - rS.y);
+    const hipTilt = Math.abs(lH.y - rH.y);
+    const shoulderDepthDiff = Math.abs((lS.z || 0) - (rS.z || 0));
+    const hipDepthDiff = Math.abs((lH.z || 0) - (rH.z || 0));
+    const shoulderSpan = Math.abs(lS.x - rS.x);
+    const centered = centerOffset < 0.1;
+    const fullBody = bodyHeight > 0.58;
+    const stable = shoulderTilt < 0.05 && hipTilt < 0.05;
+    const aligned = ph === "front"
+      ? shoulderDepthDiff < 0.13 && hipDepthDiff < 0.12
+      : shoulderDepthDiff > 0.06 || hipDepthDiff > 0.06 || shoulderSpan < 0.12;
+    const bodyFill = clamp(Math.round((bodyHeight / 0.76) * 100), 0, 100);
+
+    const orientationScore = ph === "front"
+      ? clamp(1 - ((shoulderDepthDiff + hipDepthDiff) / 2) / 0.16, 0, 1)
+      : clamp((Math.max(shoulderDepthDiff, hipDepthDiff) - 0.02) / 0.08, 0, 1);
+
+    const score = clamp(
+      avgVis * 45 +
+      clamp(1 - centerOffset / 0.18, 0, 1) * 18 +
+      clamp((bodyHeight - 0.5) / 0.22, 0, 1) * 18 +
+      clamp(1 - (shoulderTilt + hipTilt) / 0.14, 0, 1) * 8 +
+      orientationScore * 11,
+      0,
+      100
+    );
+
+    let reason = "Hold still — improving accuracy";
+    if (!fullBody) reason = "Step back so your full body and ankles are visible";
+    else if (!centered) reason = "Center your body inside the guide frame";
+    else if (!stable) reason = "Square your shoulders and hold still";
+    else if (!aligned) reason = ph === "front" ? "Face the camera straight on" : "Turn fully sideways so one shoulder leads";
+    else if (avgVis < 0.65) reason = "Improve lighting and keep your arms slightly away from your body";
+    else reason = ph === "front" ? "Excellent — scanning front..." : "Excellent — scanning side...";
+
+    return {
+      ok: score >= (ph === "front" ? 72 : 68) && fullBody && centered && stable && aligned && avgVis > 0.55,
+      score: Math.round(score),
+      avgVis,
+      bodyFill,
+      centered,
+      stable,
+      aligned,
+      reason,
+    };
+  }, [clamp]);
+
   const computeMeasurements = useCallback((frontFrames, sideFrames) => {
     const frontLm = avgFrames(frontFrames);
     if (!frontLm) return null;
@@ -464,9 +546,9 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
     const bodyH = Math.abs(nose.y - (lA.y + rA.y) / 2);
     if (bodyH < 0.05) return null;
     const scale = userHeight / bodyH;
-    const shoulderW = Math.abs(lS.x - rS.x) * scale;
-    const hipW = Math.abs(lH.x - rH.x) * scale;
-    const waistW = ((Math.abs(lS.x - rS.x) + Math.abs(lH.x - rH.x)) / 2 * 0.76) * scale;
+    const shoulderW = Math.abs(lS.x - rS.x) * scale * 1.01;
+    const hipW = Math.abs(lH.x - rH.x) * scale * 1.02;
+    const waistW = (((shoulderW * 0.48) + (hipW * 0.52)) * 0.78);
 
     // Use side scan data for depth if available, otherwise estimate from front
     let chestDepth, hipDepth, waistDepth;
@@ -474,9 +556,14 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
     if (sideLm && sideLm[11] && sideLm[23]) {
       const sideBodyH = Math.abs(sideLm[0].y - (sideLm[27].y + sideLm[28].y) / 2);
       const sideScale = sideBodyH > 0.05 ? userHeight / sideBodyH : scale;
-      chestDepth = Math.abs(sideLm[11].z - sideLm[12].z) * sideScale * 2.2 || shoulderW * 0.68;
-      hipDepth = Math.abs(sideLm[23].z - sideLm[24].z) * sideScale * 2.2 || hipW * 0.70;
-      waistDepth = (chestDepth + hipDepth) / 2 * 0.85;
+      const depthFromLandmarks = (a, b, fallback) => {
+        const zDepth = Math.abs((a?.z || 0) - (b?.z || 0)) * sideScale * 2.15;
+        const xDepth = Math.abs((a?.x || 0) - (b?.x || 0)) * sideScale;
+        return Math.max(zDepth, xDepth, fallback);
+      };
+      chestDepth = depthFromLandmarks(sideLm[11], sideLm[12], shoulderW * 0.68);
+      hipDepth = depthFromLandmarks(sideLm[23], sideLm[24], hipW * 0.72);
+      waistDepth = clamp(((chestDepth + hipDepth) / 2) * (waistW / Math.max((shoulderW + hipW) / 2, 1)), chestDepth * 0.72, hipDepth * 1.02);
     } else {
       chestDepth = shoulderW * 0.68;
       hipDepth = hipW * 0.70;
@@ -496,18 +583,22 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
       inseam: round(Math.max(22, Math.min(36, inseam))),
       shoulder: round(Math.max(12, Math.min(20, shoulderW)))
     };
-  }, [userHeight, avgFrames]);
+  }, [userHeight, avgFrames, clamp]);
 
   const runScanPhase = useCallback((framesTarget, durationMs, ph, onDone) => {
     const startTime = Date.now();
     let lastTime = -1;
     framesTarget.current = [];
+    const targetFrames = ph === "front" ? 22 : 16;
+    const maxDuration = durationMs + (ph === "front" ? 3500 : 3000);
     const tick = () => {
       if (!mountedRef.current) return;
       const video = videoRef.current, canvas = canvasRef.current;
       if (!video || !canvas || !landmarkerRef.current) return;
       const now = Date.now(), elapsed = now - startTime;
-      setProgress(Math.min(100, (elapsed / durationMs) * 100));
+      const captureRatio = clamp(framesTarget.current.length / targetFrames, 0, 1);
+      const timeRatio = clamp(elapsed / durationMs, 0, 1);
+      setProgress(Math.round((captureRatio * 0.72 + timeRatio * 0.28) * 100));
       if (video.readyState >= 2 && video.currentTime !== lastTime) {
         lastTime = video.currentTime;
         try {
@@ -518,47 +609,52 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           if (result.landmarks?.length > 0) {
             const lm = result.landmarks[0];
-            framesTarget.current.push([...lm]);
+            const frameQuality = evaluateFrame(lm, ph);
+            if (frameQuality.ok) framesTarget.current.push([...lm]);
             const drawUtils = new DrawingUtils(ctx);
             drawUtils.drawConnectors(lm, PoseLandmarker.POSE_CONNECTIONS, { color: "rgba(201,169,110,0.6)", lineWidth: 2.5 });
             drawUtils.drawLandmarks(lm, { color: "rgba(201,169,110,0.9)", fillColor: "rgba(201,169,110,0.25)", lineWidth: 1, radius: 4 });
-            const avgVis = lm.reduce((s, l) => s + (l.visibility || 0), 0) / lm.length;
-            setConfidence(Math.round(avgVis * 100));
-            if (framesTarget.current.length % 8 === 0 && framesTarget.current.length >= 10) {
+            setConfidence(Math.round(frameQuality.avgVis * 45 + frameQuality.score * 0.55));
+            setScanGuide({
+              score: frameQuality.score,
+              bodyFill: frameQuality.bodyFill,
+              centered: frameQuality.centered,
+              stable: frameQuality.stable,
+              aligned: frameQuality.aligned,
+            });
+            if (framesTarget.current.length % 6 === 0 && framesTarget.current.length >= 8) {
               const liveEst = computeMeasurements(framesTarget.current, []);
               if (liveEst) setLiveM(liveEst);
             }
-            setFeedback(
-              avgVis < 0.4 ? "Step back — full body must be visible" :
-              avgVis < 0.6 ? "Hold still — improving accuracy" :
-              ph === "front" ? "Excellent — scanning front..." : "Perfect — scanning side..."
-            );
+            setFeedback(frameQuality.reason);
           } else {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            setScanGuide({ score: 0, bodyFill: 0, centered: false, stable: false, aligned: false });
             setFeedback("No body detected — step into frame");
           }
         } catch (detectErr) {
           console.warn("Detection frame error:", detectErr);
         }
       }
-      if (elapsed < durationMs) {
+      if (elapsed < durationMs || (framesTarget.current.length < targetFrames && elapsed < maxDuration)) {
         animRef.current = requestAnimationFrame(tick);
       } else {
         onDone(framesTarget.current);
       }
     };
     animRef.current = requestAnimationFrame(tick);
-  }, [computeMeasurements]);
+  }, [computeMeasurements, evaluateFrame, clamp]);
 
   const startScan = useCallback(() => {
     if (!landmarkerRef.current || !videoRef.current) return;
     setPhase("front"); setProgress(0); setLiveM(null); setConfidence(0);
+    setScanGuide({ score: 0, bodyFill: 0, centered: false, stable: false, aligned: false });
     setFeedback("Stand facing forward, arms slightly out");
-    runScanPhase(frontFramesRef, 6000, "front", (frontFrames) => {
+    runScanPhase(frontFramesRef, 6500, "front", (frontFrames) => {
       if (!mountedRef.current) return;
-      if (frontFrames.length < 15) {
+      if (frontFrames.length < 18) {
         setPhase("ready");
-        setFeedback(`Only ${frontFrames.length} frames captured — make sure full body is visible and well-lit`);
+        setFeedback(`Only ${frontFrames.length} high-quality front frames captured — face the camera straight on and keep your full body inside the guide.`);
         return;
       }
       setPhase("turning"); setProgress(0); setTurnCountdown(3);
@@ -572,8 +668,13 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
           countdownRef.current = null;
           if (!mountedRef.current) return;
           setPhase("side"); setFeedback("Hold side profile still...");
-          runScanPhase(sideFramesRef, 5000, "side", (sideFrames) => {
+          runScanPhase(sideFramesRef, 5200, "side", (sideFrames) => {
             if (!mountedRef.current) return;
+            if (sideFrames.length < 12) {
+              setPhase("ready");
+              setFeedback(`Only ${sideFrames.length} clear side frames captured — turn fully sideways and keep shoulders stacked.`);
+              return;
+            }
             setPhase("processing");
             processingRef.current = setTimeout(() => {
               if (!mountedRef.current) return;
@@ -602,6 +703,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
     if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
     if (landmarkerRef.current) { try { landmarkerRef.current.close(); } catch(e) {} landmarkerRef.current = null; }
     setPhase("loading"); setFeedback("Retrying..."); setConfidence(0); setProgress(0); setLiveM(null); setMeasurements(null);
+    setScanGuide({ score: 0, bodyFill: 0, centered: false, stable: false, aligned: false });
     setRetryCount(c => c + 1);
   }, []);
 
@@ -630,6 +732,12 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
       <div style={{ position: "relative", width: "100%", maxWidth: 320, aspectRatio: "9/16", borderRadius: 20, overflow: "hidden", border: `1px solid ${isActive ? C.goldBorder : C.border}`, background: "#000", boxShadow: isActive ? `0 0 40px rgba(201,169,110,0.2)` : "none", transition: "all 0.3s" }}>
         <video ref={videoRef} playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: facingMode === "user" ? "scaleX(-1)" : "none" }} />
         <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", transform: facingMode === "user" ? "scaleX(-1)" : "none" }} />
+        {(phase === "ready" || isActive) && (
+          <>
+            <div style={{ position: "absolute", left: "18%", right: "18%", top: "10%", bottom: "10%", borderRadius: 28, border: `1px dashed ${isActive ? C.goldBorder : C.borderLight}`, boxShadow: `inset 0 0 0 1px ${isActive ? "rgba(215,176,108,0.14)" : "rgba(255,255,255,0.04)"}` }} />
+            <div style={{ position: "absolute", top: "10%", bottom: "10%", left: "50%", width: 1, transform: "translateX(-0.5px)", background: "rgba(255,255,255,0.12)" }} />
+          </>
+        )}
         {phase === "loading" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.85)", gap: 12 }}>
             <div style={{ width: 36, height: 36, border: `2px solid ${C.border}`, borderTopColor: C.gold, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
@@ -660,9 +768,27 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
           </div>
         )}
         {isActive && (
+          <div style={{ position: "absolute", top: 12, left: 12, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)", border: `1px solid ${C.border}`, borderRadius: 12, padding: "8px 10px", display: "grid", gap: 5, minWidth: 118 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <span style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Quality</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: scanGuide.score >= 72 ? C.success : scanGuide.score >= 55 ? C.warning : C.danger }}>{scanGuide.score}%</span>
+            </div>
+            {[
+              ["Centered", scanGuide.centered],
+              ["Full body", scanGuide.bodyFill >= 75],
+              [phase === "front" ? "Facing front" : "Turned side", scanGuide.aligned && scanGuide.stable],
+            ].map(([label, ok]) => (
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <span style={{ fontSize: 9, color: C.mutedLight }}>{label}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: ok ? C.success : C.muted }}>{ok ? "OK" : "Fix"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {isActive && (
           <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", padding: "6px 12px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: C.gold, animation: "pulse 1.5s ease-in-out infinite" }} />
-            <span style={{ fontSize: 10, color: C.accent, fontWeight: 500 }}>{phase === "front" ? frontFramesRef.current.length : sideFramesRef.current.length} frames captured</span>
+            <span style={{ fontSize: 10, color: C.accent, fontWeight: 500 }}>{phase === "front" ? frontFramesRef.current.length : sideFramesRef.current.length} high-quality frames captured</span>
           </div>
         )}
       </div>
