@@ -61,17 +61,44 @@ const TruckIcon = ({ size = 20 }) => <Ico size={size}><rect x="1" y="3" width="1
 const XIcon = ({ size = 18 }) => <Ico size={size} sw={2}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Ico>;
 const EditIcon = ({ size = 16 }) => <Ico size={size}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></Ico>;
 const TrendingUpIcon = ({ size = 16 }) => <Ico size={size}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></Ico>;
+const RotateIcon = ({ size = 44 }) => <Ico size={size} sw={1.8}><path d="M6 12a8 8 0 111.9 5.2"/><polyline points="5 18 5 12 11 12"/><path d="M14.5 8.25a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/><path d="M12.25 10.5v5.25"/><path d="M9.75 21v-4.5l2.5-1.75 2.5 1.75V21"/></Ico>;
 const InfoIcon = ({ size = 14 }) => <Ico size={size}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Ico>;
 const ChevronRight = ({ size = 16 }) => <Ico size={size} sw={2}><path d="M9 18l6-6-6-6"/></Ico>;
 
 const TAILOR_ICON_MAP = { scissors: ScissorsIcon, measure: MeasureIcon, thread: ThreadIcon, ruler: RulerIcon, needle: NeedleIcon, pen: PenIcon };
 const NAV_ITEMS = [
-  { id: "home", icon: <HomeIcon />, label: "Shop", eyebrow: "Curated edit", title: "Fit-matched wardrobe", blurb: "Your personal storefront with sizing intelligence built into every recommendation." },
-  { id: "trending", icon: <FireIcon />, label: "Trending", eyebrow: "Momentum", title: "What is breaking right now", blurb: "Trend signals filtered through your body profile, return risk, and brand-specific sizing." },
+  { id: "home", icon: <HomeIcon />, label: "Shop", eyebrow: "Client edit", title: "Measurement-led wardrobe planning", blurb: "Shop across retailers with fit scoring, sizing logic, and alteration planning built into every recommendation." },
+  { id: "trending", icon: <FireIcon />, label: "Signals", eyebrow: "Market view", title: "Demand worth acting on", blurb: "Trend movement filtered through your measurements, return risk, and brand-specific sizing patterns." },
   { id: "brands", icon: <TagIcon />, label: "Brands", eyebrow: "Brand map", title: "Where your fit works best", blurb: "See which labels consistently match your proportions before you even open the product page." },
-  { id: "style", icon: <SparkleIcon />, label: "Style AI", eyebrow: "Stylist mode", title: "Body-led styling intelligence", blurb: "Shape analysis, fit logic, and a sharper point of view for building complete looks." },
-  { id: "profile", icon: <UserIcon />, label: "Profile", eyebrow: "Fit passport", title: "Your measurement identity", blurb: "The living record of what fits, what you saved, and how your sizing profile evolves." },
+  { id: "style", icon: <SparkleIcon />, label: "Styling", eyebrow: "Stylist notes", title: "Body-led styling intelligence", blurb: "Shape analysis, fit logic, and practical outfit direction for building a sharper wardrobe." },
+  { id: "profile", icon: <UserIcon />, label: "Profile", eyebrow: "Fit passport", title: "Your fit record", blurb: "The living record of what fits, what you saved, and which alteration briefs are ready to use." },
 ];
+const TREND_SECTION_META = {
+  demand: { title: "Demand Signals", statLabel: "Demand", color: C.gold, Icon: FireIcon },
+  editorial: { title: "Editorial Picks", statLabel: "Editorial", color: C.tailor, Icon: SparkleIcon },
+  staple: { title: "Client Favorites", statLabel: "Favorites", color: C.success, Icon: ShieldIcon },
+  seasonal: { title: "Seasonal Signals", statLabel: "Seasonal", color: C.warning, Icon: TrendingUpIcon },
+};
+
+function getBadgeMeta(badge = "") {
+  const normalized = badge.toLowerCase().trim();
+  if (!normalized) return null;
+
+  if (/(viral|tiktok|ig)/.test(normalized)) return { label: "High Demand", group: "demand" };
+  if (/(editor|pinterest)/.test(normalized)) return { label: "Editorial Pick", group: "editorial" };
+  if (/best seller/.test(normalized)) return { label: "Best Seller", group: "staple" };
+  if (/cult favorite|cozy pick/.test(normalized)) return { label: "Client Favorite", group: "staple" };
+  if (/best value/.test(normalized)) return { label: "Best Value", group: "staple" };
+  if (/trending/.test(normalized)) return { label: "Market Signal", group: "seasonal" };
+  if (/summer/.test(normalized)) return { label: "Seasonal Edit", group: "seasonal" };
+  if (/tech fabric/.test(normalized)) return { label: "Performance Fabric", group: "seasonal" };
+  if (/office/.test(normalized)) return { label: "Workwear Ready", group: "seasonal" };
+  if (/everyday basic/.test(normalized)) return { label: "Foundation Piece", group: "seasonal" };
+  if (/new drop/.test(normalized)) return { label: "New Arrival", group: "seasonal" };
+  if (/going out|date night/.test(normalized)) return { label: "Evening Edit", group: "seasonal" };
+
+  return { label: badge, group: "seasonal" };
+}
 
 function useDesktopLayout() {
   const [isDesktop, setIsDesktop] = useState(() => {
@@ -747,7 +774,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
         )}
         {phase === "turning" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.88)" }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>↩️</div>
+            <div style={{ color: C.gold, marginBottom: 8 }}><RotateIcon /></div>
             <p style={{ fontSize: 18, fontWeight: 700, color: C.gold, letterSpacing: 2, marginBottom: 4 }}>TURN SIDEWAYS</p>
             <p style={{ fontSize: 11, color: C.muted, marginBottom: 20, textAlign: "center", padding: "0 20px" }}>Face your left side to the camera</p>
             <div style={{ width: 64, height: 64, borderRadius: "50%", border: `3px solid ${C.gold}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -844,26 +871,26 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
 
 // ─── Data ──────────────────────────────────────────────────
 const BRANDS = [
-  { id: "zara", name: "Zara", logo: "Z", color: "#000000", tagline: "Fast fashion, curated fits", sizeNote: "Runs small — size up" },
-  { id: "everlane", name: "Everlane", logo: "E", color: "#1A1A1A", tagline: "Radical transparency", sizeNote: "True to size" },
-  { id: "reformation", name: "Reformation", logo: "Rf", color: "#2C2C2C", tagline: "Sustainable & sexy", sizeNote: "Size for waist" },
-  { id: "skims", name: "SKIMS", logo: "S", color: "#C4A882", tagline: "Fits every body", sizeNote: "Stretchy — true to size" },
-  { id: "abercrombie", name: "Abercrombie", logo: "A&F", color: "#1C3A5F", tagline: "Modern American cool", sizeNote: "True to size" },
-  { id: "alo", name: "Alo Yoga", logo: "Alo", color: "#000000", tagline: "Studio to street", sizeNote: "Runs true — size up for loose fit" },
-  { id: "nike", name: "Nike", logo: "N", color: "#111111", tagline: "Just do it", sizeNote: "True to size" },
-  { id: "aritzia", name: "Aritzia", logo: "Ar", color: "#1A1A1A", tagline: "Everyday luxury", sizeNote: "Runs slightly small" },
-  { id: "mango", name: "Mango", logo: "M", color: "#1A1A1A", tagline: "Mediterranean style", sizeNote: "Runs small — size up" },
+  { id: "zara", name: "Zara", logo: "Z", color: "#000000", tagline: "Trend-led essentials", sizeNote: "Runs small — size up" },
+  { id: "everlane", name: "Everlane", logo: "E", color: "#1A1A1A", tagline: "Modern wardrobe staples", sizeNote: "True to size" },
+  { id: "reformation", name: "Reformation", logo: "Rf", color: "#2C2C2C", tagline: "Sustainable occasionwear", sizeNote: "Size for waist" },
+  { id: "skims", name: "SKIMS", logo: "S", color: "#C4A882", tagline: "Body-focused foundations", sizeNote: "Stretchy — true to size" },
+  { id: "abercrombie", name: "Abercrombie", logo: "A&F", color: "#1C3A5F", tagline: "Modern American essentials", sizeNote: "True to size" },
+  { id: "alo", name: "Alo Yoga", logo: "Alo", color: "#000000", tagline: "Performance-led athleisure", sizeNote: "Runs true — size up for loose fit" },
+  { id: "nike", name: "Nike", logo: "N", color: "#111111", tagline: "Technical sport basics", sizeNote: "True to size" },
+  { id: "aritzia", name: "Aritzia", logo: "Ar", color: "#1A1A1A", tagline: "Elevated everyday dressing", sizeNote: "Runs slightly small" },
+  { id: "mango", name: "Mango", logo: "M", color: "#1A1A1A", tagline: "Polished Mediterranean ready-to-wear", sizeNote: "Runs small — size up" },
   { id: "cos", name: "COS", logo: "C", color: "#1A1A1A", tagline: "Considered design", sizeNote: "True to size" },
-  { id: "princesspoly", name: "Princess Polly", logo: "PP", color: "#E8A0BF", tagline: "Trending & playful", sizeNote: "True to size" },
-  { id: "revolve", name: "Revolve", logo: "R", color: "#000000", tagline: "Influencer-approved", sizeNote: "Size for bust" },
-  { id: "hm", name: "H&M", logo: "H&M", color: "#CC0000", tagline: "Fashion for all", sizeNote: "Runs slightly large" },
-  { id: "freepeople", name: "Free People", logo: "FP", color: "#5B4A3F", tagline: "Bohemian spirit", sizeNote: "Relaxed fit — true to size" },
-  { id: "lululemon", name: "Lululemon", logo: "Lu", color: "#D31334", tagline: "Technical athleisure", sizeNote: "True to size — check fit guide" },
-  { id: "anthropologie", name: "Anthropologie", logo: "An", color: "#4A6B5A", tagline: "Curated & eclectic", sizeNote: "True to size" },
+  { id: "princesspoly", name: "Princess Polly", logo: "PP", color: "#E8A0BF", tagline: "Fast-moving social fashion", sizeNote: "True to size" },
+  { id: "revolve", name: "Revolve", logo: "R", color: "#000000", tagline: "Contemporary occasion dressing", sizeNote: "Size for bust" },
+  { id: "hm", name: "H&M", logo: "H&M", color: "#CC0000", tagline: "Accessible fashion essentials", sizeNote: "Runs slightly large" },
+  { id: "freepeople", name: "Free People", logo: "FP", color: "#5B4A3F", tagline: "Relaxed bohemian layers", sizeNote: "Relaxed fit — true to size" },
+  { id: "lululemon", name: "Lululemon", logo: "Lu", color: "#D31334", tagline: "Technical performance wear", sizeNote: "True to size — check fit guide" },
+  { id: "anthropologie", name: "Anthropologie", logo: "An", color: "#4A6B5A", tagline: "Textural, elevated separates", sizeNote: "True to size" },
   { id: "gap", name: "Gap", logo: "G", color: "#000080", tagline: "Modern essentials", sizeNote: "True to size" },
-  { id: "uniqlo", name: "Uniqlo", logo: "U", color: "#FF0000", tagline: "LifeWear for all", sizeNote: "Runs slightly small — size up" },
-  { id: "agolde", name: "AGOLDE", logo: "AG", color: "#2C2C2C", tagline: "Premium denim", sizeNote: "Size for waist — rigid denim" },
-  { id: "toteme", name: "Toteme", logo: "T", color: "#1A1A1A", tagline: "Scandinavian minimalism", sizeNote: "True to size" },
+  { id: "uniqlo", name: "Uniqlo", logo: "U", color: "#FF0000", tagline: "Functional daily basics", sizeNote: "Runs slightly small — size up" },
+  { id: "agolde", name: "AGOLDE", logo: "AG", color: "#2C2C2C", tagline: "Premium denim silhouettes", sizeNote: "Size for waist — rigid denim" },
+  { id: "toteme", name: "Toteme", logo: "T", color: "#1A1A1A", tagline: "Refined Scandinavian staples", sizeNote: "True to size" },
 ];
 const CATALOG = [
   { id: 1, name: "Cropped Trench Coat", brand: "Zara", brandId: "zara", price: 89.90, fit: 0, risk: "Low", color: "#C4A67A", colors: ["#C4A67A","#1a1a1a","#F5F0E8"], category: "Outerwear", trending: true, badge: "Viral on TikTok", url: "https://www.zara.com/us/en/woman-outerwear-l1989.html", image: "https://images.unsplash.com/photo-1591047139829-d919b5ca4d3a?w=400&h=520&fit=crop&q=80", measurements: { XS: "Bust 33-34, Waist 26-27, Shoulder 15", S: "Bust 35-36, Waist 28-29, Shoulder 15.5", M: "Bust 37-38, Waist 30-31, Shoulder 16", L: "Bust 39-41, Waist 32-34, Shoulder 16.5" }, fabric: "Cotton-blend gabardine with belt", sizingNote: "Cropped at waist — size up for layering" },
@@ -1016,10 +1043,19 @@ function computeItemFit(userBody, item) {
   return { fit: bestScore, bestSize, risk: bestScore >= 90 ? "Low" : bestScore >= 75 ? "Medium" : "High" };
 }
 function enrichCatalog(userBody) {
-  return CATALOG.map(item => { const { fit, bestSize, risk } = computeItemFit(userBody, item); return { ...item, fit, bestSize, risk }; });
+  return CATALOG.map(item => {
+    const { fit, bestSize, risk } = computeItemFit(userBody, item);
+    return { ...item, fit, bestSize, risk, badgeMeta: getBadgeMeta(item.badge) };
+  });
 }
 function loadUserData() { try { const r = localStorage.getItem(STORAGE_KEY); if (!r) return null; const d = JSON.parse(r); if (d.favorites) d.favorites = new Set(d.favorites); if (d.styles) d.styles = new Set(d.styles); return d; } catch { return null; } }
 function saveUserData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, favorites: data.favorites ? [...data.favorites] : [], styles: data.styles ? [...data.styles] : [] })); }
+function formatOrderDate(timestamp) {
+  if (!timestamp) return "Saved just now";
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "Saved just now";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
+}
 function generateFitReason(item, userBody) {
   const { bust, waist, hips } = userBody;
   const brand = item.brand, cat = item.category, sizingNote = item.sizingNote || "";
@@ -1036,7 +1072,7 @@ function generateFitReason(item, userBody) {
     if (oversized) return `The oversized cut on this ${brand} piece means your ${bust}" bust has plenty of room. ${item.bestSize} keeps it intentionally relaxed.`;
     return `Great match for your proportions in ${item.bestSize}. ${cat === "Bottoms" ? `Your ${hips}" hips fit well in ${brand}'s cut.` : `Works well with your ${bust}" bust measurement.`}`;
   }
-  return `Decent fit in ${item.bestSize}, but ${brand}'s cut may feel ${waist < 26 ? "slightly loose at the waist" : "a bit snug in spots"}. Consider tailoring for a perfect result.`;
+  return `Decent fit in ${item.bestSize}, but ${brand}'s cut may feel ${waist < 26 ? "slightly loose at the waist" : "a bit snug in spots"}. An alteration brief would sharpen the final fit.`;
 }
 
 // ─── Shared UI Components ──────────────────────────────────
@@ -1054,6 +1090,21 @@ function FitBadge({ fit, size = "sm" }) {
   const color = good ? C.success : mid ? C.warning : C.danger;
   const border = good ? C.successBorder : mid ? C.warningBorder : "rgba(248,113,113,0.2)";
   return <div style={{ background: bg, color, border: `1px solid ${border}`, padding: size === "sm" ? "2px 8px" : "4px 12px", borderRadius: 20, fontSize: size === "sm" ? 10 : 12, fontWeight: 700, letterSpacing: 0.3, display: "flex", alignItems: "center", gap: 3 }}>{fit}% fit</div>;
+}
+function BadgePill({ meta, compact = false }) {
+  if (!meta) return null;
+  const styles = {
+    demand: { bg: C.goldBg, border: C.goldBorder, color: C.goldLight },
+    editorial: { bg: C.tailorBg, border: C.tailorBorder, color: C.tailor },
+    staple: { bg: C.successBg, border: C.successBorder, color: C.success },
+    seasonal: { bg: "rgba(255,255,255,0.08)", border: C.borderLight, color: C.mutedLight },
+  }[meta.group] || { bg: C.card, border: C.border, color: C.mutedLight };
+
+  return (
+    <div style={{ background: styles.bg, border: `1px solid ${styles.border}`, padding: compact ? "2px 8px" : "3px 10px", borderRadius: 999, fontSize: compact ? 8 : 9, fontWeight: 700, color: styles.color, letterSpacing: 0.5, textTransform: "uppercase", display: "inline-flex", alignItems: "center" }}>
+      {meta.label}
+    </div>
+  );
 }
 function FitBar({ fit, label, showLabel = true }) {
   const color = fit >= 90 ? C.success : fit >= 75 ? C.warning : C.danger;
@@ -1093,7 +1144,7 @@ function ItemCard({ item, onClick, isFav, toggleFav }) {
         </div>
         <div style={{ position: "absolute", top: 8, left: 8, display: "flex", flexDirection: "column", gap: 4 }}>
           <FitBadge fit={item.fit} />
-          {item.badge && <div style={{ background: "rgba(201,169,110,0.9)", backdropFilter: "blur(8px)", padding: "2px 8px", borderRadius: 6, fontSize: 8, fontWeight: 700, color: "#fff", letterSpacing: 0.5, textTransform: "uppercase" }}>{item.badge}</div>}
+          <BadgePill meta={item.badgeMeta} compact />
         </div>
         <button onClick={e => { e.stopPropagation(); toggleFav(item.id); }} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", border: "none", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <HeartIcon filled={isFav} />
@@ -1294,7 +1345,7 @@ function DesktopContextPanel({ screen, navTab, selectedItem, selectedBrand, cata
         )}
         {lastTailorOrder && (
           <p className="tb-sidebar-note">
-            Latest tailor request: {lastTailorOrder.item.name} with {lastTailorOrder.alterations.length} adjustment{lastTailorOrder.alterations.length === 1 ? "" : "s"}.
+            Latest alteration brief: {lastTailorOrder.item.name} with {lastTailorOrder.alterations.length} planned adjustment{lastTailorOrder.alterations.length === 1 ? "" : "s"}.
           </p>
         )}
       </div>
@@ -1306,9 +1357,12 @@ function DesktopContextPanel({ screen, navTab, selectedItem, selectedBrand, cata
 function SplashScreen({ onContinue }) {
   const [phase, setPhase] = useState(0);
   useEffect(() => {
-    setTimeout(() => setPhase(1), 300);
-    setTimeout(() => setPhase(2), 800);
-    setTimeout(() => setPhase(3), 1300);
+    const timers = [
+      window.setTimeout(() => setPhase(1), 300),
+      window.setTimeout(() => setPhase(2), 800),
+      window.setTimeout(() => setPhase(3), 1300),
+    ];
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, []);
   return (
     <div className="tb-screen tb-screen--splash" style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", background: C.bg, padding: "52px 32px 44px", position: "relative", overflow: "hidden" }}>
@@ -1328,23 +1382,23 @@ function SplashScreen({ onContinue }) {
         <div style={{ opacity: phase >= 2 ? 1 : 0, transform: phase >= 2 ? "translateY(0)" : "translateY(20px)", transition: "all 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s" }}>
           <h1 style={{ fontFamily: font.serif, fontSize: 44, fontWeight: 400, color: C.accent, lineHeight: 1.1, margin: 0, letterSpacing: -1 }}>
             Fashion that<br />
-            <span style={{ color: C.gold, fontStyle: "italic" }}>fits you.</span>
+            <span style={{ color: C.gold, fontStyle: "italic" }}>actually fits.</span>
           </h1>
         </div>
         <div style={{ opacity: phase >= 3 ? 1 : 0, transform: phase >= 3 ? "translateY(0)" : "translateY(16px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s" }}>
           <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, maxWidth: 280, margin: 0 }}>
-            Your exact measurements. Every item scored for fit. No more guessing — just confidence.
+            Shop any retailer with measurement-based fit scoring, size recommendations, and alteration planning before you place the order.
           </p>
         </div>
 
         <div className="tb-splash__features" style={{ opacity: phase >= 3 ? 1 : 0, transition: "opacity 0.7s 0.5s", display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 280, marginTop: 8 }}>
           {[
-            { icon: "📐", text: "AI body scan in 30 seconds" },
-            { icon: "✨", text: "Fit score on every item" },
-            { icon: "👗", text: "Virtual try-on on your body" },
-          ].map(({ icon, text }) => (
+            { Icon: CameraIcon, text: "3D body scan in under a minute" },
+            { Icon: TargetIcon, text: "Fit scoring across every retailer" },
+            { Icon: ScissorsIcon, text: "Alteration briefs before checkout" },
+          ].map(({ Icon, text }) => (
             <div key={text} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12 }}>
-              <span style={{ fontSize: 18 }}>{icon}</span>
+              <div style={{ color: C.gold, display: "flex" }}><Icon size={18} /></div>
               <span style={{ fontSize: 13, color: C.mutedLight }}>{text}</span>
             </div>
           ))}
@@ -1353,9 +1407,9 @@ function SplashScreen({ onContinue }) {
 
       <div className="tb-splash__cta" style={{ width: "100%", maxWidth: 320, opacity: phase >= 3 ? 1 : 0, transform: phase >= 3 ? "translateY(0)" : "translateY(12px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s" }}>
         <button onClick={onContinue} style={{ width: "100%", padding: "16px 0", borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 15, fontWeight: 600, letterSpacing: 0.5, cursor: "pointer", boxShadow: `0 8px 32px rgba(201,169,110,0.35)` }}>
-          Get Started
+          Build Your Fit Profile
         </button>
-        <p style={{ textAlign: "center", fontSize: 11, color: C.muted, marginTop: 14 }}>No account required · Works on any body</p>
+        <p style={{ textAlign: "center", fontSize: 11, color: C.muted, marginTop: 14 }}>Private on-device profile · Works across retailers</p>
       </div>
     </div>
   );
@@ -1415,8 +1469,8 @@ function OnboardingScreen({ onComplete }) {
     return (
       <div className="tb-screen tb-screen--onboarding-choose" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, padding: "52px 24px 44px", overflow: "auto" }}>
         <div className="tb-onboarding-hero" style={{ marginBottom: 32, textAlign: "center" }}>
-          <h1 style={{ fontFamily: font.serif, fontSize: 32, fontWeight: 400, color: C.accent, margin: "0 0 10px", lineHeight: 1.2 }}>Let's get your fit</h1>
-          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>We need your measurements to score every item for fit. How would you like to proceed?</p>
+          <h1 style={{ fontFamily: font.serif, fontSize: 32, fontWeight: 400, color: C.accent, margin: "0 0 10px", lineHeight: 1.2 }}>Build your fit profile</h1>
+          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>We use your measurements to score fit, reduce returns, and prepare alteration guidance before you buy.</p>
         </div>
 
         <div className="tb-onboarding-choice-list" style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
@@ -1430,7 +1484,7 @@ function OnboardingScreen({ onComplete }) {
                   <span style={{ fontSize: 15, fontWeight: 600, color: C.accent }}>AI Body Scan</span>
                   <span style={{ fontSize: 9, fontWeight: 700, color: C.gold, background: C.goldBg, border: `1px solid ${C.goldBorder}`, padding: "2px 8px", borderRadius: 6, letterSpacing: 0.5 }}>RECOMMENDED</span>
                 </div>
-                <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.5, margin: 0 }}>Use your camera for a 30-second 3D scan. Up to 96% accuracy — no tape measure needed.</p>
+                <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.5, margin: 0 }}>Use your camera for a 3D scan with fast measurement capture and a stronger starting point for fit accuracy.</p>
               </div>
             </div>
           </GlassCard>
@@ -1442,7 +1496,7 @@ function OnboardingScreen({ onComplete }) {
               </div>
               <div style={{ flex: 1 }}>
                 <span style={{ fontSize: 15, fontWeight: 600, color: C.accent, display: "block", marginBottom: 4 }}>Enter Manually</span>
-                <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.5, margin: 0 }}>Type in your measurements from a tape measure or clothing label. Quick and precise.</p>
+                <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.5, margin: 0 }}>Enter measurements from a tape measure or clothing label for a direct, controlled setup.</p>
               </div>
             </div>
           </GlassCard>
@@ -1590,8 +1644,8 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
       <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
-            <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>For You</h2>
-            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>{perfectFits} perfect fits · avg {avgFit}% match</p>
+            <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Your Edit</h2>
+            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>{perfectFits} ready-to-order fits · avg {avgFit}% match</p>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, color: C.muted, fontSize: 11, padding: "6px 10px", cursor: "pointer", outline: "none" }}>
@@ -1605,7 +1659,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
         {/* Search */}
         <div style={{ position: "relative", marginBottom: 14 }}>
           <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}><SearchIcon size={15} /></div>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items or brands..." style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px 10px 36px", color: C.accent, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search brands, pieces, or categories..." style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px 10px 36px", color: C.accent, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
         </div>
 
         {/* Category pills */}
@@ -1621,7 +1675,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <TargetIcon size={14} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: C.accent }}>Highest Fit Scores</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: C.accent }}>Most Ready to Order</span>
               </div>
               <button onClick={() => setSortBy("fit")} style={{ background: "none", border: "none", color: C.gold, fontSize: 11, cursor: "pointer", fontWeight: 500 }}>See all →</button>
             </div>
@@ -1671,7 +1725,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
         </div>
         {filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", border: `1px solid ${C.border}`, background: C.card, color: C.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}><SearchIcon size={20} /></div>
             <p style={{ fontSize: 14, color: C.muted }}>No items found for "{search}"</p>
           </div>
         )}
@@ -1684,14 +1738,15 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
 // ─── Trending Screen ───────────────────────────────────────
 function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
   const trendingItems = useMemo(() => catalog.filter(i => i.trending).sort((a, b) => b.fit - a.fit), [catalog]);
-  const viral = trendingItems.filter(i => i.badge?.toLowerCase().includes("viral") || i.badge?.toLowerCase().includes("tiktok"));
-  const editorsPicks = trendingItems.filter(i => i.badge?.toLowerCase().includes("editor") || i.badge?.toLowerCase().includes("pinterest"));
-  const bestSellers = trendingItems.filter(i => i.badge?.toLowerCase().includes("best seller"));
+  const demandSignals = trendingItems.filter(i => i.badgeMeta?.group === "demand");
+  const editorialPicks = trendingItems.filter(i => i.badgeMeta?.group === "editorial");
+  const clientFavorites = trendingItems.filter(i => i.badgeMeta?.group === "staple");
+  const seasonalSignals = trendingItems.filter(i => i.badgeMeta?.group === "seasonal");
 
-  const Section = ({ title, icon, items, color = C.accent }) => (
+  const Section = ({ title, IconComp, items, color = C.accent }) => (
     <div style={{ marginBottom: 28 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 16 }}>{icon}</span>
+        <div style={{ color, display: "flex" }}><IconComp size={16} /></div>
         <span style={{ fontSize: 15, fontWeight: 600, color }}>{title}</span>
         <div style={{ flex: 1, height: 1, background: C.border, marginLeft: 4 }} />
       </div>
@@ -1702,7 +1757,7 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
               <div style={{ height: 170, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)`, position: "relative" }}>
                 <div style={{ position: "absolute", top: 8, left: 8 }}><FitBadge fit={item.fit} /></div>
                 <button onClick={e => { e.stopPropagation(); toggleFav(item.id); }} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><HeartIcon filled={favorites.has(item.id)} /></button>
-                {item.badge && <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(201,169,110,0.9)", padding: "2px 8px", borderRadius: 6, fontSize: 8, fontWeight: 700, color: "#fff", letterSpacing: 0.5, textTransform: "uppercase" }}>{item.badge}</div>}
+                {item.badgeMeta && <div style={{ position: "absolute", bottom: 8, left: 8 }}><BadgePill meta={item.badgeMeta} compact /></div>}
               </div>
               <div style={{ padding: "8px 10px 10px" }}>
                 <div style={{ fontSize: 8, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>{item.brand}</div>
@@ -1723,29 +1778,38 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
     <div className="tb-screen tb-screen--trending" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
       <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <div style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Trending Now</h2>
-          <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>Curated for your fit · Spring 2026</p>
+          <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Market Signals</h2>
+          <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>High-demand pieces filtered through your fit profile</p>
         </div>
 
         {/* Trend stats banner */}
         <div style={{ display: "flex", gap: 10, marginBottom: 16, overflowX: "auto", scrollbarWidth: "none" }}>
-          {[["🔥", "Viral", viral.length], ["✨", "Editor's Pick", editorsPicks.length], ["⭐", "Best Seller", bestSellers.length]].map(([icon, label, count]) => (
-            <div key={label} style={{ flexShrink: 0, padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>{icon}</span>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.accent }}>{count}</div>
-                <div style={{ fontSize: 9, color: C.muted, letterSpacing: 0.5 }}>{label}</div>
+          {[
+            { key: "demand", count: demandSignals.length },
+            { key: "editorial", count: editorialPicks.length },
+            { key: "staple", count: clientFavorites.length },
+            { key: "seasonal", count: seasonalSignals.length },
+          ].map(({ key, count }) => {
+            const { statLabel, color, Icon } = TREND_SECTION_META[key];
+            return (
+              <div key={key} style={{ flexShrink: 0, padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ color, display: "flex" }}><Icon size={16} /></div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.accent }}>{count}</div>
+                  <div style={{ fontSize: 9, color: C.muted, letterSpacing: 0.5 }}>{statLabel}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
-        <Section title="Going Viral" icon="🔥" items={viral} color={C.danger} />
-        <Section title="Editor's Picks" icon="✨" items={editorsPicks} color={C.gold} />
-        <Section title="Best Sellers" icon="⭐" items={bestSellers} color={C.warning} />
-        <Section title="All Trending" icon="📈" items={trendingItems} />
+        {!!demandSignals.length && <Section title={TREND_SECTION_META.demand.title} IconComp={TREND_SECTION_META.demand.Icon} items={demandSignals} color={TREND_SECTION_META.demand.color} />}
+        {!!editorialPicks.length && <Section title={TREND_SECTION_META.editorial.title} IconComp={TREND_SECTION_META.editorial.Icon} items={editorialPicks} color={TREND_SECTION_META.editorial.color} />}
+        {!!clientFavorites.length && <Section title={TREND_SECTION_META.staple.title} IconComp={TREND_SECTION_META.staple.Icon} items={clientFavorites} color={TREND_SECTION_META.staple.color} />}
+        {!!seasonalSignals.length && <Section title={TREND_SECTION_META.seasonal.title} IconComp={TREND_SECTION_META.seasonal.Icon} items={seasonalSignals} color={TREND_SECTION_META.seasonal.color} />}
+        <Section title="All Active Signals" IconComp={TrendingUpIcon} items={trendingItems} />
       </div>
       <NavBar active="trending" onNav={onNav} />
     </div>
@@ -1758,7 +1822,7 @@ function BrandsScreen({ catalog, onBrandClick, onNav }) {
     <div className="tb-screen tb-screen--brands" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
       <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Brands</h2>
-        <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Shop by brand — fit scores included</p>
+        <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Compare retailers by how consistently they fit your profile</p>
       </div>
       <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
         <div className="tb-brand-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -1812,7 +1876,10 @@ function BrandDetailScreen({ brand, onBack, onItemClick, favorites, toggleFav, c
       </div>
       {brand.sizeNote && (
         <div className="tb-brand-detail__note" style={{ margin: "0 18px 14px", padding: "10px 14px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 10 }}>
-          <p style={{ fontSize: 11, color: C.goldLight, margin: 0 }}>💡 {brand.sizeNote}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <InfoIcon size={14} />
+            <p style={{ fontSize: 11, color: C.goldLight, margin: 0 }}>{brand.sizeNote}</p>
+          </div>
         </div>
       )}
       <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 40px" }}>
@@ -1898,16 +1965,18 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
 
           <div className="tb-item-detail__details">
             <div style={{ marginBottom: 18 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-            <p style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, margin: 0 }}>Sourced from {item.brand}</p>
-            {item.url && <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>}
-          </div>
-          <h2 style={{ fontSize: 22, fontWeight: 400, color: C.accent, fontFamily: font.serif, margin: "4px 0 8px", lineHeight: 1.3 }}>{item.name}</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 24, fontWeight: 700, color: C.accent }}>${item.price}</span>
-            <FitBadge fit={item.fit} size="lg" />
-          </div>
-          {item.badge && <div style={{ display: "inline-block", marginTop: 8, padding: "3px 10px", borderRadius: 6, background: C.goldBg, border: `1px solid ${C.goldBorder}`, fontSize: 9, fontWeight: 600, color: C.gold, letterSpacing: 0.5, textTransform: "uppercase" }}>{item.badge}</div>}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <p style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, margin: 0 }}>Sourced from {item.brand}</p>
+                {item.url && <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>}
+              </div>
+              <h2 style={{ fontSize: 22, fontWeight: 400, color: C.accent, fontFamily: font.serif, margin: "4px 0 8px", lineHeight: 1.3 }}>{item.name}</h2>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 24, fontWeight: 700, color: C.accent }}>${item.price}</span>
+                <FitBadge fit={item.fit} size="lg" />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+                <BadgePill meta={item.badgeMeta} />
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 0, marginBottom: 16, background: C.card, borderRadius: 12, padding: 4, border: `1px solid ${C.border}` }}>
@@ -1936,7 +2005,7 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
             <div style={{ padding: "12px 14px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 10, marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <SparkleIcon size={12} />
-                <span style={{ fontSize: 9, fontWeight: 600, color: C.tailor, textTransform: "uppercase", letterSpacing: 0.5 }}>AI Stylist</span>
+                <span style={{ fontSize: 9, fontWeight: 600, color: C.tailor, textTransform: "uppercase", letterSpacing: 0.5 }}>Fit Note</span>
               </div>
               <p style={{ fontSize: 11, color: "rgba(250,250,249,0.75)", lineHeight: 1.6, fontStyle: "italic", margin: 0 }}>{generateFitReason(item, userBody)}</p>
             </div>
@@ -1998,7 +2067,7 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
 
             <div className="tb-item-detail__actions" style={{ display: "flex", gap: 10 }}>
               <button onClick={() => onSendToTailor(item)} style={{ flex: 1, padding: "14px 0", borderRadius: 12, border: `1px solid ${C.tailorBorder}`, background: C.tailorBg, color: C.tailor, fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                <ScissorsIcon size={14} /> Tailor It
+                <ScissorsIcon size={14} /> Build Alteration Brief
               </button>
               {item.url && (
                 <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ flex: 2, padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
@@ -2039,8 +2108,8 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
   return (
     <div className="tb-screen tb-screen--style" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
       <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
-        <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Style AI</h2>
-        <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Personalized insights for your body</p>
+        <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Style Notes</h2>
+        <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Body-led guidance for silhouette, fabric, and brand selection</p>
       </div>
 
       <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
@@ -2048,7 +2117,7 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
         <GlassCard className="tb-style-hero" style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, marginBottom: 6 }}>Your Body Shape</div>
+              <div style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, marginBottom: 6 }}>Profile Shape</div>
               <div style={{ fontSize: 28, fontWeight: 400, color: C.accent, fontFamily: font.serif, marginBottom: 8 }}>{insights.shape}</div>
               <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.6, margin: 0 }}>{shapeAdvice[insights.shape]}</p>
             </div>
@@ -2068,12 +2137,12 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
         <div style={{ padding: "16px 18px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <SparkleIcon size={16} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.tailor }}>AI Stylist Insight</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.tailor }}>Fit Brief</span>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(250,250,249,0.8)", lineHeight: 1.7, margin: "0 0 12px", fontStyle: "italic" }}>
-            "Based on your {userBody.bust}-{userBody.waist}-{userBody.hips} measurements, you have a {insights.shape.toLowerCase()} shape. 
-            {insights.bestBrand ? ` ${insights.bestBrand.name} is your best-matching brand at ${Math.round(insights.bestBrand.avg)}% average fit.` : ""} 
-            {insights.lowRisk} items in the catalog are low return-risk for you."
+          <p style={{ fontSize: 12, color: "rgba(250,250,249,0.8)", lineHeight: 1.7, margin: "0 0 12px" }}>
+            Your {userBody.bust}-{userBody.waist}-{userBody.hips} profile reads as a {insights.shape.toLowerCase()} silhouette.
+            {insights.bestBrand ? ` ${insights.bestBrand.name} currently leads the catalog at ${Math.round(insights.bestBrand.avg)}% average fit.` : ""}
+            {` ${insights.lowRisk} items are tracking as low return-risk for your measurements.`}
           </p>
           <div style={{ display: "flex", gap: 8 }}>
             <div style={{ flex: 1, padding: "10px 12px", background: "rgba(126,161,136,0.12)", borderRadius: 10, textAlign: "center" }}>
@@ -2095,15 +2164,15 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
 
         {/* Style Tips */}
         <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Style Tips for You</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Styling Priorities</p>
           {[
-            { icon: "✅", tip: "Fitted waistlines highlight your proportions" },
-            { icon: "✅", tip: "Stretch fabrics (jersey, modal) give the best fit scores" },
-            { icon: "✅", tip: "High-waist bottoms elongate your silhouette" },
-            { icon: "⚡", tip: "Avoid boxy cuts — they hide your shape" },
-          ].map(({ icon, tip }) => (
+            "Fitted waistlines highlight your proportions",
+            "Stretch fabrics such as jersey and modal consistently score best on fit",
+            "High-waist bottoms lengthen the silhouette and stabilize sizing",
+            "Avoid boxy cuts when you want your strongest shape definition",
+          ].map((tip) => (
             <div key={tip} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-              <span style={{ fontSize: 14 }}>{icon}</span>
+              <div style={{ color: C.success, display: "flex", marginTop: 1 }}><CheckCircle size={14} /></div>
               <span style={{ fontSize: 12, color: C.mutedLight, lineHeight: 1.5 }}>{tip}</span>
             </div>
           ))}
@@ -2111,7 +2180,7 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
 
         {/* Top Picks */}
         <div style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Your Top Picks</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Most Compatible Picks</p>
           <div className="tb-catalog-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {insights.topFits.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
           </div>
@@ -2134,15 +2203,28 @@ function TailorScreen({ item, onBack, onConfirm }) {
       <div className="tb-screen__header" style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <BackButton onClick={onBack} />
         <div>
-          <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>Tailor It</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>Alteration Brief</h2>
           <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>{item.name}</p>
         </div>
       </div>
       <div className="tb-screen__body tb-tailor-layout" style={{ flex: 1, overflow: "auto", padding: "0 18px 100px" }}>
+        <GlassCard style={{ padding: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <div style={{ width: 72, height: 92, borderRadius: 16, overflow: "hidden", background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)`, border: `1px solid ${C.border}`, flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2 }}>{item.brand}</div>
+              <div style={{ fontSize: 16, color: C.accent, fontWeight: 600, marginTop: 4 }}>{item.name}</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
+                <FitBadge fit={item.fit} />
+                <div style={{ padding: "3px 9px", borderRadius: 999, background: C.bgElevated, border: `1px solid ${C.border}`, fontSize: 10, fontWeight: 600, color: C.mutedLight }}>Recommended size {item.bestSize}</div>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
         <div style={{ padding: "14px 16px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 12, marginBottom: 20 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
             <SparkleIcon size={14} />
-            <p style={{ fontSize: 11, color: C.tailor, lineHeight: 1.5, margin: 0 }}>Select alterations to make this garment fit you perfectly. A local tailor will be matched to your order.</p>
+            <p style={{ fontSize: 11, color: C.tailor, lineHeight: 1.5, margin: 0 }}>Choose the adjustments you expect after purchase. We will save them as a concise alteration brief you can reference or share.</p>
           </div>
         </div>
         {TAILOR_OPTIONS.map(opt => {
@@ -2171,11 +2253,11 @@ function TailorScreen({ item, onBack, onConfirm }) {
       </div>
       <div className="tb-sticky-cta" style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <span style={{ fontSize: 13, color: C.muted }}>{selected.size} alteration{selected.size !== 1 ? "s" : ""} selected</span>
-          <span style={{ fontSize: 16, fontWeight: 700, color: C.accent }}>{total > 0 ? `+$${total}` : "Free consultation"}</span>
+          <span style={{ fontSize: 13, color: C.muted }}>{selected.size} adjustment{selected.size !== 1 ? "s" : ""} selected</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: C.accent }}>{total > 0 ? `Estimated +$${total}` : "Consultation first"}</span>
         </div>
-        <button onClick={() => onConfirm({ item, alterations: [...selected], notes, total })} disabled={selected.size === 0} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: selected.size > 0 ? `linear-gradient(135deg, ${C.tailor}, #557061)` : C.border, color: selected.size > 0 ? "#fff" : C.muted, fontSize: 13, fontWeight: 600, cursor: selected.size > 0 ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
-          {selected.size > 0 ? "Request Tailor →" : "Select at least one alteration"}
+        <button onClick={() => onConfirm({ item, alterations: [...selected], notes, total, requestedAt: new Date().toISOString(), status: "Brief ready" })} disabled={selected.size === 0} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: selected.size > 0 ? `linear-gradient(135deg, ${C.tailor}, #557061)` : C.border, color: selected.size > 0 ? "#fff" : C.muted, fontSize: 13, fontWeight: 600, cursor: selected.size > 0 ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
+          {selected.size > 0 ? "Save Alteration Brief" : "Select at least one adjustment"}
         </button>
       </div>
     </div>
@@ -2226,7 +2308,7 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
             <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Profile</h2>
-            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>Your fit identity</p>
+            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>Your fit record</p>
           </div>
           <button onClick={() => setEditing(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontSize: 11, cursor: "pointer" }}>
             <EditIcon size={13} /> Edit
@@ -2260,7 +2342,7 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
             {[
               { label: "Avg Fit", value: `${avgFit}%`, color: C.gold },
               { label: "Perfect Fits", value: perfectFits, color: C.success },
-              { label: "Saved", value: favorites.size, color: C.tailor },
+              { label: "Shortlist", value: favorites.size, color: C.tailor },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ textAlign: "center", padding: "12px 8px", background: C.bgElevated, borderRadius: 12, border: `1px solid ${C.border}` }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color }}>{value}</div>
@@ -2273,17 +2355,17 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
         {/* Tailor Orders */}
         {tailorOrders.length > 0 && (
           <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Tailor Orders</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Alteration Briefs</p>
             {tailorOrders.map((order, i) => (
               <div key={i} style={{ padding: "12px 0", borderBottom: i < tailorOrders.length - 1 ? `1px solid ${C.border}` : "none" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 500, color: C.accent }}>{order.item.name}</div>
-                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{order.alterations.length} alteration{order.alterations.length !== 1 ? "s" : ""}</div>
+                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{order.alterations.length} adjustment{order.alterations.length !== 1 ? "s" : ""} · {formatOrderDate(order.requestedAt)}</div>
                   </div>
                   <div style={{ display: "flex", flex: "column", alignItems: "flex-end", gap: 4 }}>
                     {order.total > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: C.accent }}>+${order.total}</span>}
-                    <div style={{ padding: "2px 8px", borderRadius: 6, background: C.successBg, border: `1px solid ${C.successBorder}`, fontSize: 9, fontWeight: 600, color: C.success }}>Confirmed</div>
+                    <div style={{ padding: "2px 8px", borderRadius: 6, background: C.successBg, border: `1px solid ${C.successBorder}`, fontSize: 9, fontWeight: 600, color: C.success }}>{order.status || "Brief ready"}</div>
                   </div>
                 </div>
               </div>
@@ -2294,7 +2376,7 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
         {/* Saved Items */}
         {favItems.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Saved Items ({favItems.length})</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Saved for Review ({favItems.length})</p>
             <div className="tb-catalog-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {favItems.slice(0, 4).map(item => (
                 <GlassCard key={item.id} style={{ overflow: "hidden" }}>
@@ -2312,8 +2394,8 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
 
         {favItems.length === 0 && (
           <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🤍</div>
-            <p style={{ fontSize: 13 }}>No saved items yet — tap the heart on any item to save it here.</p>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", border: `1px solid ${C.border}`, background: C.card, color: C.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}><HeartIcon /></div>
+            <p style={{ fontSize: 13 }}>No pieces saved yet. Use the heart on any item to build a shortlist here.</p>
           </div>
         )}
       </div>
