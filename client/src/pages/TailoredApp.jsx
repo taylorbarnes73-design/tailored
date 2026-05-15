@@ -4,20 +4,20 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-
 
 // ─── Design Tokens ─────────────────────────────────────────
 const C = {
-  bg: "#0a0a0a",
-  bgElevated: "#111111",
-  card: "#161616",
-  cardHover: "#1c1c1c",
-  accent: "#fafaf9",
-  muted: "#737373",
-  mutedLight: "#a3a3a3",
-  border: "rgba(255,255,255,0.06)",
-  borderLight: "rgba(255,255,255,0.1)",
-  gold: "#c9a96e",
-  goldDark: "#a68a50",
-  goldLight: "#dfc8a2",
-  goldBg: "rgba(201,169,110,0.08)",
-  goldBorder: "rgba(201,169,110,0.2)",
+  bg: "#0c0b0f",
+  bgElevated: "#141218",
+  card: "#17141a",
+  cardHover: "#211d25",
+  accent: "#f8f3ec",
+  muted: "#8f8794",
+  mutedLight: "#c5bcc8",
+  border: "rgba(255,255,255,0.07)",
+  borderLight: "rgba(255,255,255,0.14)",
+  gold: "#d7b06c",
+  goldDark: "#b68945",
+  goldLight: "#efd8b3",
+  goldBg: "rgba(215,176,108,0.1)",
+  goldBorder: "rgba(215,176,108,0.24)",
   success: "#4ade80",
   successBg: "rgba(74,222,128,0.1)",
   successBorder: "rgba(74,222,128,0.2)",
@@ -25,13 +25,13 @@ const C = {
   warningBg: "rgba(251,191,36,0.1)",
   warningBorder: "rgba(251,191,36,0.2)",
   danger: "#f87171",
-  tailor: "#a78bfa",
-  tailorBg: "rgba(167,139,250,0.08)",
-  tailorBorder: "rgba(167,139,250,0.2)",
+  tailor: "#7ea188",
+  tailorBg: "rgba(126,161,136,0.1)",
+  tailorBorder: "rgba(126,161,136,0.24)",
   glass: "rgba(255,255,255,0.03)",
   glassBorder: "rgba(255,255,255,0.08)",
 };
-const font = { serif: "'Playfair Display', Georgia, serif", sans: "'Inter', -apple-system, sans-serif" };
+const font = { serif: "'Cormorant Garamond', Georgia, serif", sans: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif" };
 
 // ─── SVG Icons ─────────────────────────────────────────────
 const Ico = ({ children, size = 20, stroke = "currentColor", sw = 1.5, fill = "none", vb = "0 0 24 24" }) => (
@@ -65,6 +65,42 @@ const InfoIcon = ({ size = 14 }) => <Ico size={size}><circle cx="12" cy="12" r="
 const ChevronRight = ({ size = 16 }) => <Ico size={size} sw={2}><path d="M9 18l6-6-6-6"/></Ico>;
 
 const TAILOR_ICON_MAP = { scissors: ScissorsIcon, measure: MeasureIcon, thread: ThreadIcon, ruler: RulerIcon, needle: NeedleIcon, pen: PenIcon };
+const NAV_ITEMS = [
+  { id: "home", icon: <HomeIcon />, label: "Shop", eyebrow: "Curated edit", title: "Fit-matched wardrobe", blurb: "Your personal storefront with sizing intelligence built into every recommendation." },
+  { id: "trending", icon: <FireIcon />, label: "Trending", eyebrow: "Momentum", title: "What is breaking right now", blurb: "Trend signals filtered through your body profile, return risk, and brand-specific sizing." },
+  { id: "brands", icon: <TagIcon />, label: "Brands", eyebrow: "Brand map", title: "Where your fit works best", blurb: "See which labels consistently match your proportions before you even open the product page." },
+  { id: "style", icon: <SparkleIcon />, label: "Style AI", eyebrow: "Stylist mode", title: "Body-led styling intelligence", blurb: "Shape analysis, fit logic, and a sharper point of view for building complete looks." },
+  { id: "profile", icon: <UserIcon />, label: "Profile", eyebrow: "Fit passport", title: "Your measurement identity", blurb: "The living record of what fits, what you saved, and how your sizing profile evolves." },
+];
+
+function useDesktopLayout() {
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth >= 1100;
+  });
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1100px)");
+    const onChange = (event) => setIsDesktop(event.matches);
+    setIsDesktop(mql.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return isDesktop;
+}
+
+function inferBodyShape(body) {
+  const bust = body?.bust || 34;
+  const waist = body?.waist || 26;
+  const hips = body?.hips || 36;
+  const ratio = Math.max(bust, hips) / Math.max(waist, 1);
+
+  if (ratio > 1.35) return "Hourglass";
+  if (ratio > 1.2) return "Pear";
+  if (bust > hips) return "Inverted Triangle";
+  return "Rectangle";
+}
 
 // ─── 3D Body System ─────────────────────────────────────────
 function catmullRom(p0, p1, p2, p3, t) {
@@ -878,10 +914,10 @@ function generateFitReason(item, userBody) {
 }
 
 // ─── Shared UI Components ──────────────────────────────────
-const GlassCard = ({ children, style = {}, onClick, hover = false }) => {
+const GlassCard = ({ children, style = {}, onClick, hover = false, className = "" }) => {
   const [hovered, setHovered] = useState(false);
   return (
-    <div onClick={onClick} onMouseEnter={() => hover && setHovered(true)} onMouseLeave={() => hover && setHovered(false)} style={{ background: hovered ? C.cardHover : C.card, border: `1px solid ${hovered ? C.borderLight : C.border}`, borderRadius: 16, transition: "all 0.2s ease", transform: hovered ? "translateY(-1px)" : "none", boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none", cursor: onClick ? "pointer" : "default", ...style }}>
+    <div className={className} onClick={onClick} onMouseEnter={() => hover && setHovered(true)} onMouseLeave={() => hover && setHovered(false)} style={{ background: hovered ? C.cardHover : C.card, border: `1px solid ${hovered ? C.borderLight : C.border}`, borderRadius: 16, transition: "all 0.2s ease", transform: hovered ? "translateY(-1px)" : "none", boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none", cursor: onClick ? "pointer" : "default", ...style }}>
       {children}
     </div>
   );
@@ -903,16 +939,9 @@ function FitBar({ fit, label, showLabel = true }) {
   );
 }
 function NavBar({ active, onNav }) {
-  const items = [
-    { id: "home", icon: <HomeIcon />, label: "Shop" },
-    { id: "trending", icon: <FireIcon />, label: "Trending" },
-    { id: "brands", icon: <TagIcon />, label: "Brands" },
-    { id: "style", icon: <SparkleIcon />, label: "Style AI" },
-    { id: "profile", icon: <UserIcon />, label: "Profile" },
-  ];
   return (
-    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(10,10,10,0.92)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "space-around", padding: "10px 0 22px", zIndex: 10 }}>
-      {items.map(i => (
+    <div className="tb-mobile-nav" style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(10,10,10,0.92)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "space-around", padding: "10px 0 22px", zIndex: 10 }}>
+      {NAV_ITEMS.map(i => (
         <button key={i.id} onClick={() => onNav(i.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: active === i.id ? C.gold : C.muted, opacity: active === i.id ? 1 : 0.55, transition: "all 0.2s", position: "relative", padding: "0 12px" }}>
           {i.icon}
           <span style={{ fontSize: 9, fontWeight: active === i.id ? 700 : 400, letterSpacing: 0.5 }}>{i.label}</span>
@@ -964,6 +993,189 @@ function Pill({ label, active, onClick, gold = false }) {
   return <button onClick={onClick} style={{ padding: "6px 16px", borderRadius: 20, border: `1px solid ${border}`, background: bg, color, fontSize: 11, fontWeight: active ? 600 : 400, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s", letterSpacing: 0.3 }}>{label}</button>;
 }
 
+function DesktopNavRail({ active, onNav, userBody, catalog, favorites, tailorOrders }) {
+  const avgFit = Math.round(catalog.reduce((sum, item) => sum + item.fit, 0) / catalog.length);
+  const perfectFits = catalog.filter(item => item.fit >= 90).length;
+  const shape = inferBodyShape(userBody);
+
+  return (
+    <aside className="tb-shell__sidebar tb-shell__sidebar--nav">
+      <div className="tb-brand-lockup">
+        <div className="tb-brand-lockup__mark">T</div>
+        <div>
+          <p className="tb-sidebar-eyebrow">The Tailored Company</p>
+          <h1 className="tb-brand-lockup__title">Tailored by Taylor</h1>
+          <p className="tb-sidebar-copy">Luxury fit intelligence for real bodies, real wardrobes, and fewer returns.</p>
+        </div>
+      </div>
+
+      <div className="tb-sidebar-card">
+        <p className="tb-sidebar-eyebrow">Navigation</p>
+        <div className="tb-desktop-nav">
+          {NAV_ITEMS.map((item) => {
+            const isActive = active === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onNav(item.id)}
+                className={`tb-desktop-nav__item${isActive ? " is-active" : ""}`}
+              >
+                <span className="tb-desktop-nav__icon">{item.icon}</span>
+                <span>
+                  <span className="tb-desktop-nav__label">{item.label}</span>
+                  <span className="tb-desktop-nav__hint">{item.eyebrow}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="tb-sidebar-card">
+        <p className="tb-sidebar-eyebrow">Fit passport</p>
+        <div className="tb-sidebar-stats">
+          <div>
+            <span className="tb-sidebar-stat__value">{avgFit}%</span>
+            <span className="tb-sidebar-stat__label">Average match</span>
+          </div>
+          <div>
+            <span className="tb-sidebar-stat__value">{perfectFits}</span>
+            <span className="tb-sidebar-stat__label">Perfect fits</span>
+          </div>
+          <div>
+            <span className="tb-sidebar-stat__value">{favorites.size}</span>
+            <span className="tb-sidebar-stat__label">Saved pieces</span>
+          </div>
+        </div>
+        <div className="tb-measurement-list">
+          <div className="tb-measurement-list__headline">
+            <span>{shape} proportions</span>
+            <span>{tailorOrders.length} tailor order{tailorOrders.length === 1 ? "" : "s"}</span>
+          </div>
+          {Object.entries(userBody).map(([key, value]) => (
+            <div key={key} className="tb-measurement-list__row">
+              <span>{key}</span>
+              <strong>{value}"</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function DesktopContextPanel({ screen, navTab, selectedItem, selectedBrand, catalog, favorites, tailorOrders, userBody }) {
+  const activeNav = NAV_ITEMS.find((item) => item.id === navTab) || NAV_ITEMS[0];
+  const savedItems = catalog.filter((item) => favorites.has(item.id)).slice(0, 3);
+  const heroItem = selectedItem || savedItems[0] || catalog[0];
+  const brandItems = selectedBrand ? catalog.filter((item) => item.brandId === selectedBrand.id) : [];
+  const bestBrand = BRANDS.map((brand) => {
+    const items = catalog.filter((item) => item.brandId === brand.id);
+    const avg = items.length ? items.reduce((sum, item) => sum + item.fit, 0) / items.length : 0;
+    return { ...brand, avg };
+  }).sort((a, b) => b.avg - a.avg)[0];
+  const lastTailorOrder = tailorOrders[tailorOrders.length - 1];
+
+  return (
+    <aside className="tb-shell__sidebar tb-shell__sidebar--context">
+      <div className="tb-sidebar-card tb-sidebar-card--hero">
+        <p className="tb-sidebar-eyebrow">{screen === "item" ? "Selected piece" : activeNav.eyebrow}</p>
+        <h2 className="tb-sidebar-title">{screen === "item" && selectedItem ? selectedItem.name : activeNav.title}</h2>
+        <p className="tb-sidebar-copy">{screen === "item" && selectedItem ? generateFitReason(selectedItem, userBody) : activeNav.blurb}</p>
+      </div>
+
+      {selectedBrand ? (
+        <div className="tb-sidebar-card">
+          <p className="tb-sidebar-eyebrow">Brand intelligence</p>
+          <div className="tb-brand-panel">
+            <div className="tb-brand-panel__logo" style={{ background: selectedBrand.color || "#1a1a1a" }}>{selectedBrand.logo}</div>
+            <div>
+              <h3 className="tb-sidebar-title" style={{ fontSize: 24, marginBottom: 4 }}>{selectedBrand.name}</h3>
+              <p className="tb-sidebar-copy">{selectedBrand.tagline}</p>
+            </div>
+          </div>
+          <div className="tb-sidebar-stats">
+            <div>
+              <span className="tb-sidebar-stat__value">{brandItems.length}</span>
+              <span className="tb-sidebar-stat__label">Items tracked</span>
+            </div>
+            <div>
+              <span className="tb-sidebar-stat__value">{brandItems.length ? Math.round(brandItems.reduce((sum, item) => sum + item.fit, 0) / brandItems.length) : 0}%</span>
+              <span className="tb-sidebar-stat__label">Average fit</span>
+            </div>
+          </div>
+          {selectedBrand.sizeNote && <p className="tb-sidebar-note">{selectedBrand.sizeNote}</p>}
+        </div>
+      ) : heroItem ? (
+        <div className="tb-sidebar-card">
+          <p className="tb-sidebar-eyebrow">Live recommendation</p>
+          <div className="tb-sidebar-product">
+            <div className="tb-sidebar-product__image" style={{ background: heroItem.image ? `url(${heroItem.image}) center/cover no-repeat` : `linear-gradient(145deg, ${heroItem.color}, ${heroItem.color}88)` }} />
+            <div>
+              <div className="tb-sidebar-product__brand">{heroItem.brand}</div>
+              <h3 className="tb-sidebar-title" style={{ fontSize: 22, marginBottom: 6 }}>{heroItem.name}</h3>
+              <div className="tb-sidebar-product__meta">
+                <span>{heroItem.bestSize ? `Size ${heroItem.bestSize}` : "Fit mapped"}</span>
+                <span>{heroItem.fit}% match</span>
+              </div>
+            </div>
+          </div>
+          <div className="tb-sidebar-progress">
+            {[
+              ["Bust", Math.min(99, heroItem.fit > 85 ? heroItem.fit : heroItem.fit - 5)],
+              ["Waist", Math.min(99, heroItem.fit > 90 ? heroItem.fit + 3 : heroItem.fit - 8)],
+              ["Hips", Math.min(99, heroItem.fit > 88 ? heroItem.fit + 1 : heroItem.fit - 3)],
+            ].map(([label, fit]) => (
+              <div key={label}>
+                <div className="tb-sidebar-progress__row">
+                  <span>{label}</span>
+                  <strong>{fit}%</strong>
+                </div>
+                <div className="tb-sidebar-progress__track">
+                  <div className="tb-sidebar-progress__fill" style={{ width: `${fit}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="tb-sidebar-card">
+        <p className="tb-sidebar-eyebrow">{savedItems.length ? "Saved lookbook" : "Profile snapshot"}</p>
+        {savedItems.length ? (
+          <div className="tb-mini-list">
+            {savedItems.map((item) => (
+              <div key={item.id} className="tb-mini-list__item">
+                <div className="tb-mini-list__thumb" style={{ background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)` }} />
+                <div>
+                  <div className="tb-mini-list__title">{item.name}</div>
+                  <div className="tb-mini-list__meta">{item.brand} · {item.fit}% fit</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="tb-sidebar-stats">
+            <div>
+              <span className="tb-sidebar-stat__value">{inferBodyShape(userBody)}</span>
+              <span className="tb-sidebar-stat__label">Shape profile</span>
+            </div>
+            <div>
+              <span className="tb-sidebar-stat__value">{bestBrand?.name || "TBD"}</span>
+              <span className="tb-sidebar-stat__label">Best brand</span>
+            </div>
+          </div>
+        )}
+        {lastTailorOrder && (
+          <p className="tb-sidebar-note">
+            Latest tailor request: {lastTailorOrder.item.name} with {lastTailorOrder.alterations.length} adjustment{lastTailorOrder.alterations.length === 1 ? "" : "s"}.
+          </p>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 // ─── Splash Screen ─────────────────────────────────────────
 function SplashScreen({ onContinue }) {
   const [phase, setPhase] = useState(0);
@@ -973,9 +1185,9 @@ function SplashScreen({ onContinue }) {
     setTimeout(() => setPhase(3), 1300);
   }, []);
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", background: C.bg, padding: "52px 32px 44px", position: "relative", overflow: "hidden" }}>
+    <div className="tb-screen tb-screen--splash" style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", background: C.bg, padding: "52px 32px 44px", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "-8%", right: "-18%", width: 380, height: 380, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: "12%", left: "-18%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: "12%", left: "-18%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(126,161,136,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       <div style={{ opacity: phase >= 1 ? 1 : 0, transform: phase >= 1 ? "translateY(0)" : "translateY(-12px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -986,7 +1198,7 @@ function SplashScreen({ onContinue }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, textAlign: "center" }}>
+      <div className="tb-splash__content" style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, textAlign: "center" }}>
         <div style={{ opacity: phase >= 2 ? 1 : 0, transform: phase >= 2 ? "translateY(0)" : "translateY(20px)", transition: "all 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s" }}>
           <h1 style={{ fontFamily: font.serif, fontSize: 44, fontWeight: 400, color: C.accent, lineHeight: 1.1, margin: 0, letterSpacing: -1 }}>
             Fashion that<br />
@@ -999,7 +1211,7 @@ function SplashScreen({ onContinue }) {
           </p>
         </div>
 
-        <div style={{ opacity: phase >= 3 ? 1 : 0, transition: "opacity 0.7s 0.5s", display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 280, marginTop: 8 }}>
+        <div className="tb-splash__features" style={{ opacity: phase >= 3 ? 1 : 0, transition: "opacity 0.7s 0.5s", display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 280, marginTop: 8 }}>
           {[
             { icon: "📐", text: "AI body scan in 30 seconds" },
             { icon: "✨", text: "Fit score on every item" },
@@ -1013,7 +1225,7 @@ function SplashScreen({ onContinue }) {
         </div>
       </div>
 
-      <div style={{ width: "100%", maxWidth: 320, opacity: phase >= 3 ? 1 : 0, transform: phase >= 3 ? "translateY(0)" : "translateY(12px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s" }}>
+      <div className="tb-splash__cta" style={{ width: "100%", maxWidth: 320, opacity: phase >= 3 ? 1 : 0, transform: phase >= 3 ? "translateY(0)" : "translateY(12px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s" }}>
         <button onClick={onContinue} style={{ width: "100%", padding: "16px 0", borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 15, fontWeight: 600, letterSpacing: 0.5, cursor: "pointer", boxShadow: `0 8px 32px rgba(201,169,110,0.35)` }}>
           Get Started
         </button>
@@ -1058,15 +1270,15 @@ function OnboardingScreen({ onComplete }) {
 
   if (scanning) {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-        <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+      <div className="tb-screen tb-screen--scanner" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
+        <div className="tb-screen__header" style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
           <BackButton onClick={() => setScanning(false)} />
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>3D Body Scan</h2>
             <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>AI-powered measurement in 30 seconds</p>
           </div>
         </div>
-        <div style={{ flex: 1, padding: "0 18px 40px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div className="tb-screen__body tb-screen__body--centered" style={{ flex: 1, padding: "0 18px 40px", display: "flex", flexDirection: "column", alignItems: "center" }}>
           <CameraBodyScanner onScanComplete={handleScanComplete} onCancel={() => setScanning(false)} userHeight={heightInches} />
         </div>
       </div>
@@ -1075,13 +1287,13 @@ function OnboardingScreen({ onComplete }) {
 
   if (step === "choose") {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, padding: "52px 24px 44px", overflow: "auto" }}>
-        <div style={{ marginBottom: 32, textAlign: "center" }}>
+      <div className="tb-screen tb-screen--onboarding-choose" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, padding: "52px 24px 44px", overflow: "auto" }}>
+        <div className="tb-onboarding-hero" style={{ marginBottom: 32, textAlign: "center" }}>
           <h1 style={{ fontFamily: font.serif, fontSize: 32, fontWeight: 400, color: C.accent, margin: "0 0 10px", lineHeight: 1.2 }}>Let's get your fit</h1>
           <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>We need your measurements to score every item for fit. How would you like to proceed?</p>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
+        <div className="tb-onboarding-choice-list" style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
           <GlassCard hover onClick={() => setScanning(true)} style={{ padding: 20 }}>
             <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: C.goldBg, border: `1px solid ${C.goldBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1110,7 +1322,7 @@ function OnboardingScreen({ onComplete }) {
           </GlassCard>
         </div>
 
-        <div style={{ padding: "14px 16px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 12 }}>
+        <div className="tb-onboarding-note" style={{ padding: "14px 16px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 12 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
             <SparkleIcon size={14} />
             <p style={{ fontSize: 11, color: C.tailor, lineHeight: 1.5, margin: 0 }}>Your measurements are stored only on your device and never shared. You can update them anytime in your profile.</p>
@@ -1122,8 +1334,8 @@ function OnboardingScreen({ onComplete }) {
 
   if (step === "manual") {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-        <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+      <div className="tb-screen tb-screen--onboarding-manual" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
+        <div className="tb-screen__header" style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
           <BackButton onClick={() => setStep("choose")} />
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>Your Measurements</h2>
@@ -1131,7 +1343,7 @@ function OnboardingScreen({ onComplete }) {
           </div>
         </div>
 
-        <div style={{ flex: 1, padding: "16px 18px 100px", overflow: "auto" }}>
+        <div className="tb-screen__body tb-onboarding-manual__body" style={{ flex: 1, padding: "16px 18px 100px", overflow: "auto" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12 }}>
             <span style={{ fontSize: 12, color: C.muted }}>Units</span>
             <div style={{ display: "flex", gap: 6 }}>
@@ -1172,12 +1384,12 @@ function OnboardingScreen({ onComplete }) {
           <SliderRow label="Inseam" key2="inseam" min={22} max={36} />
           <SliderRow label="Shoulder Width" key2="shoulder" min={12} max={20} />
 
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 8, marginBottom: 16 }}>
+          <div className="tb-onboarding-preview" style={{ display: "flex", justifyContent: "center", marginTop: 8, marginBottom: 16 }}>
             <Body3DViewer body={body} width={160} height={220} autoRotate />
           </div>
         </div>
 
-        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+        <div className="tb-sticky-cta" style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
           <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
             Save & Start Shopping
           </button>
@@ -1188,19 +1400,19 @@ function OnboardingScreen({ onComplete }) {
 
   if (step === "review") {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-        <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+      <div className="tb-screen tb-screen--onboarding-review" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
+        <div className="tb-screen__header" style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
           <BackButton onClick={() => setStep("choose")} />
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>Your Measurements</h2>
             <p style={{ fontSize: 11, color: C.success, margin: 0 }}>Scan complete — review below</p>
           </div>
         </div>
-        <div style={{ flex: 1, padding: "0 18px 100px" }}>
+        <div className="tb-screen__body" style={{ flex: 1, padding: "0 18px 100px" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
             <Body3DViewer body={body} width={200} height={280} autoRotate />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+          <div className="tb-review-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
             {Object.entries(body).map(([k, v]) => (
               <GlassCard key={k} style={{ padding: "12px 14px" }}>
                 <div style={{ fontSize: 10, color: C.muted, textTransform: "capitalize", marginBottom: 4 }}>{k}</div>
@@ -1215,7 +1427,7 @@ function OnboardingScreen({ onComplete }) {
             </div>
           </div>
         </div>
-        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+        <div className="tb-sticky-cta" style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
           <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
             Start Shopping
           </button>
@@ -1248,8 +1460,8 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
   const perfectFits = catalog.filter(i => i.fit >= 90).length;
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
+    <div className="tb-screen tb-screen--home" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
             <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>For You</h2>
@@ -1276,7 +1488,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
+      <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
         {/* Top Picks Hero */}
         {!search && category === "All" && (
           <div style={{ marginBottom: 24 }}>
@@ -1287,7 +1499,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
               </div>
               <button onClick={() => setSortBy("fit")} style={{ background: "none", border: "none", color: C.gold, fontSize: 11, cursor: "pointer", fontWeight: 500 }}>See all →</button>
             </div>
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 4 }}>
+            <div className="tb-top-picks-row" style={{ display: "flex", gap: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 4 }}>
               {topPicks.map(item => (
                 <div key={item.id} onClick={() => onItemClick(item)} style={{ flexShrink: 0, width: 150, cursor: "pointer" }}>
                   <GlassCard hover style={{ overflow: "hidden" }}>
@@ -1309,7 +1521,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
 
         {/* Fit confidence summary */}
         {!search && category === "All" && (
-          <div style={{ padding: "14px 16px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 14, marginBottom: 20, display: "flex", gap: 16, alignItems: "center" }}>
+          <div className="tb-home-summary" style={{ padding: "14px 16px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 14, marginBottom: 20, display: "flex", gap: 16, alignItems: "center" }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, color: C.goldLight, marginBottom: 4, fontWeight: 500 }}>Your Fit Profile</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: C.gold }}>{avgFit}%</div>
@@ -1328,7 +1540,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
         )}
 
         {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div className="tb-catalog-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {filtered.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
         </div>
         {filtered.length === 0 && (
@@ -1357,7 +1569,7 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
         <span style={{ fontSize: 15, fontWeight: 600, color }}>{title}</span>
         <div style={{ flex: 1, height: 1, background: C.border, marginLeft: 4 }} />
       </div>
-      <div style={{ display: "flex", gap: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 4 }}>
+      <div className="tb-trend-rail" style={{ display: "flex", gap: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 4 }}>
         {items.slice(0, 8).map(item => (
           <div key={item.id} onClick={() => onItemClick(item)} style={{ flexShrink: 0, width: 155, cursor: "pointer" }}>
             <GlassCard hover style={{ overflow: "hidden" }}>
@@ -1382,8 +1594,8 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
   );
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
+    <div className="tb-screen tb-screen--trending" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <div style={{ marginBottom: 16 }}>
           <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Trending Now</h2>
           <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>Curated for your fit · Spring 2026</p>
@@ -1403,7 +1615,7 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
+      <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
         <Section title="Going Viral" icon="🔥" items={viral} color={C.danger} />
         <Section title="Editor's Picks" icon="✨" items={editorsPicks} color={C.gold} />
         <Section title="Best Sellers" icon="⭐" items={bestSellers} color={C.warning} />
@@ -1417,13 +1629,13 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
 // ─── Brands Screen ─────────────────────────────────────────
 function BrandsScreen({ catalog, onBrandClick, onNav }) {
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
+    <div className="tb-screen tb-screen--brands" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Brands</h2>
         <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Shop by brand — fit scores included</p>
       </div>
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
+        <div className="tb-brand-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {BRANDS.map(b => {
             const items = catalog.filter(i => i.brandId === b.id);
             const avgFit = items.length ? Math.round(items.reduce((s, i) => s + i.fit, 0) / items.length) : 0;
@@ -1461,8 +1673,8 @@ function BrandDetailScreen({ brand, onBack, onItemClick, favorites, toggleFav, c
   const items = catalog.filter(i => i.brandId === brand.id);
   const avgFit = items.length ? Math.round(items.reduce((s, i) => s + i.fit, 0) / items.length) : 0;
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+    <div className="tb-screen tb-screen--brand-detail" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      <div className="tb-screen__header" style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
         <BackButton onClick={onBack} />
         <div style={{ width: 40, height: 40, borderRadius: 10, background: brand.color || "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid rgba(255,255,255,0.1)` }}>
           <span style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{brand.logo}</span>
@@ -1473,12 +1685,12 @@ function BrandDetailScreen({ brand, onBack, onItemClick, favorites, toggleFav, c
         </div>
       </div>
       {brand.sizeNote && (
-        <div style={{ margin: "0 18px 14px", padding: "10px 14px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 10 }}>
+        <div className="tb-brand-detail__note" style={{ margin: "0 18px 14px", padding: "10px 14px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 10 }}>
           <p style={{ fontSize: 11, color: C.goldLight, margin: 0 }}>💡 {brand.sizeNote}</p>
         </div>
       )}
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 40px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 40px" }}>
+        <div className="tb-catalog-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {items.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
         </div>
       </div>
@@ -1507,57 +1719,59 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
   ];
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-      <div style={{ position: "sticky", top: 0, zIndex: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(10,10,10,0.9)", backdropFilter: "blur(16px)" }}>
+    <div className="tb-screen tb-screen--item-detail" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
+      <div className="tb-item-detail__topbar" style={{ position: "sticky", top: 0, zIndex: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(10,10,10,0.9)", backdropFilter: "blur(16px)" }}>
         <BackButton onClick={onBack} />
         <button onClick={() => toggleFav(item.id)} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, borderRadius: 12, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <HeartIcon filled={isFav} />
         </button>
       </div>
 
-      <div style={{ padding: "0 18px 40px" }}>
-        {/* Image / Try-On */}
-        <div style={{ borderRadius: 20, overflow: "hidden", marginBottom: 14, border: `1px solid ${showTryOn ? C.goldBorder : C.border}`, transition: "border-color 0.3s" }}>
-          {showTryOn ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0 12px", background: C.bgElevated, position: "relative" }}>
-              <Body3DViewer body={userBody} width={300} height={400} garment={{ ...item, color: tryOnColor }} autoRotate />
-              {showFitMap && (
-                <div style={{ position: "absolute", top: 16, left: 16, right: 16, pointerEvents: "none" }}>
-                  <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
-                    {fitRegions.map(r => (
-                      <div key={r.label} style={{ padding: "3px 8px", borderRadius: 6, background: r.score >= 90 ? "rgba(74,222,128,0.3)" : r.score >= 75 ? "rgba(251,191,36,0.3)" : "rgba(248,113,113,0.3)", border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(248,113,113,0.3)"}` }}>
-                        <div style={{ fontSize: 8, color: C.muted, textAlign: "center" }}>{r.label}</div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: r.score >= 90 ? C.success : r.score >= 75 ? C.warning : C.danger, textAlign: "center" }}>{r.score}%</div>
+      <div className="tb-item-detail__content" style={{ padding: "0 18px 40px" }}>
+        <div className="tb-item-detail__shell">
+          <div className="tb-item-detail__media">
+            <div style={{ borderRadius: 20, overflow: "hidden", marginBottom: 14, border: `1px solid ${showTryOn ? C.goldBorder : C.border}`, transition: "border-color 0.3s" }}>
+              {showTryOn ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0 12px", background: C.bgElevated, position: "relative" }}>
+                  <Body3DViewer body={userBody} width={300} height={400} garment={{ ...item, color: tryOnColor }} autoRotate />
+                  {showFitMap && (
+                    <div style={{ position: "absolute", top: 16, left: 16, right: 16, pointerEvents: "none" }}>
+                      <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
+                        {fitRegions.map(r => (
+                          <div key={r.label} style={{ padding: "3px 8px", borderRadius: 6, background: r.score >= 90 ? "rgba(74,222,128,0.3)" : r.score >= 75 ? "rgba(251,191,36,0.3)" : "rgba(248,113,113,0.3)", border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(248,113,113,0.3)"}` }}>
+                            <div style={{ fontSize: 8, color: C.muted, textAlign: "center" }}>{r.label}</div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: r.score >= 90 ? C.success : r.score >= 75 ? C.warning : C.danger, textAlign: "center" }}>{r.score}%</div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                  )}
+                  {colors.length > 1 && (
+                    <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "center" }}>
+                      {colors.map(c => <button key={c} onClick={() => setTryOnColor(c)} style={{ width: 24, height: 24, borderRadius: "50%", background: c, border: `2px solid ${tryOnColor === c ? C.gold : "transparent"}`, outline: tryOnColor === c ? `1px solid ${C.gold}` : "none", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 0 0 1px rgba(255,255,255,0.1)" }} />)}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", justifyContent: "center", padding: "0 16px" }}>
+                    {sizes.map(([sz]) => <button key={sz} onClick={() => setTryOnSize(sz)} style={{ padding: "4px 12px", borderRadius: 8, border: `1px solid ${tryOnSize === sz ? C.goldBorder : C.border}`, background: tryOnSize === sz ? C.goldBg : "transparent", color: tryOnSize === sz ? C.gold : C.muted, fontSize: 10, fontWeight: tryOnSize === sz ? 700 : 500, cursor: "pointer", transition: "all 0.2s" }}>{sz}</button>)}
+                  </div>
+                  <div style={{ display: "flex", gap: 12, marginTop: 8, alignItems: "center" }}>
+                    <p style={{ fontSize: 9, color: C.muted, letterSpacing: 0.5 }}>Drag to rotate · Size {tryOnSize}</p>
+                    <button onClick={() => setShowFitMap(f => !f)} style={{ fontSize: 9, color: showFitMap ? C.gold : C.muted, background: "none", border: `1px solid ${showFitMap ? C.goldBorder : C.border}`, borderRadius: 6, padding: "2px 8px", cursor: "pointer" }}>Fit Map</button>
                   </div>
                 </div>
+              ) : (
+                <div style={{ height: 340, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)` }} />
               )}
-              {colors.length > 1 && (
-                <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "center" }}>
-                  {colors.map(c => <button key={c} onClick={() => setTryOnColor(c)} style={{ width: 24, height: 24, borderRadius: "50%", background: c, border: `2px solid ${tryOnColor === c ? C.gold : "transparent"}`, outline: tryOnColor === c ? `1px solid ${C.gold}` : "none", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 0 0 1px rgba(255,255,255,0.1)" }} />)}
-                </div>
-              )}
-              <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", justifyContent: "center", padding: "0 16px" }}>
-                {sizes.map(([sz]) => <button key={sz} onClick={() => setTryOnSize(sz)} style={{ padding: "4px 12px", borderRadius: 8, border: `1px solid ${tryOnSize === sz ? C.goldBorder : C.border}`, background: tryOnSize === sz ? C.goldBg : "transparent", color: tryOnSize === sz ? C.gold : C.muted, fontSize: 10, fontWeight: tryOnSize === sz ? 700 : 500, cursor: "pointer", transition: "all 0.2s" }}>{sz}</button>)}
-              </div>
-              <div style={{ display: "flex", gap: 12, marginTop: 8, alignItems: "center" }}>
-                <p style={{ fontSize: 9, color: C.muted, letterSpacing: 0.5 }}>Drag to rotate · Size {tryOnSize}</p>
-                <button onClick={() => setShowFitMap(f => !f)} style={{ fontSize: 9, color: showFitMap ? C.gold : C.muted, background: "none", border: `1px solid ${showFitMap ? C.goldBorder : C.border}`, borderRadius: 6, padding: "2px 8px", cursor: "pointer" }}>Fit Map</button>
-              </div>
             </div>
-          ) : (
-            <div style={{ height: 340, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)` }} />
-          )}
-        </div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-          <button onClick={() => setShowTryOn(false)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${!showTryOn ? C.goldBorder : C.border}`, background: !showTryOn ? C.goldBg : "transparent", color: !showTryOn ? C.gold : C.muted, fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Photo</button>
-          <button onClick={() => setShowTryOn(true)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${showTryOn ? C.goldBorder : C.border}`, background: showTryOn ? C.goldBg : "transparent", color: showTryOn ? C.gold : C.muted, fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Virtual Try-On</button>
-        </div>
+            <div className="tb-item-detail__toggle" style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+              <button onClick={() => setShowTryOn(false)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${!showTryOn ? C.goldBorder : C.border}`, background: !showTryOn ? C.goldBg : "transparent", color: !showTryOn ? C.gold : C.muted, fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Photo</button>
+              <button onClick={() => setShowTryOn(true)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${showTryOn ? C.goldBorder : C.border}`, background: showTryOn ? C.goldBg : "transparent", color: showTryOn ? C.gold : C.muted, fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Virtual Try-On</button>
+            </div>
+          </div>
 
-        {/* Item Info */}
-        <div style={{ marginBottom: 18 }}>
+          <div className="tb-item-detail__details">
+            <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
             <p style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, margin: 0 }}>Sourced from {item.brand}</p>
             {item.url && <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>}
@@ -1568,14 +1782,13 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
             <FitBadge fit={item.fit} size="lg" />
           </div>
           {item.badge && <div style={{ display: "inline-block", marginTop: 8, padding: "3px 10px", borderRadius: 6, background: C.goldBg, border: `1px solid ${C.goldBorder}`, fontSize: 9, fontWeight: 600, color: C.gold, letterSpacing: 0.5, textTransform: "uppercase" }}>{item.badge}</div>}
-        </div>
+            </div>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 0, marginBottom: 16, background: C.card, borderRadius: 12, padding: 4, border: `1px solid ${C.border}` }}>
-          {[["fit", "Fit Intelligence"], ["size", "Size Chart"], ["reviews", "Reviews"]].map(([id, label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, padding: "8px 0", borderRadius: 9, border: "none", background: activeTab === id ? C.bgElevated : "transparent", color: activeTab === id ? C.accent : C.muted, fontSize: 11, fontWeight: activeTab === id ? 600 : 400, cursor: "pointer", transition: "all 0.2s" }}>{label}</button>
-          ))}
-        </div>
+            <div style={{ display: "flex", gap: 0, marginBottom: 16, background: C.card, borderRadius: 12, padding: 4, border: `1px solid ${C.border}` }}>
+              {[["fit", "Fit Intelligence"], ["size", "Size Chart"], ["reviews", "Reviews"]].map(([id, label]) => (
+                <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, padding: "8px 0", borderRadius: 9, border: "none", background: activeTab === id ? C.bgElevated : "transparent", color: activeTab === id ? C.accent : C.muted, fontSize: 11, fontWeight: activeTab === id ? 600 : 400, cursor: "pointer", transition: "all 0.2s" }}>{label}</button>
+              ))}
+            </div>
 
         {activeTab === "fit" && (
           <GlassCard style={{ padding: 18, marginBottom: 16 }}>
@@ -1657,16 +1870,17 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
           </GlassCard>
         )}
 
-        {/* CTA Buttons */}
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => onSendToTailor(item)} style={{ flex: 1, padding: "14px 0", borderRadius: 12, border: `1px solid ${C.tailorBorder}`, background: C.tailorBg, color: C.tailor, fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <ScissorsIcon size={14} /> Tailor It
-          </button>
-          {item.url && (
-            <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ flex: 2, padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              Shop at {item.brand} →
-            </button>
-          )}
+            <div className="tb-item-detail__actions" style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => onSendToTailor(item)} style={{ flex: 1, padding: "14px 0", borderRadius: 12, border: `1px solid ${C.tailorBorder}`, background: C.tailorBg, color: C.tailor, fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <ScissorsIcon size={14} /> Tailor It
+              </button>
+              {item.url && (
+                <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ flex: 2, padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  Shop at {item.brand} →
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1697,15 +1911,15 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
   };
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
+    <div className="tb-screen tb-screen--style" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Style AI</h2>
         <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Personalized insights for your body</p>
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
+      <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
         {/* Body Shape Card */}
-        <GlassCard style={{ padding: 20, marginBottom: 16 }}>
+        <GlassCard className="tb-style-hero" style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, marginBottom: 6 }}>Your Body Shape</div>
@@ -1714,7 +1928,7 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
             </div>
             <Body3DViewer body={userBody} width={100} height={140} autoRotate />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 16 }}>
+          <div className="tb-style-measurements" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 16 }}>
             {[["Bust", userBody.bust], ["Waist", userBody.waist], ["Hips", userBody.hips]].map(([k, v]) => (
               <div key={k} style={{ textAlign: "center", padding: "8px 0", background: C.bgElevated, borderRadius: 10, border: `1px solid ${C.border}` }}>
                 <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>{k}</div>
@@ -1736,7 +1950,7 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
             {insights.lowRisk} items in the catalog are low return-risk for you."
           </p>
           <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ flex: 1, padding: "10px 12px", background: "rgba(167,139,250,0.1)", borderRadius: 10, textAlign: "center" }}>
+            <div style={{ flex: 1, padding: "10px 12px", background: "rgba(126,161,136,0.12)", borderRadius: 10, textAlign: "center" }}>
               <div style={{ fontSize: 20, fontWeight: 700, color: C.tailor }}>{insights.lowRisk}</div>
               <div style={{ fontSize: 9, color: C.muted, marginTop: 2 }}>Low risk items</div>
             </div>
@@ -1772,7 +1986,7 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
         {/* Top Picks */}
         <div style={{ marginBottom: 16 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Your Top Picks</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="tb-catalog-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {insights.topFits.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
           </div>
         </div>
@@ -1790,15 +2004,15 @@ function TailorScreen({ item, onBack, onConfirm }) {
   const toggle = (id) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+    <div className="tb-screen tb-screen--tailor" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      <div className="tb-screen__header" style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <BackButton onClick={onBack} />
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>Tailor It</h2>
           <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>{item.name}</p>
         </div>
       </div>
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 100px" }}>
+      <div className="tb-screen__body tb-tailor-layout" style={{ flex: 1, overflow: "auto", padding: "0 18px 100px" }}>
         <div style={{ padding: "14px 16px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 12, marginBottom: 20 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
             <SparkleIcon size={14} />
@@ -1811,7 +2025,7 @@ function TailorScreen({ item, onBack, onConfirm }) {
           return (
             <GlassCard key={opt.id} hover onClick={() => toggle(opt.id)} style={{ padding: "14px 16px", marginBottom: 10, border: `1px solid ${isSelected ? C.tailorBorder : C.border}`, background: isSelected ? C.tailorBg : C.card }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: isSelected ? "rgba(167,139,250,0.15)" : C.bgElevated, display: "flex", alignItems: "center", justifyContent: "center", color: isSelected ? C.tailor : C.muted, flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: isSelected ? "rgba(126,161,136,0.15)" : C.bgElevated, display: "flex", alignItems: "center", justifyContent: "center", color: isSelected ? C.tailor : C.muted, flexShrink: 0 }}>
                   <IconComp size={16} />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -1829,12 +2043,12 @@ function TailorScreen({ item, onBack, onConfirm }) {
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Describe your custom alteration..." style={{ width: "100%", background: C.card, border: `1px solid ${C.tailorBorder}`, borderRadius: 12, padding: "12px 14px", color: C.accent, fontSize: 12, lineHeight: 1.6, resize: "none", outline: "none", boxSizing: "border-box", minHeight: 80, marginTop: 4 }} />
         )}
       </div>
-      <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+      <div className="tb-sticky-cta" style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <span style={{ fontSize: 13, color: C.muted }}>{selected.size} alteration{selected.size !== 1 ? "s" : ""} selected</span>
           <span style={{ fontSize: 16, fontWeight: 700, color: C.accent }}>{total > 0 ? `+$${total}` : "Free consultation"}</span>
         </div>
-        <button onClick={() => onConfirm({ item, alterations: [...selected], notes, total })} disabled={selected.size === 0} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: selected.size > 0 ? `linear-gradient(135deg, ${C.tailor}, #7c3aed)` : C.border, color: selected.size > 0 ? "#fff" : C.muted, fontSize: 13, fontWeight: 600, cursor: selected.size > 0 ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
+        <button onClick={() => onConfirm({ item, alterations: [...selected], notes, total })} disabled={selected.size === 0} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: selected.size > 0 ? `linear-gradient(135deg, ${C.tailor}, #557061)` : C.border, color: selected.size > 0 ? "#fff" : C.muted, fontSize: 13, fontWeight: 600, cursor: selected.size > 0 ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
           {selected.size > 0 ? "Request Tailor →" : "Select at least one alteration"}
         </button>
       </div>
@@ -1852,13 +2066,13 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
 
   if (editing) {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-        <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+      <div className="tb-screen tb-screen--profile-edit" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
+        <div className="tb-screen__header" style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <BackButton onClick={() => setEditing(false)} label="Cancel" />
           <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif, flex: 1 }}>Edit Measurements</h2>
           <button onClick={() => { onUpdateBody(editBody); setEditing(false); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Save</button>
         </div>
-        <div style={{ flex: 1, padding: "0 18px 40px" }}>
+        <div className="tb-screen__body" style={{ flex: 1, padding: "0 18px 40px" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
             <Body3DViewer body={editBody} width={160} height={220} autoRotate />
           </div>
@@ -1881,8 +2095,8 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
   }
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
+    <div className="tb-screen tb-screen--profile" style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
             <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Profile</h2>
@@ -1894,9 +2108,9 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
+      <div className="tb-screen__body" style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
         {/* Body preview */}
-        <GlassCard style={{ padding: 20, marginBottom: 16 }}>
+        <GlassCard className="tb-profile-overview" style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
             <Body3DViewer body={userBody} width={100} height={140} autoRotate />
             <div style={{ flex: 1 }}>
@@ -1916,7 +2130,7 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
         {/* Fit Stats */}
         <GlassCard style={{ padding: 18, marginBottom: 16 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Fit Statistics</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          <div className="tb-profile-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
             {[
               { label: "Avg Fit", value: `${avgFit}%`, color: C.gold },
               { label: "Perfect Fits", value: perfectFits, color: C.success },
@@ -1955,7 +2169,7 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
         {favItems.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Saved Items ({favItems.length})</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="tb-catalog-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {favItems.slice(0, 4).map(item => (
                 <GlassCard key={item.id} style={{ overflow: "hidden" }}>
                   <div style={{ height: 120, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)` }} />
@@ -1985,6 +2199,7 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
 // ─── Main App ──────────────────────────────────────────────
 export default function TailoredApp() {
   const saved = loadUserData();
+  const isDesktop = useDesktopLayout();
   const [screen, setScreen] = useState(saved?.body ? "home" : "splash");
   const [userBody, setUserBody] = useState(saved?.body || DEFAULT_BODY);
   const [favorites, setFavorites] = useState(saved?.favorites || new Set());
@@ -2015,33 +2230,499 @@ export default function TailoredApp() {
   const handleUpdateBody = (body) => { setUserBody(body); };
 
   const sharedProps = { catalog, favorites, toggleFav, onNav: handleNav, userBody };
+  const activeNav = NAV_ITEMS.find((item) => item.id === navTab) || NAV_ITEMS[0];
+  const showDesktopChrome = isDesktop && !["splash", "onboarding"].includes(screen);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: C.bg, display: "flex", justifyContent: "center", alignItems: "center", fontFamily: font.sans }}>
+    <div className="tb-app" style={{ width: "100vw", height: "100vh", background: C.bg, display: "flex", justifyContent: "center", alignItems: "center", fontFamily: font.sans }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { display: none; }
         input[type=range] { -webkit-appearance: none; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #c9a96e; cursor: pointer; box-shadow: 0 2px 8px rgba(201,169,110,0.4); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: ${C.gold}; cursor: pointer; box-shadow: 0 2px 8px rgba(215,176,108,0.4); }
         input[type=text], input[type=range], textarea, select { font-family: inherit; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes scanLine { 0%, 100% { top: 10%; opacity: 0.5; } 50% { top: 85%; opacity: 1; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .tb-app {
+          position: relative;
+          overflow: hidden;
+          padding: 24px;
+          background:
+            radial-gradient(circle at top left, rgba(215,176,108,0.18), transparent 28%),
+            radial-gradient(circle at bottom right, rgba(126,161,136,0.16), transparent 32%),
+            linear-gradient(180deg, #0f0d12 0%, #07070a 100%);
+        }
+        .tb-stage {
+          width: 100%;
+          height: 100%;
+        }
+        .tb-stage--desktop {
+          max-width: 1580px;
+          height: min(960px, calc(100vh - 48px));
+          display: grid;
+          grid-template-columns: 280px minmax(0, 1fr) 320px;
+          gap: 18px;
+        }
+        .tb-stage--immersive {
+          max-width: 1160px;
+          height: min(940px, calc(100vh - 48px));
+          margin: 0 auto;
+        }
+        .tb-shell__sidebar,
+        .tb-stage__main {
+          min-height: 0;
+        }
+        .tb-shell__sidebar {
+          border-radius: 32px;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: linear-gradient(180deg, rgba(23,20,26,0.94), rgba(14,13,17,0.9));
+          backdrop-filter: blur(24px);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+          overflow: auto;
+          padding: 24px;
+        }
+        .tb-stage__main {
+          position: relative;
+          overflow: hidden;
+          border-radius: 34px;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: linear-gradient(180deg, rgba(17,15,20,0.98), rgba(11,10,14,0.98));
+          box-shadow: 0 40px 100px rgba(0,0,0,0.45);
+        }
+        .tb-stage--immersive .tb-stage__main {
+          max-width: 1100px;
+          margin: 0 auto;
+        }
+        .tb-screen-frame {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+          border-radius: inherit;
+        }
+        .tb-brand-lockup {
+          display: flex;
+          gap: 14px;
+          align-items: flex-start;
+          margin-bottom: 18px;
+        }
+        .tb-brand-lockup__mark {
+          width: 50px;
+          height: 50px;
+          border-radius: 16px;
+          background: linear-gradient(145deg, ${C.gold}, ${C.goldDark});
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: ${font.serif};
+          font-size: 26px;
+          font-weight: 700;
+          flex-shrink: 0;
+          box-shadow: 0 12px 30px rgba(215,176,108,0.28);
+        }
+        .tb-brand-lockup__title,
+        .tb-sidebar-title {
+          font-family: ${font.serif};
+          color: ${C.accent};
+          font-weight: 500;
+          line-height: 1;
+          margin: 0 0 8px;
+        }
+        .tb-brand-lockup__title {
+          font-size: 34px;
+        }
+        .tb-sidebar-card {
+          padding: 20px;
+          border-radius: 24px;
+          border: 1px solid rgba(255,255,255,0.07);
+          background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+          margin-bottom: 16px;
+        }
+        .tb-sidebar-card--hero {
+          background: linear-gradient(180deg, rgba(215,176,108,0.12), rgba(255,255,255,0.02));
+        }
+        .tb-sidebar-eyebrow {
+          color: ${C.gold};
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+          margin: 0 0 10px;
+        }
+        .tb-sidebar-copy {
+          color: ${C.mutedLight};
+          font-size: 13px;
+          line-height: 1.7;
+          margin: 0;
+        }
+        .tb-desktop-nav {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .tb-desktop-nav__item {
+          display: flex;
+          gap: 12px;
+          align-items: flex-start;
+          text-align: left;
+          width: 100%;
+          padding: 14px 16px;
+          border-radius: 18px;
+          border: 1px solid rgba(255,255,255,0.06);
+          background: transparent;
+          color: ${C.mutedLight};
+          cursor: pointer;
+          transition: all 0.22s ease;
+        }
+        .tb-desktop-nav__item:hover,
+        .tb-desktop-nav__item.is-active {
+          transform: translateY(-1px);
+          color: ${C.accent};
+          border-color: ${C.goldBorder};
+          background: ${C.goldBg};
+          box-shadow: 0 14px 34px rgba(0,0,0,0.18);
+        }
+        .tb-desktop-nav__icon {
+          display: flex;
+          color: inherit;
+          margin-top: 1px;
+        }
+        .tb-desktop-nav__label {
+          display: block;
+          font-size: 13px;
+          font-weight: 700;
+          margin-bottom: 3px;
+        }
+        .tb-desktop-nav__hint {
+          display: block;
+          font-size: 11px;
+          color: ${C.muted};
+        }
+        .tb-sidebar-stats {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+        .tb-sidebar-stat__value {
+          display: block;
+          color: ${C.accent};
+          font-size: 22px;
+          font-weight: 800;
+        }
+        .tb-sidebar-stat__label {
+          display: block;
+          margin-top: 4px;
+          color: ${C.muted};
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+        .tb-measurement-list {
+          border-top: 1px solid ${C.border};
+          padding-top: 14px;
+        }
+        .tb-measurement-list__headline,
+        .tb-sidebar-product__meta,
+        .tb-sidebar-progress__row,
+        .tb-measurement-list__row {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+        }
+        .tb-measurement-list__headline {
+          color: ${C.goldLight};
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+        }
+        .tb-measurement-list__row {
+          padding: 8px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          color: ${C.mutedLight};
+          font-size: 12px;
+        }
+        .tb-measurement-list__row strong,
+        .tb-sidebar-progress__row strong {
+          color: ${C.accent};
+          font-size: 13px;
+        }
+        .tb-brand-panel,
+        .tb-sidebar-product,
+        .tb-mini-list__item {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+        .tb-brand-panel {
+          margin-bottom: 14px;
+        }
+        .tb-brand-panel__logo {
+          width: 56px;
+          height: 56px;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 15px;
+          font-weight: 800;
+          flex-shrink: 0;
+        }
+        .tb-sidebar-product__image {
+          width: 96px;
+          height: 118px;
+          border-radius: 18px;
+          flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+        .tb-sidebar-product__brand,
+        .tb-mini-list__meta {
+          color: ${C.muted};
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.14em;
+          font-weight: 700;
+        }
+        .tb-sidebar-product__meta {
+          margin-top: 8px;
+          color: ${C.mutedLight};
+          font-size: 11px;
+        }
+        .tb-sidebar-progress {
+          margin-top: 16px;
+          display: grid;
+          gap: 10px;
+        }
+        .tb-sidebar-progress__row {
+          margin-bottom: 5px;
+          color: ${C.mutedLight};
+          font-size: 11px;
+        }
+        .tb-sidebar-progress__track {
+          height: 4px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.08);
+          overflow: hidden;
+        }
+        .tb-sidebar-progress__fill {
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, ${C.gold}, ${C.goldLight});
+        }
+        .tb-mini-list {
+          display: grid;
+          gap: 10px;
+        }
+        .tb-mini-list__thumb {
+          width: 52px;
+          height: 68px;
+          border-radius: 14px;
+          flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+        .tb-mini-list__title {
+          color: ${C.accent};
+          font-size: 13px;
+          font-weight: 700;
+          margin-bottom: 4px;
+        }
+        .tb-sidebar-note {
+          margin: 14px 0 0;
+          padding: 12px 14px;
+          border-radius: 14px;
+          color: ${C.mutedLight};
+          font-size: 12px;
+          line-height: 1.6;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid ${C.border};
+        }
+        @media (max-width: 1099px) {
+          .tb-app {
+            padding: 0;
+            background: ${C.bg};
+          }
+          .tb-stage--desktop,
+          .tb-stage--immersive {
+            display: block;
+            max-width: none;
+            height: 100%;
+          }
+          .tb-shell__sidebar {
+            display: none;
+          }
+          .tb-stage__main {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            background: ${C.bg};
+          }
+        }
+        @media (min-width: 1100px) {
+          .tb-mobile-nav {
+            display: none !important;
+          }
+          .tb-screen__header {
+            padding: 30px 30px 0 !important;
+          }
+          .tb-screen__body {
+            padding: 0 30px 116px !important;
+          }
+          .tb-screen__body--centered {
+            padding: 0 30px 52px !important;
+          }
+          .tb-sticky-cta {
+            padding: 18px 30px 30px !important;
+            background: rgba(12,11,15,0.95) !important;
+          }
+          .tb-top-picks-row,
+          .tb-trend-rail {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            overflow: visible !important;
+          }
+          .tb-top-picks-row > div,
+          .tb-trend-rail > div {
+            width: auto !important;
+            flex-shrink: 1 !important;
+          }
+          .tb-home-summary {
+            display: grid !important;
+            grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+            gap: 22px !important;
+            align-items: center;
+          }
+          .tb-catalog-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 16px !important;
+          }
+          .tb-brand-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 16px !important;
+          }
+          .tb-item-detail__content {
+            padding: 0 30px 48px !important;
+          }
+          .tb-item-detail__shell {
+            display: grid;
+            grid-template-columns: minmax(420px, 0.92fr) minmax(0, 1.08fr);
+            gap: 24px;
+            align-items: start;
+          }
+          .tb-item-detail__media {
+            position: sticky;
+            top: 86px;
+          }
+          .tb-item-detail__actions {
+            position: sticky;
+            bottom: 0;
+            padding-top: 18px;
+            background: linear-gradient(180deg, rgba(12,11,15,0) 0%, rgba(12,11,15,0.92) 28%, rgba(12,11,15,0.96) 100%);
+          }
+          .tb-style-hero > div,
+          .tb-profile-overview > div {
+            align-items: flex-start !important;
+            gap: 24px !important;
+          }
+          .tb-onboarding-choice-list {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: stretch;
+          }
+          .tb-onboarding-manual__body {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 24px;
+            align-items: start;
+          }
+          .tb-onboarding-preview {
+            margin-top: 46px !important;
+          }
+          .tb-review-grid {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+          }
+          .tb-tailor-layout {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 18px !important;
+            align-content: start;
+          }
+          .tb-tailor-layout > :first-child,
+          .tb-tailor-layout textarea {
+            grid-column: 1 / -1;
+          }
+          .tb-splash__content {
+            max-width: 780px;
+            width: 100%;
+            align-items: flex-start !important;
+            text-align: left !important;
+          }
+          .tb-splash__features {
+            max-width: none !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+          .tb-splash__cta {
+            align-self: flex-start;
+            max-width: 360px !important;
+          }
+        }
+        @media (min-width: 1440px) {
+          .tb-catalog-grid,
+          .tb-brand-grid,
+          .tb-top-picks-row,
+          .tb-trend-rail {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          }
+        }
       `}</style>
-      <div style={{ width: "100%", maxWidth: 430, height: "100%", maxHeight: 932, background: C.bg, position: "relative", overflow: "hidden", boxShadow: "0 0 80px rgba(0,0,0,0.8)" }}>
-        {screen === "splash" && <SplashScreen onContinue={() => setScreen("onboarding")} />}
-        {screen === "onboarding" && <OnboardingScreen onComplete={handleOnboardingComplete} />}
-        {screen === "home" && <HomeScreen {...sharedProps} onItemClick={handleItemClick} />}
-        {screen === "trending" && <TrendingScreen {...sharedProps} onItemClick={handleItemClick} />}
-        {screen === "brands" && <BrandsScreen {...sharedProps} onBrandClick={handleBrandClick} />}
-        {screen === "brand" && selectedBrand && <BrandDetailScreen brand={selectedBrand} onBack={handleBack} onItemClick={handleItemClick} favorites={favorites} toggleFav={toggleFav} catalog={catalog} />}
-        {screen === "style" && <StyleAIScreen {...sharedProps} onItemClick={handleItemClick} />}
-        {screen === "item" && selectedItem && <ItemDetailScreen item={selectedItem} onBack={handleBack} isFav={favorites.has(selectedItem.id)} toggleFav={toggleFav} onSendToTailor={handleSendToTailor} userBody={userBody} />}
-        {screen === "tailor" && tailorItem && <TailorScreen item={tailorItem} onBack={handleBack} onConfirm={handleTailorConfirm} />}
-        {screen === "profile" && <ProfileScreen userBody={userBody} onUpdateBody={handleUpdateBody} favorites={favorites} catalog={catalog} onNav={handleNav} tailorOrders={tailorOrders} />}
+      <div className={`tb-stage ${showDesktopChrome ? "tb-stage--desktop" : "tb-stage--immersive"}`}>
+        {showDesktopChrome && (
+          <DesktopNavRail
+            active={activeNav.id}
+            onNav={handleNav}
+            userBody={userBody}
+            catalog={catalog}
+            favorites={favorites}
+            tailorOrders={tailorOrders}
+          />
+        )}
+        <div className="tb-stage__main">
+          <div className="tb-screen-frame">
+            {screen === "splash" && <SplashScreen onContinue={() => setScreen("onboarding")} />}
+            {screen === "onboarding" && <OnboardingScreen onComplete={handleOnboardingComplete} />}
+            {screen === "home" && <HomeScreen {...sharedProps} onItemClick={handleItemClick} />}
+            {screen === "trending" && <TrendingScreen {...sharedProps} onItemClick={handleItemClick} />}
+            {screen === "brands" && <BrandsScreen {...sharedProps} onBrandClick={handleBrandClick} />}
+            {screen === "brand" && selectedBrand && <BrandDetailScreen brand={selectedBrand} onBack={handleBack} onItemClick={handleItemClick} favorites={favorites} toggleFav={toggleFav} catalog={catalog} />}
+            {screen === "style" && <StyleAIScreen {...sharedProps} onItemClick={handleItemClick} />}
+            {screen === "item" && selectedItem && <ItemDetailScreen item={selectedItem} onBack={handleBack} isFav={favorites.has(selectedItem.id)} toggleFav={toggleFav} onSendToTailor={handleSendToTailor} userBody={userBody} />}
+            {screen === "tailor" && tailorItem && <TailorScreen item={tailorItem} onBack={handleBack} onConfirm={handleTailorConfirm} />}
+            {screen === "profile" && <ProfileScreen userBody={userBody} onUpdateBody={handleUpdateBody} favorites={favorites} catalog={catalog} onNav={handleNav} tailorOrders={tailorOrders} />}
+          </div>
+        </div>
+        {showDesktopChrome && (
+          <DesktopContextPanel
+            screen={screen}
+            navTab={activeNav.id}
+            selectedItem={selectedItem}
+            selectedBrand={selectedBrand}
+            catalog={catalog}
+            favorites={favorites}
+            tailorOrders={tailorOrders}
+            userBody={userBody}
+          />
+        )}
       </div>
     </div>
   );
