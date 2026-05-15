@@ -1,0 +1,186 @@
+name: Deploy to AWS Lightsail
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: lightsail-production
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+  LIGHTSAIL_SERVICE_NAME: ${{ vars.LIGHTSAIL_SERVICE_NAME }}
+  LIGHTSAIL_POWER: ${{ vars.LIGHTSAIL_POWER || 'nano' }}
+  LIGHTSAIL_SCALE: ${{ vars.LIGHTSAIL_SCALE || '1' }}
+  CONTAINER_LABEL: web
+  IMAGE_NAME: tailored-by-taylor
+  PORT: 3000
+  NODE_ENV: production
+  VITE_APP_ID: ${{ vars.VITE_APP_ID }}
+  VITE_OAUTH_PORTAL_URL: ${{ vars.VITE_OAUTH_PORTAL_URL }}
+  VITE_FRONTEND_FORGE_API_URL: ${{ vars.VITE_FRONTEND_FORGE_API_URL }}
+  VITE_ANALYTICS_ENDPOINT: ${{ vars.VITE_ANALYTICS_ENDPOINT }}
+  VITE_ANALYTICS_WEBSITE_ID: ${{ vars.VITE_ANALYTICS_WEBSITE_ID }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  OAUTH_SERVER_URL: ${{ secrets.OAUTH_SERVER_URL }}
+  OWNER_OPEN_ID: ${{ secrets.OWNER_OPEN_ID }}
+  BUILT_IN_FORGE_API_URL: ${{ secrets.BUILT_IN_FORGE_API_URL }}
+  BUILT_IN_FORGE_API_KEY: ${{ secrets.BUILT_IN_FORGE_API_KEY }}
+  VITE_FRONTEND_FORGE_API_KEY: ${{ secrets.VITE_FRONTEND_FORGE_API_KEY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+
+      - name: Install Lightsail plugin
+        run: |
+          curl "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "/usr/local/bin/lightsailctl"
+          chmod +x /usr/local/bin/lightsailctl
+
+      - name: Ensure container service exists
+        run: |
+          COUNT=$(aws lightsail get-container-services \
+            --service-name "$LIGHTSAIL_SERVICE_NAME" \
+            --query 'length(containerServices)' \
+            --output text)
+
+          if [ "$COUNT" = "0" ]; then
+            aws lightsail create-container-service \
+              --service-name "$LIGHTSAIL_SERVICE_NAME" \
+              --power "$LIGHTSAIL_POWER" \
+              --scale "$LIGHTSAIL_SCALE"
+          fi
+
+      - name: Wait for service readiness
+        run: |
+          for _ in $(seq 1 60); do
+            STATE=$(aws lightsail get-container-services \
+              --service-name "$LIGHTSAIL_SERVICE_NAME" \
+              --query 'containerServices[0].state' \
+              --output text)
+
+            if [ "$STATE" = "READY" ] || [ "$STATE" = "RUNNING" ]; then
+              exit 0
+            fi
+
+            sleep 10
+          done
+
+          echo "Lightsail service did not become ready in time."
+          exit 1
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg VITE_APP_ID="$VITE_APP_ID" \
+            --build-arg VITE_OAUTH_PORTAL_URL="$VITE_OAUTH_PORTAL_URL" \
+            --build-arg VITE_FRONTEND_FORGE_API_KEY="$VITE_FRONTEND_FORGE_API_KEY" \
+            --build-arg VITE_FRONTEND_FORGE_API_URL="$VITE_FRONTEND_FORGE_API_URL" \
+            --build-arg VITE_ANALYTICS_ENDPOINT="$VITE_ANALYTICS_ENDPOINT" \
+            --build-arg VITE_ANALYTICS_WEBSITE_ID="$VITE_ANALYTICS_WEBSITE_ID" \
+            --tag "$IMAGE_NAME:$GITHUB_SHA" \
+            .
+
+      - name: Push image to Lightsail
+        run: |
+          aws lightsail push-container-image \
+            --service-name "$LIGHTSAIL_SERVICE_NAME" \
+            --label "$CONTAINER_LABEL" \
+            --image "$IMAGE_NAME:$GITHUB_SHA"
+
+      - name: Create deployment
+        run: |
+          mkdir -p .lightsail
+
+          jq -n \
+            --arg image ":${LIGHTSAIL_SERVICE_NAME}.${CONTAINER_LABEL}.latest" \
+            --arg nodeEnv "$NODE_ENV" \
+            --arg port "$PORT" \
+            --arg appId "$VITE_APP_ID" \
+            --arg databaseUrl "$DATABASE_URL" \
+            --arg jwtSecret "$JWT_SECRET" \
+            --arg oauthServerUrl "$OAUTH_SERVER_URL" \
+            --arg ownerOpenId "$OWNER_OPEN_ID" \
+            --arg forgeApiUrl "$BUILT_IN_FORGE_API_URL" \
+            --arg forgeApiKey "$BUILT_IN_FORGE_API_KEY" \
+            '{
+              app: {
+                image: $image,
+                environment: {
+                  NODE_ENV: $nodeEnv,
+                  PORT: $port,
+                  VITE_APP_ID: $appId,
+                  DATABASE_URL: $databaseUrl,
+                  JWT_SECRET: $jwtSecret,
+                  OAUTH_SERVER_URL: $oauthServerUrl,
+                  OWNER_OPEN_ID: $ownerOpenId,
+                  BUILT_IN_FORGE_API_URL: $forgeApiUrl,
+                  BUILT_IN_FORGE_API_KEY: $forgeApiKey
+                },
+                ports: {
+                  "3000": "HTTP"
+                }
+              }
+            }' > .lightsail/containers.json
+
+          jq -n \
+            '{
+              containerName: "app",
+              containerPort: 3000,
+              healthCheck: {
+                path: "/",
+                successCodes: "200-399",
+                intervalSeconds: 10,
+                timeoutSeconds: 5,
+                healthyThreshold: 2,
+                unhealthyThreshold: 3
+              }
+            }' > .lightsail/public-endpoint.json
+
+          aws lightsail create-container-service-deployment \
+            --service-name "$LIGHTSAIL_SERVICE_NAME" \
+            --containers file://.lightsail/containers.json \
+            --public-endpoint file://.lightsail/public-endpoint.json
+
+      - name: Wait for deployment
+        run: |
+          for _ in $(seq 1 60); do
+            STATE=$(aws lightsail get-container-services \
+              --service-name "$LIGHTSAIL_SERVICE_NAME" \
+              --query 'containerServices[0].state' \
+              --output text)
+
+            if [ "$STATE" = "RUNNING" ]; then
+              exit 0
+            fi
+
+            sleep 10
+          done
+
+          echo "Lightsail deployment did not reach RUNNING in time."
+          exit 1
+
+      - name: Show service URL
+        run: |
+          aws lightsail get-container-services \
+            --service-name "$LIGHTSAIL_SERVICE_NAME" \
+            --query 'containerServices[0].url' \
+            --output text
