@@ -65,7 +65,7 @@ type ZyteProduct = {
 
 const IMAGE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const TEXT_TIMEOUT_MS = 8000;
-const ZYTE_TIMEOUT_MS = 15000;
+const ZYTE_TIMEOUT_MS = 25000;
 const ZYTE_EXTRACT_URL = "https://api.zyte.com/v1/extract";
 const RETAIL_REQUEST_HEADERS: Record<string, string> = {
   "user-agent":

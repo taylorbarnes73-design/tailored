@@ -2308,6 +2308,7 @@ const BRANDS = [
 const SITE_IMAGE_OVERRIDES = {
   5: "https://media.thereformation.com/image/upload/f_auto,q_auto,dpr_1.0/w_800,c_scale//PRD-SFCC/1304134/MERCY/1304134.1.MERCY?_s=RAABAB0",
   22: "https://www.everlane.com/cdn/shop/files/f545cb46_d23b.jpg?v=1750093768&width=1200",
+  36: "https://images.urbndata.com/is/image/FreePeople/104871306_009_a/?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
   7: "https://skims.imgix.net/s/files/1/0259/5448/4284/products/SKIMS-BODYSUIT-BS-TSH-0752-CL-ONX_FR.jpg?v=1624308627&auto=format&q=70&ixlib=react-9.11.0",
   8: "https://skims.imgix.net/s/files/1/0259/5448/4284/products/SKIMS-LOUNGEWEAR-AP-DRS-0596-ONX-FL_grande.jpg?v=1708554715&auto=format&ixlib=react-9.11.0",
   23: "https://www.everlane.com/cdn/shop/files/0ff67047_037f.jpg?v=1753411454&width=1200",
@@ -2318,6 +2319,8 @@ const SITE_IMAGE_OVERRIDES = {
   42: "https://images.lululemon.com/is/image/lululemon/LW3GQ6S_0001_1",
   43: "https://images.lululemon.com/is/image/lululemon/LW2EB8S_074052_1",
   45: "https://images.urbndata.com/is/image/Anthropologie/4130646420009_122_b?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
+  46: "https://images.urbndata.com/is/image/Anthropologie/4110264840122_010_b?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
+  47: "https://images.urbndata.com/is/image/Anthropologie/4114684820040_001_b?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
   66: "https://www.everlane.com/cdn/shop/files/74a7c807_f555.jpg?v=1753411653&width=1200",
   71: "https://static.nike.com/a/images/w_960,c_limit/3732c58b-d0ad-4c3c-898c-c4b90193312b/image.png",
   72: "https://static.nike.com/a/images/t_default/694b5c1c-30a7-48c0-bf12-c081ab0708b4/W+NK+ONE+DF+HR+7%2F8+TIGHT+CAPSL.png",
@@ -3206,7 +3209,7 @@ const CATALOG = [
   // ─── Free People ───
   {
     id: 36,
-    name: "We The Free Striped Tee",
+    name: "The Most Striped Tee",
     brand: "Free People",
     brandId: "freepeople",
     price: 68,
@@ -3217,7 +3220,7 @@ const CATALOG = [
     category: "Tops",
     trending: true,
     badge: "Boho Fave",
-    url: "https://www.freepeople.com/we-the-free-clothes/",
+    url: "https://www.freepeople.com/shop/we-the-free-the-most-striped-tee2/?color=009",
     image:
       "https://images.unsplash.com/photo-1622470953794-345a7c2d46d3?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3226,8 +3229,8 @@ const CATALOG = [
       M: "Bust 38-40, Waist 30-32",
       L: "Bust 40-42, Waist 32-34",
     },
-    fabric: "100% Cotton slub jersey, distressed hem",
-    sizingNote: "Relaxed oversized fit — true to size",
+    fabric: "100% cotton jersey with a boxy bubble hem",
+    sizingNote: "Relaxed oversized fit — dropped shoulder, true to size",
   },
   {
     id: 37,
@@ -3473,7 +3476,7 @@ const CATALOG = [
     category: "Tops",
     trending: true,
     badge: "Trending Now",
-    url: "https://www.anthropologie.com/tops",
+    url: "https://www.anthropologie.com/shop/maeve-puff-sleeve-blouse5?category=tops-blouses&color=211&type=STANDARD",
     image:
       "https://images.unsplash.com/photo-1627483262278-0b3933434623?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3482,12 +3485,12 @@ const CATALOG = [
       M: "Bust 37-38, Waist 29-30, Shoulder 15.5",
       L: "Bust 39-40, Waist 31-32, Shoulder 16",
     },
-    fabric: "Cotton poplin with puff sleeves",
-    sizingNote: "Romantic puff sleeve — true to size",
+    fabric: "100% cotton with ruched puff sleeves",
+    sizingNote: "Button-front blouse with a true-to-size romantic fit",
   },
   {
     id: 47,
-    name: "Colette Cropped Cardigan",
+    name: "Crop Textured Cardigan Sweater",
     brand: "Anthropologie",
     brandId: "anthropologie",
     price: 98,
@@ -3498,7 +3501,7 @@ const CATALOG = [
     category: "Tops",
     trending: false,
     badge: "Cozy Pick",
-    url: "https://www.anthropologie.com/sweaters",
+    url: "https://www.anthropologie.com/shop/by-anthropologie-cropped-textured-cardigan-sweater?color=014&quantity=1&type=STANDARD",
     image:
       "https://images.unsplash.com/photo-1621495470423-82535937a858?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -3507,8 +3510,8 @@ const CATALOG = [
       M: "Bust 37-39, Waist 29-31, Shoulder 15.5",
       L: "Bust 39-41, Waist 31-33, Shoulder 16",
     },
-    fabric: "Alpaca-blend bouclé knit",
-    sizingNote: "Cropped — true to size",
+    fabric: "100% cotton textured knit with button front",
+    sizingNote: "Cropped cardigan silhouette — true to size",
   },
   // ─── Gap ───
   {
