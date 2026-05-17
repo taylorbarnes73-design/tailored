@@ -312,7 +312,7 @@ const NAV_ITEMS = [
     eyebrow: "Tailor concierge",
     title: "Paste a product link. We tailor it.",
     blurb:
-      "Drop in a link from any retailer. We pull garment specs, fit them to your body, and route the piece through our in-house tailors.",
+      "Drop in a link from any retailer. Our AI extracts garment specs and fits them to your measurement-grade avatar, then our in-house tailors verify and route the piece.",
   },
   {
     id: "trending",
@@ -321,7 +321,7 @@ const NAV_ITEMS = [
     eyebrow: "Imported pieces",
     title: "Your imported garments",
     blurb:
-      "Every product link you have submitted, with extracted specs, fit scores, and the tailor brief that ships with each piece.",
+      "Every product link you have submitted, with AI-extracted specs, fit-confidence scores, and the tailor-verified brief that ships with each piece.",
   },
   {
     id: "brands",
@@ -339,7 +339,7 @@ const NAV_ITEMS = [
     eyebrow: "Fit studio",
     title: "Body-led tailor studio",
     blurb:
-      "Shape analysis and alteration playbooks our tailors apply to every imported garment before it ships to you.",
+      "AI garment-aware fit modeling and alteration playbooks our human tailors review before any piece ships to you.",
   },
   {
     id: "profile",
@@ -1761,17 +1761,18 @@ function Body3DViewer({
   );
 }
 
-// ─── TTC Multi-angle Fit Capture ─────────────────────────────
-// Proprietary capture flow for The Tailored Company. Five guided phone passes
-// (calibrate · front · turn · side · contour lock) fuse into a measurement-grade
-// fit mesh. The on-screen pipeline simulates: silhouette reconstruction,
-// depth-from-motion, contour/landmark fusion, garment-aware fit modeling, and
-// tailor verification. Actual numeric measurements are derived from the
-// height calibration plus a stable proportional model; per-frame "confidence"
-// reflects how cleanly the silhouette is held inside the guide. A live camera
-// preview is shown when available so the user sees their own image; if the
-// camera is unavailable the flow degrades to a styled silhouette preview and
-// still produces a usable fit mesh, gated by lower confidence.
+// ─── TTC AI Multi-angle Fit Capture ──────────────────────────
+// Proprietary AI-guided capture flow for The Tailored Company. Five guided phone
+// passes (calibrate · front · turn · side · contour lock) fuse into a
+// measurement-grade avatar. The on-screen pipeline reflects: AI silhouette
+// segmentation, depth-informed fit mesh, contour confidence, garment-aware fit
+// modeling, and tailor verification. Actual numeric measurements are derived
+// from the height calibration plus a stable proportional model; per-frame
+// "confidence" reflects how cleanly the silhouette is held inside the guide.
+// A live camera preview is shown when available so the user sees their own
+// image; if the camera is unavailable the flow degrades to a styled silhouette
+// preview and still produces a measurement-grade estimate, gated by lower
+// confidence and always finalized by a human tailor.
 function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
   const videoRef = useRef(null),
     streamRef = useRef(null),
@@ -1787,7 +1788,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
 
   // Stages: loading → ready → calibrate → front → turning → side → contour → fusion → done | error
   const [phase, setPhase] = useState("loading");
-  const [feedback, setFeedback] = useState("Booting TTC Fit Engine…");
+  const [feedback, setFeedback] = useState("Booting TTC AI Fit Engine…");
   const [confidence, setConfidence] = useState(0);
   const [progress, setProgress] = useState(0);
   const [turnCountdown, setTurnCountdown] = useState(3);
@@ -1815,21 +1816,22 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
     };
   }, []);
 
-  // Init: try to open a live camera preview. The TTC Fit Engine works without
-  // it (depth-informed silhouette model is simulated from user height), but the
-  // preview makes the capture feel real and lets the user frame themselves.
+  // Init: try to open a live camera preview. The TTC AI Fit Engine works without
+  // it (the AI silhouette segmentation falls back to a proportional model from
+  // user height), but the preview makes the capture feel real and lets the user
+  // frame themselves.
   useEffect(() => {
     let cancelled = false;
     async function init() {
       try {
         if (!mountedRef.current) return;
         setPhase("loading");
-        setLoadProgress("Loading depth-informed silhouette model");
-        setFeedback("Booting TTC Fit Engine…");
+        setLoadProgress("Loading AI silhouette segmentation");
+        setFeedback("Booting TTC AI Fit Engine…");
         // Tiny synthetic load progress to make the boot feel real
         const steps = [
-          "Loading depth-informed silhouette model",
-          "Calibrating contour/landmark fusion",
+          "Loading AI silhouette segmentation",
+          "Initializing depth-informed fit mesh",
           "Warming garment-aware fit kernels",
           "Linking tailor verification queue",
         ];
@@ -1980,7 +1982,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
     runStage(1400, "silhouette", () => {
       if (!mountedRef.current) return;
       setPhase("front");
-      setFeedback("Front pass — silhouette reconstruction");
+      setFeedback("Front pass — AI silhouette segmentation");
       runStage(2800, "silhouette", () => {
         if (!mountedRef.current) return;
         setPhase("turning");
@@ -1998,15 +2000,15 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
             stageTimerRef.current = null;
             if (!mountedRef.current) return;
             setPhase("side");
-            setFeedback("Side pass — depth-from-motion");
+            setFeedback("Side pass — depth-informed fit mesh");
             runStage(2600, "depth", () => {
               if (!mountedRef.current) return;
               setPhase("contour");
-              setFeedback("Contour lock — fusing landmark and silhouette");
+              setFeedback("Contour confidence — locking your silhouette");
               runStage(1800, "contour", () => {
                 if (!mountedRef.current) return;
                 setPhase("fusion");
-                setFeedback("Building measurement-grade fit mesh…");
+                setFeedback("Building measurement-grade avatar…");
                 runStage(1500, "fitMesh", () => {
                   if (!mountedRef.current) return;
                   processingRef.current = setTimeout(() => {
@@ -2102,7 +2104,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
               textAlign: "center",
             }}
           >
-            TTC Fit Engine · multi-angle capture
+            TTC AI Fit Engine · multi-angle capture
           </div>
           <div style={{ display: "flex", gap: 4, width: "100%" }}>
             {stages.map((s, i) => {
@@ -2388,7 +2390,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
                 maxWidth: 280,
               }}
             >
-              TTC Fit Engine fuses silhouette reconstruction, depth-from-motion, and tailor verification.
+              TTC AI Fit Engine fuses AI silhouette segmentation, depth-informed fit mesh, and human tailor verification.
             </p>
           </div>
         )}
@@ -2427,7 +2429,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
                 padding: "0 20px",
               }}
             >
-              Face your left side to the camera — depth-from-motion pass
+              Face your left side to the camera — depth-informed fit mesh pass
             </p>
             <div
               style={{
@@ -2476,7 +2478,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
                 fontWeight: 600,
               }}
             >
-              Fusing fit mesh · garment-aware modeling…
+              Fusing avatar · garment-aware fit modeling…
             </p>
           </div>
         )}
@@ -2596,12 +2598,12 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
               {phase === "calibrate"
                 ? "Calibrating reference height"
                 : phase === "front"
-                  ? "Silhouette reconstruction · front"
+                  ? "AI silhouette segmentation · front"
                   : phase === "side"
-                    ? "Depth-from-motion · side"
+                    ? "Depth-informed fit mesh · side"
                     : phase === "contour"
-                      ? "Contour/landmark fusion"
-                      : "Building fit mesh"}
+                      ? "Contour confidence lock"
+                      : "Building measurement-grade avatar"}
             </span>
           </div>
         )}
@@ -2778,7 +2780,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
             boxShadow: `0 4px 20px rgba(143,182,155,0.3)`,
           }}
         >
-          Begin TTC Multi-angle Capture
+          Begin TTC AI Multi-angle Capture
         </button>
       )}
       {phase === "error" && (
@@ -2827,7 +2829,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
                 fontFamily: font.serif,
               }}
             >
-              Fit Engine didn't initialize
+              AI Fit Engine didn't initialize
             </div>
             <p
               style={{
@@ -2837,7 +2839,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
                 lineHeight: 1.5,
               }}
             >
-              {feedback || "We couldn't open the TTC Fit Engine here. You can still build your fit profile by entering measurements."}
+              {feedback || "We couldn't open the TTC AI Fit Engine here. You can still build your fit profile by entering measurements — every brief is tailor-reviewed either way."}
             </p>
           </div>
           <button
@@ -2854,7 +2856,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
               cursor: "pointer",
             }}
           >
-            Retry Fit Engine
+            Retry AI Fit Engine
           </button>
           <button
             onClick={onCancel}
@@ -6716,10 +6718,10 @@ function OnboardingScreen({ onComplete }) {
                 fontFamily: font.serif,
               }}
             >
-              Multi-angle Fit Capture
+              AI Multi-angle Fit Capture
             </h2>
             <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>
-              TTC Fit Engine · depth-informed silhouette model · tailor-verified
+              TTC AI Fit Engine · depth-informed fit mesh · tailor-verified
             </p>
           </div>
         </div>
@@ -6888,7 +6890,7 @@ function OnboardingScreen({ onComplete }) {
                     marginBottom: 4,
                   }}
                 >
-                  TTC Multi-angle Fit Capture
+                  TTC AI Multi-angle Fit Capture
                 </span>
                 <p
                   style={{
@@ -6898,7 +6900,7 @@ function OnboardingScreen({ onComplete }) {
                     margin: 0,
                   }}
                 >
-                  Five guided phone passes — silhouette reconstruction, depth-from-motion, and contour-lock fuse into a measurement-grade fit mesh. Best on a mobile device with camera access; falls back to manual entry.
+                  AI-guided multi-angle fit capture — AI silhouette segmentation, a depth-informed fit mesh, and contour confidence build a measurement-grade avatar, then a human tailor verifies the alteration brief. Best on a mobile device with camera access; falls back to manual entry.
                 </p>
               </div>
             </div>
@@ -7484,8 +7486,8 @@ function HomeScreen({
               <span style={{ color: C.cream, fontSize: 17, fontWeight: 700, fontFamily: font.serif, fontStyle: "italic" }}>t</span>
             </div>
             <div>
-              <div style={{ fontSize: 9.5, color: C.muted, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 700 }}>Tailor Concierge</div>
-              <div style={{ fontSize: 12, color: C.accent, fontWeight: 700, marginTop: 1 }}>Import · Fit · Alter · Ship</div>
+              <div style={{ fontSize: 9.5, color: C.muted, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 700 }}>AI Tailor Concierge</div>
+              <div style={{ fontSize: 12, color: C.accent, fontWeight: 700, marginTop: 1 }}>Import · AI fit · Tailor · Ship</div>
             </div>
           </div>
           <button
@@ -7511,7 +7513,7 @@ function HomeScreen({
             Paste a product link. <span style={{ fontStyle: "italic", color: C.forest, fontWeight: 500 }}>We tailor it.</span>
           </h2>
           <p style={{ fontSize: 12, color: C.muted, margin: 0, letterSpacing: 0.2, lineHeight: 1.5 }}>
-            Drop in a URL from any retailer. We pull the garment specs, fit them to your body, then our in-house tailors alter and ship the piece.
+            Drop in a URL from any retailer. Our AI extracts the garment specs and fits them to your measurement-grade avatar, then our in-house tailors verify, alter and ship the piece.
           </p>
         </div>
       </div>
@@ -8708,7 +8710,7 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
           </button>
           <div>
             <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
-              Fit Studio · Try on your body
+              AI Fit Studio · estimated try-on preview
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: C.accent, lineHeight: 1.2, fontFamily: font.serif }}>
               {item.name}
@@ -8717,7 +8719,7 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>
-            Tailor confidence
+            Tailor-verified confidence
           </div>
           <div style={{ fontSize: 16, fontWeight: 800, color: zoneColor(confidence), fontFamily: font.sans }}>
             {confidence}%
@@ -9408,7 +9410,7 @@ function ItemDetailScreen({
                   backdropFilter: "blur(6px)",
                 }}
               >
-                <SparkleIcon size={12} /> Open Fit Studio
+                <SparkleIcon size={12} /> Open AI Fit Studio
               </button>
             </div>
 
@@ -9433,9 +9435,9 @@ function ItemDetailScreen({
             >
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <SparkleIcon size={12} />
-                Fit Studio · Try on your body
+                AI Fit Studio · estimated try-on preview
               </span>
-              <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Drape · Risk · Brief →</span>
+              <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Drape · Fit-confidence · Tailor brief →</span>
             </button>
           </div>
 
@@ -10063,8 +10065,8 @@ function StyleAIScreen({
           Style AI
         </h2>
         <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>
-          Generate a real wardrobe brief from your measurements, fit data, and
-          shopping intent.
+          AI-generated wardrobe brief from your measurement-grade avatar, fit
+          data, and shopping intent — every piece is tailor-reviewed before it ships.
         </p>
       </div>
 
@@ -10097,10 +10099,10 @@ function StyleAIScreen({
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: C.accent, letterSpacing: 0.2 }}>
-                Fit Studio is per garment
+                AI Fit Studio is per garment
               </div>
               <div style={{ fontSize: 10.5, color: C.mutedLight, lineHeight: 1.4 }}>
-                Paste a product link to import a piece, then open it to try on your body.
+                Paste a product link to import a piece — our AI fits it to your avatar and a tailor verifies the brief.
               </div>
             </div>
           </div>

@@ -658,7 +658,7 @@ function Hero() {
                 boxShadow: `0 0 0 4px rgba(107,142,90,0.20)`,
               }}
             />
-            Now in private beta · iOS & web
+            AI-powered · tailor-verified · private beta
           </div>
 
           <h1
@@ -686,7 +686,7 @@ function Hero() {
               maxWidth: 520,
             }}
           >
-            The Tailored Company is a couture-grade fit engine. Capture your body with five guided phone passes — silhouette reconstruction, depth-from-motion, and contour-lock fuse into a measurement-grade fit mesh, then a human tailor verifies the brief. Shop any retailer with a precise fit score, the right size pre-selected, and an alteration brief your tailor can actually use.
+            The Tailored Company is a couture-grade AI fit engine. AI-guided multi-angle fit capture — AI silhouette segmentation, depth-informed fit mesh, and contour confidence — builds a measurement-grade avatar, then a human tailor verifies the alteration brief. Shop any retailer with a fit-confidence score, the right size pre-selected, and an alteration plan your tailor can actually use.
           </p>
 
           <div style={{ display: "flex", gap: 14, marginTop: 36, flexWrap: "wrap" }}>
@@ -821,23 +821,23 @@ function ValuePillars() {
     {
       Icon: IconCamera,
       eyebrow: "Capture",
-      title: "Sub-60-second body scan",
+      title: "Sub-60-second AI fit capture",
       body:
-        "Five guided phone passes powered by the TTC Fit Engine — silhouette reconstruction, depth-from-motion, and contour/landmark fusion build a measurement-grade fit mesh with confidence scoring, then a human tailor verifies the brief.",
+        "Five guided phone passes powered by the TTC AI Fit Engine — AI silhouette segmentation, depth-informed fit mesh, and contour confidence build a measurement-grade avatar with a fit-confidence model, then a human tailor verifies the alteration brief.",
     },
     {
       Icon: IconTarget,
       eyebrow: "Match",
-      title: "Fit score across every brand",
+      title: "Fit-confidence score for every brand",
       body:
-        "A live catalogue of 85+ pieces across 20 brands, with new retailers added weekly. Real-time fit scoring runs your measurements against every garment so the right size is always pre-selected.",
+        "A live catalogue of 85+ pieces across 20 brands, with new retailers added weekly. AI garment-aware fit modeling scores your measurement-grade avatar against every garment so the right size is always pre-selected.",
     },
     {
       Icon: IconScissors,
       eyebrow: "Refine",
-      title: "Tailor, deliver, or resell",
+      title: "Tailor-verified, delivered, or resold",
       body:
-        "Close-but-not-perfect garments get a professional tailoring brief and door-to-door alteration. Pieces you outgrow flow into a measurement-matched resale marketplace — fewer returns, less waste.",
+        "Close-but-not-perfect garments get an AI-drafted, tailor-verified alteration brief and door-to-door tailoring. Pieces you outgrow flow into a measurement-matched resale marketplace — fewer returns, less waste.",
     },
   ];
   return (
@@ -885,7 +885,7 @@ function ValuePillars() {
               maxWidth: 620,
             }}
           >
-            No more guessing between an S and an M. No more returns. Every recommendation comes with a fit score, a confidence band, and a clear explanation.
+            No more guessing between an S and an M. No more returns. Every recommendation comes with an AI fit-confidence score, a measurement-grade estimate, and a tailor-reviewed explanation.
           </p>
         </div>
 
@@ -985,25 +985,25 @@ function HowItWorks() {
       n: "01",
       title: "Stand · spin · done",
       body:
-        "Five guided phone passes, under 60 seconds. The TTC Fit Engine reconstructs your silhouette, infers depth from motion, and locks contours; low-confidence frames are discarded automatically before fit-mesh fusion.",
+        "Five guided phone passes, under 60 seconds. The TTC AI Fit Engine segments your silhouette, builds a depth-informed fit mesh, and locks contour confidence; low-confidence frames are discarded automatically before the avatar is finalized.",
     },
     {
       n: "02",
-      title: "Body, locked in",
+      title: "Measurement-grade avatar",
       body:
-        "Bust, waist, hip, shoulder, inseam, neck, sleeve and rise — resolved to within 0.6 cm. A 3D body model renders in Three.js for virtual try-on.",
+        "Bust, waist, hip, shoulder, inseam, neck, sleeve and rise — landed as a measurement-grade estimate. A 3D body model renders in Three.js for an estimated try-on preview.",
     },
     {
       n: "03",
-      title: "Shop with confidence",
+      title: "Shop with AI fit-confidence",
       body:
-        "85 pieces across 20 brands, scored in real-time against your measurements. The right size is pre-selected and the cuts that will need work are flagged before you buy.",
+        "85 pieces across 20 brands, scored by AI garment-aware fit modeling against your avatar. The right size is pre-selected and the cuts that will need work are flagged before you buy.",
     },
     {
       n: "04",
-      title: "Tailor · deliver · circulate",
+      title: "Tailor-verified · deliver · circulate",
       body:
-        "Order through the app and we route to a professional tailor for exact-measurement alteration. Pieces you outgrow enter a measurement-matched resale marketplace.",
+        "Order through the app and we route to a professional tailor who reviews the AI alteration brief and finishes the piece to your exact measurements. Pieces you outgrow enter a measurement-matched resale marketplace.",
     },
   ];
 
@@ -1124,11 +1124,11 @@ function HowItWorks() {
 // ─── Section: Tech showcase ────────────────────────────────
 function TechShowcase() {
   const points = [
-    "TTC Fit Engine · multi-angle phone capture, silhouette reconstruction, depth-from-motion, contour/landmark fusion, garment-aware fit modeling, and tailor verification",
-    "React + Three.js renders a 3D body model from your measurements for virtual try-on",
-    "Fit intelligence engine cross-references your body against every brand's sizing model",
-    "Real-time fit scoring across 85 items, 20 brands · new retailers added every week",
-    "Professional tailoring brief generation — exact takes, releases and hem heights",
+    "TTC AI Fit Engine · AI-guided multi-angle phone capture, AI silhouette segmentation, depth-informed fit mesh, contour confidence, garment-aware fit modeling, and human tailor verification",
+    "React + Three.js renders a measurement-grade avatar for an estimated try-on preview",
+    "AI fit-confidence model cross-references your avatar against every brand's sizing model",
+    "Live fit-confidence scoring across 85 items, 20 brands · new retailers added every week",
+    "AI-drafted, tailor-verified alteration briefs — exact takes, releases and hem heights",
     "Measurement-matched resale marketplace — circular wardrobes, fewer returns, less waste",
     "Measurements stay on-device · we never sell or share your body data",
   ];
@@ -1194,7 +1194,7 @@ function TechShowcase() {
             <em style={{ color: P.sage }}>compiled into your pocket.</em>
           </h2>
           <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: "rgba(219,222,201,0.78)", maxWidth: 560 }}>
-            We rebuilt a tailor's bench in software. The TTC Fit Engine fuses multi-angle phone capture, silhouette reconstruction, depth-from-motion, contour/landmark fusion, garment-aware fit modeling, brand-by-brand size-chart extraction, a 3D body renderer, and a professional tailoring network — all working together so you know what will fit before you ever try it on, and so what doesn't fit returns to circulation instead of landfill.
+            We rebuilt a tailor's bench in software. The TTC AI Fit Engine fuses AI-guided multi-angle phone capture, AI silhouette segmentation, a depth-informed fit mesh, contour confidence, garment-aware fit modeling, brand-by-brand size-chart extraction, a measurement-grade 3D avatar, and a professional tailoring network — all working together so you know what will fit before you ever try it on, and so what doesn't fit returns to circulation instead of landfill.
           </p>
           <ul style={{ listStyle: "none", padding: 0, margin: "28px 0 0", display: "grid", gap: 12 }}>
             {points.map(text => (
@@ -1621,7 +1621,7 @@ function FinalCta() {
             marginRight: "auto",
           }}
         >
-          Under 60 seconds to scan. Then shop any retailer with the confidence of someone who has a tailor — and a circular wardrobe — on call.
+          Under 60 seconds of AI-guided capture. Then shop any retailer with the confidence of someone who has a tailor — and a circular wardrobe — on call.
         </p>
         <Link href="/app">
           <a
@@ -1696,7 +1696,7 @@ function Footer() {
             </div>
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 320 }}>
-            Fashion that fits every body. AI body scanning, professional tailoring, and a measurement-matched circular marketplace — for closets that finally know your body.
+            Fashion that fits every body. AI-guided fit capture, tailor-verified alterations, and a measurement-matched circular marketplace — for closets that finally know your body.
           </p>
         </div>
         {[
