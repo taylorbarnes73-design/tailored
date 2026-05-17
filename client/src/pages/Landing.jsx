@@ -13,7 +13,8 @@ const P = {
   parchment: "#FBF8F1",
   tan: "#D2B48C",
   sand: "#C19A6B",
-  terracotta: "#C65D07",
+  clay: "#7C5A3A",
+  cocoa: "#5B4636",
   warmGray: "#8B8680",
   ink: "#2C3327",
   inkSoft: "#4A5043",
@@ -95,7 +96,7 @@ const IconLayers = ({ size }) => (
   </Ico>
 );
 const IconStar = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={P.terracotta}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={P.clay}>
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
@@ -227,7 +228,7 @@ function HeroBodyScan() {
                 rx={i === 1 ? 70 : i === 2 ? 60 : i === 3 ? 78 : 50}
                 ry={i === 1 ? 9 : 7}
                 fill="none"
-                stroke={i === 2 ? P.terracotta : P.forestDeep}
+                stroke={i === 2 ? P.clay : P.forestDeep}
                 strokeOpacity={0.55}
                 strokeWidth="1.1"
                 strokeDasharray="3 4"
@@ -236,14 +237,14 @@ function HeroBodyScan() {
                 cx={a.side === "left" ? 180 : 320}
                 cy={a.y}
                 r="3.5"
-                fill={i === 2 ? P.terracotta : P.forest}
+                fill={i === 2 ? P.clay : P.forest}
               />
               <line
                 x1={a.side === "left" ? 180 : 320}
                 y1={a.y}
                 x2={a.side === "left" ? 50 : 450}
                 y2={a.y}
-                stroke={i === 2 ? P.terracotta : P.forest}
+                stroke={i === 2 ? P.clay : P.forest}
                 strokeOpacity="0.55"
                 strokeWidth="1"
               />
@@ -316,7 +317,7 @@ function HeroBodyScan() {
                 fontFamily: FONT_SERIF,
                 fontSize: 22,
                 fontWeight: 600,
-                color: a.label === "WAIST" ? P.terracotta : P.forestDeep,
+                color: a.label === "WAIST" ? P.clay : P.forestDeep,
                 lineHeight: 1,
               }}
             >
@@ -356,7 +357,7 @@ function HeroBodyScan() {
               boxShadow: `0 0 0 4px rgba(107,142,90,0.20)`,
             }}
           />
-          Live Scan · 32 anchor points
+          Live Scan · 33 pose landmarks
         </div>
 
         {/* Fit chip bottom */}
@@ -404,7 +405,7 @@ function HeroBodyScan() {
             position: "absolute",
             top: 70,
             right: 20,
-            background: P.terracotta,
+            background: P.clay,
             color: P.cream,
             padding: "6px 12px",
             borderRadius: 999,
@@ -412,10 +413,10 @@ function HeroBodyScan() {
             fontWeight: 800,
             letterSpacing: 1.4,
             textTransform: "uppercase",
-            boxShadow: "0 8px 22px rgba(198,93,7,0.32)",
+            boxShadow: "0 8px 22px rgba(124,90,58,0.32)",
           }}
         >
-          0.6cm precision
+          On-device · 0.6 cm
         </div>
       </div>
     </div>
@@ -478,6 +479,7 @@ function LandingNav() {
             ["Technology", "#tech"],
             ["How it works", "#how"],
             ["Atelier", "#atelier"],
+            ["Sustainability", "#sustainability"],
             ["Press", "#press"],
           ].map(([label, href]) => (
             <a
@@ -584,9 +586,9 @@ function Hero() {
               margin: 0,
             }}
           >
-            Clothing that
+            Fashion that fits
             <br />
-            <span style={{ color: P.terracotta, fontStyle: "italic" }}>actually fits you.</span>
+            <span style={{ color: P.clay, fontStyle: "italic" }}>every body.</span>
           </h1>
 
           <p
@@ -598,7 +600,7 @@ function Hero() {
               maxWidth: 520,
             }}
           >
-            Tailored is a couture-grade fit engine. Scan your body in 45 seconds, then shop any retailer with a precise fit score, the right size pre-selected, and an alteration brief your tailor can actually use.
+            The Tailored Company is a fit intelligence engine. Scan your body with your phone camera in under 60 seconds — 33 pose landmarks, on-device. Then shop any retailer with a precise fit score, the right size pre-selected, and an alteration brief your tailor can actually use.
           </p>
 
           <div style={{ display: "flex", gap: 14, marginTop: 36, flexWrap: "wrap" }}>
@@ -733,23 +735,23 @@ function ValuePillars() {
     {
       Icon: IconCamera,
       eyebrow: "Capture",
-      title: "45-second body scan",
+      title: "Sub-60-second body scan",
       body:
-        "Two phone-camera passes. Our pose engine triangulates 32 anchor points and resolves measurements to within 0.6 cm.",
+        "Two phone-camera passes powered by MediaPipe. Our pose engine resolves 33 body landmarks on-device and triangulates your measurements to within 0.6 cm.",
     },
     {
       Icon: IconTarget,
       eyebrow: "Match",
-      title: "Fit score every garment",
+      title: "Fit score across every brand",
       body:
-        "We pull live size charts from 180+ retailers, run them against your body, and rank every item by how well it will actually fit.",
+        "A live catalogue of 85+ pieces across 20 brands, with new retailers added weekly. Real-time fit scoring runs your measurements against every garment so the right size is always pre-selected.",
     },
     {
       Icon: IconScissors,
       eyebrow: "Refine",
-      title: "Alteration briefs",
+      title: "Tailor, deliver, or resell",
       body:
-        "When a garment is close but not perfect, we generate a tailor-ready brief — exact takes, releases, and hem heights — before you buy.",
+        "Close-but-not-perfect garments get a professional tailoring brief and door-to-door alteration. Pieces you outgrow flow into a measurement-matched resale marketplace — fewer returns, less waste.",
     },
   ];
   return (
@@ -786,7 +788,7 @@ function ValuePillars() {
             }}
           >
             We measure you once. <br />
-            Then we measure <em style={{ color: P.terracotta }}>every garment</em> against you.
+            Then we measure <em style={{ color: P.clay }}>every garment</em> against you.
           </h2>
           <p
             style={{
@@ -897,25 +899,25 @@ function HowItWorks() {
       n: "01",
       title: "Stand · spin · done",
       body:
-        "Two 5-second camera passes. Pose-tracking confirms posture; we discard frames that aren’t clean.",
+        "Two phone-camera passes, under 60 seconds. MediaPipe locks 33 body landmarks; low-confidence frames are discarded automatically.",
     },
     {
       n: "02",
       title: "Body, locked in",
       body:
-        "Bust, waist, hip, shoulder, inseam, neck, sleeve and rise — resolved to within 0.6 cm and stored on-device.",
+        "Bust, waist, hip, shoulder, inseam, neck, sleeve and rise — resolved to within 0.6 cm. A 3D body model renders in Three.js for virtual try-on.",
     },
     {
       n: "03",
       title: "Shop with confidence",
       body:
-        "Every item across every retailer ranks against your body. Open one, see fit score, ideal size, and the cuts that will need work.",
+        "85 pieces across 20 brands, scored in real-time against your measurements. The right size is pre-selected and the cuts that will need work are flagged before you buy.",
     },
     {
       n: "04",
-      title: "Send to your tailor",
+      title: "Tailor · deliver · circulate",
       body:
-        "When a piece is almost-right, we draft an alteration brief — takes, releases, hem — that any tailor can execute.",
+        "Order through the app and we route to a professional tailor for exact-measurement alteration. Pieces you outgrow enter a measurement-matched resale marketplace.",
     },
   ];
 
@@ -955,7 +957,7 @@ function HowItWorks() {
                 fontWeight: 500,
               }}
             >
-              Four steps to a wardrobe that <em style={{ color: P.terracotta }}>fits</em>.
+              Four steps to a wardrobe that <em style={{ color: P.clay }}>fits</em>.
             </h2>
           </div>
           <Link href="/app">
@@ -1003,7 +1005,7 @@ function HowItWorks() {
                   fontFamily: FONT_SERIF,
                   fontSize: 64,
                   lineHeight: 1,
-                  color: i === 1 ? P.terracotta : P.sage,
+                  color: i === 1 ? P.clay : P.sage,
                   opacity: 0.92,
                   fontWeight: 500,
                   marginBottom: 14,
@@ -1036,11 +1038,13 @@ function HowItWorks() {
 // ─── Section: Tech showcase ────────────────────────────────
 function TechShowcase() {
   const points = [
-    "32-anchor MediaPipe pose engine, calibrated against tape-measured ground truth",
-    "Brand size-chart ingestion across 180+ retailers, normalized to a single metric model",
-    "Garment-specific ease, stretch and intended drape worked into every fit score",
-    "Alteration brief generation — exact takes, releases and hem heights",
-    "On-device profile · we never sell or share your measurements",
+    "React + Three.js + MediaPipe stack · 33 pose landmarks captured by your phone camera",
+    "React + Three.js renders a 3D body model from your measurements for virtual try-on",
+    "Fit intelligence engine cross-references your body against every brand's sizing model",
+    "Real-time fit scoring across 85 items, 20 brands · new retailers added every week",
+    "Professional tailoring brief generation — exact takes, releases and hem heights",
+    "Measurement-matched resale marketplace — circular wardrobes, fewer returns, less waste",
+    "Measurements stay on-device · we never sell or share your body data",
   ];
   return (
     <section
@@ -1059,7 +1063,7 @@ function TechShowcase() {
           inset: 0,
           background: `
             radial-gradient(60% 50% at 0% 0%, rgba(107,142,90,0.32) 0%, transparent 60%),
-            radial-gradient(50% 50% at 100% 100%, rgba(198,93,7,0.20) 0%, transparent 60%)
+            radial-gradient(50% 50% at 100% 100%, rgba(139,149,86,0.18) 0%, transparent 60%)
           `,
           pointerEvents: "none",
         }}
@@ -1104,7 +1108,7 @@ function TechShowcase() {
             <em style={{ color: P.sage }}>compiled into your pocket.</em>
           </h2>
           <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: "rgba(247,243,233,0.78)", maxWidth: 560 }}>
-            We rebuilt a tailor's bench in software. Pose tracking, brand-by-brand size chart normalization, garment ease models, and an alteration brief generator — all working together so you know what will fit before you ever try it on.
+            We rebuilt a tailor's bench in software. MediaPipe pose tracking, brand-by-brand size chart normalization, garment ease models, a 3D body renderer, and a professional tailoring network — all working together so you know what will fit before you ever try it on, and so what doesn't fit returns to circulation instead of landfill.
           </p>
           <ul style={{ listStyle: "none", padding: 0, margin: "28px 0 0", display: "grid", gap: 12 }}>
             {points.map(text => (
@@ -1142,7 +1146,7 @@ function TechShowcase() {
             }}
           >
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 18 }}>
-              {["#C65D07", "#D2B48C", "#9CAF88"].map(c => (
+              {["#7C5A3A", "#D2B48C", "#9CAF88"].map(c => (
                 <span key={c} style={{ width: 9, height: 9, borderRadius: 999, background: c, opacity: 0.7 }} />
               ))}
               <div
@@ -1162,7 +1166,7 @@ function TechShowcase() {
             {[
               ["Reformation · Linen Trouser", 96, "Perfect", P.sage],
               ["Toteme · Wool Coat", 88, "Tailor 0.5cm at waist", P.sand],
-              ["Khaite · Cashmere Knit", 81, "Size up · sleeves long", P.terracotta],
+              ["Khaite · Cashmere Knit", 81, "Size up · sleeves long", P.clay],
               ["The Row · Silk Blouse", 73, "Bust runs narrow", P.sand],
             ].map(([name, score, note, color]) => (
               <div
@@ -1203,6 +1207,191 @@ function TechShowcase() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Section: Sustainability ───────────────────────────────
+function Sustainability() {
+  const stats = [
+    {
+      stat: "30%",
+      label: "Industry returns rate",
+      body: "Online fashion returns drive emissions, repackaging waste, and landfill. We aim to halve that for every member.",
+    },
+    {
+      stat: "85",
+      label: "Items, 20 brands",
+      body: "A curated catalogue — not infinite scroll — chosen for fit consistency and resale value.",
+    },
+    {
+      stat: "0",
+      label: "Body data sold",
+      body: "Your measurements live on your device. We don't sell, share, or train on your body.",
+    },
+  ];
+  const pillars = [
+    {
+      Icon: IconShield,
+      title: "Fewer returns",
+      body: "Every garment is fit-scored before checkout. The right size is pre-selected, the cuts that need work are flagged.",
+    },
+    {
+      Icon: IconScissors,
+      title: "Professional tailoring",
+      body: "Almost-right pieces route to a vetted tailor for door-to-door alteration — instead of a return shipment.",
+    },
+    {
+      Icon: IconLayers,
+      title: "Measurement-matched resale",
+      body: "Pieces you outgrow enter a circular marketplace matched to the next member's exact body — closer-to-perfect, less waste.",
+    },
+    {
+      Icon: IconSparkle,
+      title: "Wardrobe extension",
+      body: "Existing pieces in your closet are measured too, so new purchases harmonize instead of collide.",
+    },
+  ];
+  return (
+    <section
+      id="sustainability"
+      style={{
+        padding: "120px 24px",
+        background: `
+          radial-gradient(60% 70% at 80% 20%, rgba(139,149,86,0.18) 0%, transparent 60%),
+          linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)
+        `,
+      }}
+    >
+      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+        <div style={{ maxWidth: 760, marginBottom: 56 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: 2.6,
+              color: P.forest,
+              textTransform: "uppercase",
+              marginBottom: 18,
+            }}
+          >
+            Circular by design
+          </div>
+          <h2
+            style={{
+              fontFamily: FONT_SERIF,
+              fontSize: "clamp(40px, 4.6vw, 64px)",
+              lineHeight: 1.05,
+              letterSpacing: -1.4,
+              color: P.ink,
+              fontWeight: 500,
+              margin: 0,
+            }}
+          >
+            Fashion that fits — <em style={{ color: P.clay }}>and stays in circulation.</em>
+          </h2>
+          <p style={{ marginTop: 22, fontSize: 17, color: P.inkSoft, lineHeight: 1.6, maxWidth: 640 }}>
+            The fashion industry's biggest waste source is the gap between sizing charts and real bodies. We close that gap with measurement, tailoring, and a resale marketplace matched to the next member's exact body.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 16,
+            marginBottom: 40,
+          }}
+        >
+          {stats.map(s => (
+            <div
+              key={s.label}
+              style={{
+                background: P.cream,
+                border: `1px solid rgba(75,65,52,0.10)`,
+                borderRadius: 22,
+                padding: 26,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: FONT_SERIF,
+                  fontSize: 56,
+                  lineHeight: 1,
+                  color: P.forestDeep,
+                  fontWeight: 500,
+                  letterSpacing: -1.4,
+                }}
+              >
+                {s.stat}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  letterSpacing: 2,
+                  fontWeight: 800,
+                  color: P.warmGray,
+                  textTransform: "uppercase",
+                  margin: "12px 0 10px",
+                }}
+              >
+                {s.label}
+              </div>
+              <p style={{ fontSize: 14, lineHeight: 1.55, color: P.inkSoft, margin: 0 }}>{s.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 20,
+          }}
+        >
+          {pillars.map(({ Icon, title, body }) => (
+            <article
+              key={title}
+              style={{
+                background: P.cream,
+                border: `1px solid rgba(107,142,90,0.22)`,
+                borderRadius: 22,
+                padding: 26,
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: `linear-gradient(135deg, ${P.sageMist}, ${P.cream})`,
+                  border: `1px solid rgba(107,142,90,0.28)`,
+                  color: P.forestDeep,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 18,
+                }}
+              >
+                <Icon size={22} />
+              </div>
+              <h3
+                style={{
+                  fontFamily: FONT_SERIF,
+                  fontSize: 22,
+                  fontWeight: 600,
+                  color: P.ink,
+                  margin: "0 0 8px",
+                  lineHeight: 1.15,
+                }}
+              >
+                {title}
+              </h3>
+              <p style={{ fontSize: 14, color: P.inkSoft, lineHeight: 1.55, margin: 0 }}>{body}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
@@ -1333,7 +1522,7 @@ function FinalCta() {
             letterSpacing: -1.4,
           }}
         >
-          Your closet, <em style={{ color: P.terracotta }}>tailored.</em>
+          Your closet, <em style={{ color: P.clay }}>tailored.</em>
         </h2>
         <p
           style={{
@@ -1346,7 +1535,7 @@ function FinalCta() {
             marginRight: "auto",
           }}
         >
-          Take 45 seconds to scan. Then shop with the confidence of someone who has a tailor on call.
+          Under 60 seconds to scan. Then shop any retailer with the confidence of someone who has a tailor — and a circular wardrobe — on call.
         </p>
         <Link href="/app">
           <a
@@ -1421,7 +1610,7 @@ function Footer() {
             </div>
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 320 }}>
-            Couture-grade fit intelligence. Engineered in Brooklyn. For closets that finally know your body.
+            Fashion that fits every body. AI body scanning, professional tailoring, and a measurement-matched circular marketplace — for closets that finally know your body.
           </p>
         </div>
         {[
@@ -1526,6 +1715,7 @@ export default function Landing() {
       <ValuePillars />
       <HowItWorks />
       <TechShowcase />
+      <Sustainability />
       <Testimonials />
       <FinalCta />
       <Footer />

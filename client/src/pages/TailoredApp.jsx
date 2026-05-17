@@ -14,7 +14,8 @@ import {
 import { trpc } from "@/lib/trpc";
 
 // ─── Design Tokens · Earthy Luxury Palette ─────────────────
-// Sage, forest, olive, beige, tan, sand, cream, terracotta, warm gray.
+// Sage, forest, olive, beige, tan, sand, cream, clay/cocoa brown, warm gray.
+// No orange. Editorial accent is a warm clay brown, not terracotta.
 // The original "gold" / "tailor" tokens are remapped to the new palette so the
 // entire app inherits the new identity without thousands of surgical edits.
 const PALETTE = {
@@ -25,7 +26,8 @@ const PALETTE = {
   tan: "#D2B48C",
   sand: "#C19A6B",
   cream: "#F7F3E9",
-  terracotta: "#C65D07",
+  clay: "#7C5A3A",
+  cocoa: "#5B4636",
   warmGray: "#8B8680",
   // Derived shades
   forestDeep: "#4F6B43",
@@ -64,12 +66,12 @@ const C = {
   warning: PALETTE.sand,
   warningBg: "rgba(193,154,107,0.14)",
   warningBorder: "rgba(193,154,107,0.32)",
-  // Danger — terracotta
-  danger: PALETTE.terracotta,
-  // Tailor accent — terracotta as the editorial pop
-  tailor: PALETTE.terracotta,
-  tailorBg: "rgba(198,93,7,0.10)",
-  tailorBorder: "rgba(198,93,7,0.28)",
+  // Danger — clay brown (no orange)
+  danger: PALETTE.clay,
+  // Tailor accent — warm clay brown as the editorial pop
+  tailor: PALETTE.clay,
+  tailorBg: "rgba(124,90,58,0.10)",
+  tailorBorder: "rgba(124,90,58,0.28)",
   // Glass effects
   glass: "rgba(255,253,247,0.55)",
   glassBorder: "rgba(75,65,52,0.10)",
@@ -82,7 +84,9 @@ const C = {
   tan: PALETTE.tan,
   sand: PALETTE.sand,
   cream: PALETTE.cream,
-  terracotta: PALETTE.terracotta,
+  clay: PALETTE.clay,
+  cocoa: PALETTE.cocoa,
+  terracotta: PALETTE.clay,
   warmGray: PALETTE.warmGray,
   sageMist: PALETTE.sageMist,
   oat: PALETTE.oat,
@@ -856,7 +860,7 @@ function Body3DViewer({
     const rim = new THREE.DirectionalLight(0x9cae88, 0.75); // sage rim
     rim.position.set(-1, 2.5, -4);
     scene.add(rim);
-    const accent = new THREE.PointLight(0xc65d07, 0.35, 8); // terracotta kicker
+    const accent = new THREE.PointLight(0x7c5a3a, 0.35, 8); // warm clay kicker
     accent.position.set(1.5, 2.2, -2.2);
     scene.add(accent);
 
@@ -1150,7 +1154,7 @@ function Body3DViewer({
               border: `1px solid ${C.goldBorder}`,
             }}
           >
-            ● Live Scan · 32 anchor points
+            ● Live Scan · 33 pose landmarks
           </div>
         </>
       )}
@@ -5539,11 +5543,11 @@ function DesktopNavRail({
       <div className="tb-brand-lockup">
         <div className="tb-brand-lockup__mark">T</div>
         <div>
-          <p className="tb-sidebar-eyebrow">The Tailored Company</p>
-          <h1 className="tb-brand-lockup__title">Tailored by Taylor</h1>
+          <p className="tb-sidebar-eyebrow">Fit Intelligence</p>
+          <h1 className="tb-brand-lockup__title">The Tailored Company</h1>
           <p className="tb-sidebar-copy">
-            Luxury fit intelligence for real bodies, real wardrobes, and fewer
-            returns.
+            Fashion that fits every body. Body-scanned measurements, fit-scored
+            across 20 brands, and a circular wardrobe with fewer returns.
           </p>
         </div>
       </div>
@@ -5903,7 +5907,7 @@ function SplashScreen({ onContinue }) {
               textTransform: "uppercase",
             }}
           >
-            Tailored by Taylor
+            The Tailored Company
           </span>
         </div>
       </div>
@@ -5938,10 +5942,10 @@ function SplashScreen({ onContinue }) {
               letterSpacing: -1.5,
             }}
           >
-            Fashion that
+            Fashion that fits
             <br />
-            <span style={{ color: C.terracotta, fontStyle: "italic", fontWeight: 600 }}>
-              actually fits.
+            <span style={{ color: C.clay, fontStyle: "italic", fontWeight: 600 }}>
+              every body.
             </span>
           </h1>
         </div>
@@ -5961,8 +5965,9 @@ function SplashScreen({ onContinue }) {
               margin: 0,
             }}
           >
-            Shop any retailer with measurement-based fit scoring, size
-            recommendations, and alteration planning before you place the order.
+            Shop any retailer with MediaPipe-powered body scanning, real-time
+            fit scoring across 20 brands, professional tailoring, and a
+            measurement-matched circular wardrobe.
           </p>
         </div>
 
@@ -5980,9 +5985,9 @@ function SplashScreen({ onContinue }) {
           }}
         >
           {[
-            { Icon: CameraIcon, text: "3D body scan in under a minute" },
-            { Icon: TargetIcon, text: "Fit scoring across every retailer" },
-            { Icon: ScissorsIcon, text: "Alteration briefs before checkout" },
+            { Icon: CameraIcon, text: "33 pose landmarks · under 60 seconds" },
+            { Icon: TargetIcon, text: "Real-time fit scoring · 85 pieces, 20 brands" },
+            { Icon: ScissorsIcon, text: "Professional tailoring · circular resale" },
           ].map(({ Icon, text }) => (
             <div
               key={text}
@@ -6166,7 +6171,7 @@ function OnboardingScreen({ onComplete }) {
               3D Body Scan
             </h2>
             <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>
-              AI-powered measurement in 30 seconds
+              MediaPipe · 33 pose landmarks · under 60 seconds, on-device
             </p>
           </div>
         </div>
@@ -6292,8 +6297,8 @@ function OnboardingScreen({ onComplete }) {
                     margin: 0,
                   }}
                 >
-                  Use your camera for a 3D scan with fast measurement capture
-                  and a stronger starting point for fit accuracy.
+                  Phone camera capture · MediaPipe locks 33 body landmarks in
+                  under 60 seconds. Frames stay on your device.
                 </p>
               </div>
             </div>
@@ -10288,7 +10293,7 @@ export default function TailoredApp() {
           background:
             radial-gradient(circle at top left, rgba(156,175,136,0.30), transparent 32%),
             radial-gradient(circle at bottom right, rgba(210,180,140,0.32), transparent 36%),
-            radial-gradient(circle at 60% 50%, rgba(198,93,7,0.06), transparent 55%),
+            radial-gradient(circle at 60% 50%, rgba(139,149,86,0.08), transparent 55%),
             linear-gradient(180deg, ${PALETTE.parchment} 0%, ${PALETTE.beige} 100%);
         }
         .tb-stage {
