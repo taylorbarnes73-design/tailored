@@ -3,35 +3,41 @@ import * as THREE from "three";
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 
 // ─── Design Tokens ─────────────────────────────────────────
+// Earthy, sustainability-forward palette: deep moss, sage, espresso, stone.
+// NO orange/gold/amber/copper anywhere. The "gold*" keys are legacy names that
+// now hold sage-green values to keep the diff surface small.
 const C = {
-  bg: "#0a0a0a",
-  bgElevated: "#111111",
-  card: "#161616",
-  cardHover: "#1c1c1c",
-  accent: "#fafaf9",
-  muted: "#737373",
-  mutedLight: "#a3a3a3",
+  bg: "#0d1210",
+  bgElevated: "#13191A",
+  card: "#181f1d",
+  cardHover: "#1f2725",
+  accent: "#f5f5f1",
+  muted: "#8a948e",
+  mutedLight: "#b6bdb7",
   border: "rgba(255,255,255,0.06)",
   borderLight: "rgba(255,255,255,0.1)",
-  gold: "#c9a96e",
-  goldDark: "#a68a50",
-  goldLight: "#dfc8a2",
-  goldBg: "rgba(201,169,110,0.08)",
-  goldBorder: "rgba(201,169,110,0.2)",
-  success: "#4ade80",
-  successBg: "rgba(74,222,128,0.1)",
-  successBorder: "rgba(74,222,128,0.2)",
-  warning: "#fbbf24",
-  warningBg: "rgba(251,191,36,0.1)",
-  warningBorder: "rgba(251,191,36,0.2)",
-  danger: "#f87171",
-  tailor: "#a78bfa",
-  tailorBg: "rgba(167,139,250,0.08)",
-  tailorBorder: "rgba(167,139,250,0.2)",
+  // Primary accent: sage / moss green
+  gold: "#8FB69B",
+  goldDark: "#5C8068",
+  goldLight: "#BFD7C4",
+  goldBg: "rgba(143,182,155,0.10)",
+  goldBorder: "rgba(143,182,155,0.28)",
+  success: "#7FCB9C",
+  successBg: "rgba(127,203,156,0.10)",
+  successBorder: "rgba(127,203,156,0.25)",
+  // Warning: cool teal (NOT amber) — distinct from success
+  warning: "#5FB0B0",
+  warningBg: "rgba(95,176,176,0.10)",
+  warningBorder: "rgba(95,176,176,0.25)",
+  danger: "#E08585",
+  // Tailor: deep espresso brown for craft accents (reads neutral, not orange)
+  tailor: "#A89888",
+  tailorBg: "rgba(168,152,136,0.10)",
+  tailorBorder: "rgba(168,152,136,0.28)",
   glass: "rgba(255,255,255,0.03)",
   glassBorder: "rgba(255,255,255,0.08)",
 };
-const font = { serif: "'Playfair Display', Georgia, serif", sans: "'Inter', -apple-system, sans-serif" };
+const font = { serif: "'Cormorant Garamond', Georgia, serif", sans: "'Manrope', -apple-system, sans-serif" };
 
 // ─── SVG Icons ─────────────────────────────────────────────
 const Ico = ({ children, size = 20, stroke = "currentColor", sw = 1.5, fill = "none", vb = "0 0 24 24" }) => (
@@ -177,7 +183,7 @@ function createGarmentMesh(body, item) {
   const n = (v, r) => clamp(v / r, 0.75, 1.3);
   const nB = n(bust, 36), nW = n(waist, 28), nH = n(hips, 38), nS = n(shoulder, 15), nI = n(inseam, 30);
   const group = new THREE.Group(), gap = 0.04, segs = 64, cat = item?.category || "Tops";
-  const hexColor = item?.color || "#c9a96e", color = new THREE.Color(hexColor);
+  const hexColor = item?.color || "#8FB69B", color = new THREE.Color(hexColor);
   const fab = (item?.fabric || "").toLowerCase();
   const isDenim = fab.includes("denim"), isSilk = fab.includes("silk") || fab.includes("satin"), isKnit = fab.includes("knit") || fab.includes("jersey") || fab.includes("modal"), isLeather = fab.includes("leather");
   const fabricMat = new THREE.MeshPhysicalMaterial({ color, roughness: isDenim ? 0.92 : isSilk ? 0.22 : isKnit ? 0.88 : 0.75, metalness: isSilk ? 0.05 : 0, clearcoat: isSilk ? 0.35 : 0.04, clearcoatRoughness: isSilk ? 0.25 : 0.8, sheen: isKnit ? 0.6 : isSilk ? 0.5 : 0.2, sheenRoughness: 0.5, sheenColor: new THREE.Color(hexColor).multiplyScalar(isSilk ? 2.2 : 1.4), side: THREE.FrontSide, envMapIntensity: isSilk ? 1.2 : 0.3 });
@@ -484,8 +490,8 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
             const lm = result.landmarks[0];
             framesTarget.current.push([...lm]);
             const drawUtils = new DrawingUtils(ctx);
-            drawUtils.drawConnectors(lm, PoseLandmarker.POSE_CONNECTIONS, { color: "rgba(201,169,110,0.6)", lineWidth: 2.5 });
-            drawUtils.drawLandmarks(lm, { color: "rgba(201,169,110,0.9)", fillColor: "rgba(201,169,110,0.25)", lineWidth: 1, radius: 4 });
+            drawUtils.drawConnectors(lm, PoseLandmarker.POSE_CONNECTIONS, { color: "rgba(143,182,155,0.7)", lineWidth: 2.5 });
+            drawUtils.drawLandmarks(lm, { color: "rgba(143,182,155,0.95)", fillColor: "rgba(143,182,155,0.3)", lineWidth: 1, radius: 4 });
             const avgVis = lm.reduce((s, l) => s + (l.visibility || 0), 0) / lm.length;
             setConfidence(Math.round(avgVis * 100));
             if (framesTarget.current.length % 8 === 0 && framesTarget.current.length >= 10) {
@@ -578,22 +584,56 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
   const totalFrames = frontFramesRef.current.length + sideFramesRef.current.length;
   const accuracy = Math.min(96, 72 + Math.round(totalFrames / 4));
 
+  // Confidence-derived UX hints
+  const confidenceLabel = confidence >= 75 ? "Strong signal" : confidence >= 50 ? "Hold steady" : confidence > 0 ? "Adjust position" : "Searching…";
+
   return (
     <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-      {(phase === "front" || phase === "side" || phase === "turning") && (
-        <div style={{ display: "flex", gap: 8, width: "100%", maxWidth: 320 }}>
-          {["FRONT", "SIDE"].map((label, i) => {
-            const done = (i === 0 && (phase === "side" || phase === "turning")), active = (i === 0 && phase === "front") || (i === 1 && phase === "side");
-            return <div key={label} style={{ flex: 1, padding: "6px 10px", borderRadius: 8, background: active ? C.goldBg : done ? "rgba(74,222,128,0.1)" : C.card, border: `1px solid ${active ? C.goldBorder : done ? C.successBorder : C.border}`, display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 16, height: 16, borderRadius: "50%", background: active ? C.gold : done ? C.success : C.border, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "#fff", fontWeight: 700 }}>{done ? "✓" : i + 1}</div>
-              <span style={{ fontSize: 10, fontWeight: 600, color: active ? C.gold : done ? C.success : C.muted, letterSpacing: 1 }}>{label}</span>
-            </div>;
-          })}
-        </div>
-      )}
-      <div style={{ position: "relative", width: "100%", maxWidth: 320, aspectRatio: "9/16", borderRadius: 20, overflow: "hidden", border: `1px solid ${isActive ? C.goldBorder : C.border}`, background: "#000", boxShadow: isActive ? `0 0 40px rgba(201,169,110,0.2)` : "none", transition: "all 0.3s" }}>
+      {/* Step indicator: Frame → Front → Turn → Side → Done */}
+      <div style={{ display: "flex", gap: 6, width: "100%", maxWidth: 320, alignItems: "center" }}>
+        {[
+          { key: "frame", label: "Frame", on: phase === "ready" || phase === "loading", ok: phase === "front" || phase === "side" || phase === "turning" || phase === "processing" || phase === "done" },
+          { key: "front", label: "Front", on: phase === "front", ok: phase === "side" || phase === "turning" || phase === "processing" || phase === "done" },
+          { key: "side",  label: "Side",  on: phase === "side" || phase === "turning", ok: phase === "processing" || phase === "done" },
+          { key: "done",  label: "Result",on: phase === "processing", ok: phase === "done" },
+        ].map((s, i, arr) => (
+          <React.Fragment key={s.key}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: s.ok ? C.success : s.on ? C.gold : C.card, border: `1px solid ${s.ok ? C.successBorder : s.on ? C.goldBorder : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: s.ok || s.on ? "#0d1210" : C.muted, fontWeight: 700, transition: "all 0.3s" }}>{s.ok ? "✓" : i + 1}</div>
+              <span style={{ fontSize: 8.5, fontWeight: 600, color: s.on ? C.gold : s.ok ? C.success : C.muted, letterSpacing: 1, textTransform: "uppercase" }}>{s.label}</span>
+            </div>
+            {i < arr.length - 1 && <div style={{ flex: 0.4, height: 1, background: s.ok ? C.successBorder : C.border, marginBottom: 14 }} />}
+          </React.Fragment>
+        ))}
+      </div>
+      <div style={{ position: "relative", width: "100%", maxWidth: 320, aspectRatio: "9/16", borderRadius: 24, overflow: "hidden", border: `1px solid ${isActive ? C.goldBorder : C.border}`, background: "#000", boxShadow: isActive ? `0 0 60px rgba(143,182,155,0.25), 0 0 0 1px rgba(143,182,155,0.15) inset` : "0 20px 40px rgba(0,0,0,0.4)", transition: "all 0.3s" }}>
         <video ref={videoRef} playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: facingMode === "user" ? "scaleX(-1)" : "none" }} />
         <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", transform: facingMode === "user" ? "scaleX(-1)" : "none" }} />
+
+        {/* Body-silhouette frame guide — visible during ready + active */}
+        {(phase === "ready" || isActive) && (
+          <svg viewBox="0 0 100 178" preserveAspectRatio="xMidYMid meet" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: phase === "ready" ? 0.55 : 0.35 }}>
+            <defs>
+              <linearGradient id="guideStroke" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#8FB69B" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#5C8068" stopOpacity="0.6" />
+              </linearGradient>
+            </defs>
+            {/* corner brackets */}
+            <path d="M8 18 L8 8 L22 8" stroke="url(#guideStroke)" strokeWidth="1.2" fill="none" />
+            <path d="M92 18 L92 8 L78 8" stroke="url(#guideStroke)" strokeWidth="1.2" fill="none" />
+            <path d="M8 160 L8 170 L22 170" stroke="url(#guideStroke)" strokeWidth="1.2" fill="none" />
+            <path d="M92 160 L92 170 L78 170" stroke="url(#guideStroke)" strokeWidth="1.2" fill="none" />
+            {/* body silhouette outline */}
+            <ellipse cx="50" cy="34" rx="7" ry="9" stroke="url(#guideStroke)" strokeWidth="0.8" fill="none" strokeDasharray="2 2" />
+            <path d="M50 43 L43 56 L40 90 L42 130 L40 160 M50 43 L57 56 L60 90 L58 130 L60 160 M43 56 L33 70 M57 56 L67 70" stroke="url(#guideStroke)" strokeWidth="0.8" fill="none" strokeDasharray="2 2" />
+          </svg>
+        )}
+
+        {/* Scan line during active capture */}
+        {isActive && (
+          <div style={{ position: "absolute", left: "8%", right: "8%", height: 2, background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`, animation: "scanLine 2.4s ease-in-out infinite", borderRadius: 2, pointerEvents: "none" }} />
+        )}
         {phase === "loading" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.85)", gap: 12 }}>
             <div style={{ width: 36, height: 36, border: `2px solid ${C.border}`, borderTopColor: C.gold, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
@@ -617,16 +657,33 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
             <p style={{ fontSize: 12, color: C.gold, marginTop: 14, fontWeight: 600 }}>Computing 3D measurements...</p>
           </div>
         )}
-        {isActive && confidence > 0 && (
-          <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 12, display: "flex", alignItems: "center", gap: 5 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: confidence > 70 ? C.success : confidence > 40 ? C.warning : C.danger }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.accent }}>{confidence}%</span>
+        {isActive && (
+          <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <div style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "5px 10px", borderRadius: 12, display: "flex", alignItems: "center", gap: 6, border: `1px solid rgba(255,255,255,0.08)` }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.gold, animation: "pulse 1.5s ease-in-out infinite", boxShadow: `0 0 10px ${C.gold}` }} />
+              <span style={{ fontSize: 9, fontWeight: 700, color: C.accent, letterSpacing: 1, textTransform: "uppercase" }}>{phase === "front" ? "Capturing front" : "Capturing side"}</span>
+            </div>
+            {confidence > 0 && (
+              <div style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "5px 10px", borderRadius: 12, display: "flex", alignItems: "center", gap: 6, border: `1px solid rgba(255,255,255,0.08)` }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: confidence > 70 ? C.success : confidence > 40 ? C.warning : C.danger }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.accent }}>{confidence}%</span>
+              </div>
+            )}
           </div>
         )}
         {isActive && (
-          <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", padding: "6px 12px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: C.gold, animation: "pulse 1.5s ease-in-out infinite" }} />
-            <span style={{ fontSize: 10, color: C.accent, fontWeight: 500 }}>{phase === "front" ? frontFramesRef.current.length : sideFramesRef.current.length} frames captured</span>
+          <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "8px 12px", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, border: `1px solid rgba(255,255,255,0.08)` }}>
+            <span style={{ fontSize: 10, color: C.mutedLight, fontWeight: 500 }}>{confidenceLabel}</span>
+            <span style={{ fontSize: 10, color: C.goldLight, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{phase === "front" ? frontFramesRef.current.length : sideFramesRef.current.length}/30 frames</span>
+          </div>
+        )}
+        {/* Ready-phase guidance overlay */}
+        {phase === "ready" && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: 16, pointerEvents: "none", background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 40%)" }}>
+            <div style={{ background: "rgba(13,18,16,0.7)", backdropFilter: "blur(12px)", padding: "10px 12px", borderRadius: 12, border: `1px solid rgba(255,255,255,0.06)` }}>
+              <div style={{ fontSize: 10, color: C.goldLight, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Before you start</div>
+              <div style={{ fontSize: 11, color: C.mutedLight, lineHeight: 1.4 }}>• Stand 6–8 ft back · full body in frame<br/>• Form-fitting clothes · even lighting<br/>• Hold camera at hip height</div>
+            </div>
           </div>
         )}
       </div>
@@ -652,26 +709,38 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
       )}
       {phase === "done" && measurements && (
         <div style={{ width: "100%", maxWidth: 320 }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><Body3DViewer body={measurements} width={160} height={210} autoRotate /></div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14, position: "relative" }}>
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at center, rgba(143,182,155,0.15), transparent 60%)", pointerEvents: "none" }} />
+            <Body3DViewer body={measurements} width={170} height={220} autoRotate />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 12, padding: "9px 12px", background: C.successBg, border: `1px solid ${C.successBorder}`, borderRadius: 10 }}>
+            <CheckCircle size={14} /><span style={{ fontSize: 11, color: C.success, fontWeight: 600 }}>{accuracy}% accuracy · {totalFrames} frames · elliptical 3D</span>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
             {Object.entries(measurements).map(([k, v]) => (
-              <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "9px 12px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 10 }}>
-                <span style={{ fontSize: 11, color: C.goldLight, textTransform: "capitalize" }}>{k}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: C.gold }}>{v}"</span>
+              <div key={k} style={{ padding: "10px 12px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 10 }}>
+                <div style={{ fontSize: 9, color: C.mutedLight, textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 }}>{k}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.goldLight, fontVariantNumeric: "tabular-nums" }}>{v}<span style={{ fontSize: 10, color: C.muted, marginLeft: 2 }}>in</span></div>
               </div>
             ))}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "center", marginBottom: 14, padding: "8px 12px", background: C.successBg, border: `1px solid ${C.successBorder}`, borderRadius: 10 }}>
-            <CheckCircle size={14} /><span style={{ fontSize: 11, color: C.success, fontWeight: 600 }}>~{accuracy}% accuracy · {totalFrames} frames · 3D elliptical model</span>
+          <div style={{ padding: "10px 12px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 10, marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(168,152,136,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ fontSize: 14 }}>♻</span>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 10, color: C.tailor, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" }}>Impact estimate</div>
+              <div style={{ fontSize: 11, color: C.mutedLight, marginTop: 1 }}>Right-fit shopping prevents ~3 returns/yr → 18 kg CO₂e saved</div>
+            </div>
           </div>
-          <button onClick={confirmMeasurements} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${C.gold},${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>Use These Measurements</button>
-          <button onClick={() => { setPhase("ready"); setMeasurements(null); setLiveM(null); setFeedback("Stand 6–8 ft away so your full body is visible"); }} style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontSize: 12, fontWeight: 500, cursor: "pointer", marginTop: 8 }}>Rescan</button>
+          <button onClick={confirmMeasurements} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${C.gold},${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 700, letterSpacing: 1.2, cursor: "pointer", textTransform: "uppercase", boxShadow: `0 8px 24px rgba(92,128,104,0.35)` }}>Save & Find My Fit</button>
+          <button onClick={() => { setPhase("ready"); setMeasurements(null); setLiveM(null); setFeedback("Stand 6–8 ft away so your full body is visible"); }} style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontSize: 11, fontWeight: 500, cursor: "pointer", marginTop: 8, letterSpacing: 1, textTransform: "uppercase" }}>Rescan</button>
         </div>
       )}
-      {phase === "ready" && <button onClick={startScan} style={{ width: "100%", maxWidth: 320, padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${C.gold},${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer", boxShadow: `0 4px 20px rgba(201,169,110,0.3)` }}>Start 3D Body Scan</button>}
+      {phase === "ready" && <button onClick={startScan} style={{ width: "100%", maxWidth: 320, padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${C.gold},${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer", boxShadow: `0 4px 20px rgba(143,182,155,0.3)` }}>Start 3D Body Scan</button>}
       {phase === "error" && (
         <div style={{ width: "100%", maxWidth: 320, display: "flex", flexDirection: "column", gap: 8 }}>
-          <button onClick={handleRetry} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${C.gold},${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Retry Scanner</button>
+          <button onClick={handleRetry} style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${C.gold},${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Retry Scanner</button>
           <button onClick={onCancel} style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontSize: 12, fontWeight: 500, cursor: "pointer" }}>Enter Manually Instead</button>
         </div>
       )}
@@ -773,8 +842,10 @@ function computeItemFit(userBody, item) {
 function enrichCatalog(userBody) {
   return CATALOG.map(item => { const { fit, bestSize, risk } = computeItemFit(userBody, item); return { ...item, fit, bestSize, risk }; });
 }
-function loadUserData() { try { const r = localStorage.getItem(STORAGE_KEY); if (!r) return null; const d = JSON.parse(r); if (d.favorites) d.favorites = new Set(d.favorites); if (d.styles) d.styles = new Set(d.styles); return d; } catch { return null; } }
-function saveUserData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, favorites: data.favorites ? [...data.favorites] : [], styles: data.styles ? [...data.styles] : [] })); }
+// In-memory persistence only — preview iframes forbid localStorage/sessionStorage/indexedDB.
+// State is reset on reload, which is acceptable for the demo preview surface.
+function loadUserData() { return null; }
+function saveUserData(_data) { /* no-op: in-memory only for iframe deploy */ }
 function generateFitReason(item, userBody) {
   const { bust, waist, hips } = userBody;
   const brand = item.brand, cat = item.category, sizingNote = item.sizingNote || "";
@@ -828,12 +899,12 @@ function NavBar({ active, onNav }) {
     { id: "profile", icon: <UserIcon />, label: "Profile" },
   ];
   return (
-    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(10,10,10,0.92)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "space-around", padding: "10px 0 22px", zIndex: 10 }}>
+    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(13,18,16,0.92)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "space-around", padding: "10px 0 22px", zIndex: 10 }}>
       {items.map(i => (
-        <button key={i.id} onClick={() => onNav(i.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: active === i.id ? C.gold : C.muted, opacity: active === i.id ? 1 : 0.55, transition: "all 0.2s", position: "relative", padding: "0 12px" }}>
+        <button key={i.id} onClick={() => onNav(i.id)} aria-label={i.label} aria-current={active === i.id ? "page" : undefined} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: active === i.id ? C.goldLight : C.muted, opacity: active === i.id ? 1 : 0.6, transition: "all 0.2s", position: "relative", padding: "4px 12px" }}>
           {i.icon}
-          <span style={{ fontSize: 9, fontWeight: active === i.id ? 700 : 400, letterSpacing: 0.5 }}>{i.label}</span>
-          {active === i.id && <div style={{ position: "absolute", top: -10, width: 24, height: 2, borderRadius: 1, background: `linear-gradient(90deg, ${C.gold}, ${C.goldLight})` }} />}
+          <span style={{ fontSize: 9, fontWeight: active === i.id ? 700 : 500, letterSpacing: 0.6 }}>{i.label}</span>
+          {active === i.id && <div style={{ position: "absolute", top: -8, width: 28, height: 2.5, borderRadius: 2, background: `linear-gradient(90deg, ${C.gold}, ${C.goldLight})`, boxShadow: `0 0 10px ${C.gold}` }} />}
         </button>
       ))}
     </div>
@@ -855,7 +926,7 @@ function ItemCard({ item, onClick, isFav, toggleFav }) {
         </div>
         <div style={{ position: "absolute", top: 8, left: 8, display: "flex", flexDirection: "column", gap: 4 }}>
           <FitBadge fit={item.fit} />
-          {item.badge && <div style={{ background: "rgba(201,169,110,0.9)", backdropFilter: "blur(8px)", padding: "2px 8px", borderRadius: 6, fontSize: 8, fontWeight: 700, color: "#fff", letterSpacing: 0.5, textTransform: "uppercase" }}>{item.badge}</div>}
+          {item.badge && <div style={{ background: "rgba(13,18,16,0.78)", backdropFilter: "blur(8px)", padding: "2px 8px", borderRadius: 6, fontSize: 8, fontWeight: 700, color: C.goldLight, letterSpacing: 0.5, textTransform: "uppercase", border: `1px solid rgba(143,182,155,0.3)` }}>{item.badge}</div>}
         </div>
         <button onClick={e => { e.stopPropagation(); toggleFav(item.id); }} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", border: "none", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <HeartIcon filled={isFav} />
@@ -890,51 +961,63 @@ function SplashScreen({ onContinue }) {
     setTimeout(() => setPhase(3), 1300);
   }, []);
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", background: C.bg, padding: "52px 32px 44px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", top: "-8%", right: "-18%", width: 380, height: 380, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: "12%", left: "-18%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", background: `radial-gradient(120% 80% at 50% 0%, #1a2421 0%, ${C.bg} 60%)`, padding: "52px 32px 44px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "-12%", right: "-22%", width: 420, height: 420, borderRadius: "50%", background: "radial-gradient(circle, rgba(143,182,155,0.12) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(8px)" }} />
+      <div style={{ position: "absolute", bottom: "-10%", left: "-22%", width: 380, height: 380, borderRadius: "50%", background: "radial-gradient(circle, rgba(92,128,104,0.10) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(8px)" }} />
 
-      <div style={{ opacity: phase >= 1 ? 1 : 0, transform: phase >= 1 ? "translateY(0)" : "translateY(-12px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1)" }}>
+      <div style={{ opacity: phase >= 1 ? 1 : 0, transform: phase >= 1 ? "translateY(0)" : "translateY(-12px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1)", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: font.serif }}>T</span>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 20px rgba(92,128,104,0.35)` }}>
+            <span style={{ color: "#0d1210", fontSize: 18, fontWeight: 700, fontFamily: font.serif, fontStyle: "italic" }}>t</span>
           </div>
-          <span style={{ fontSize: 13, fontWeight: 600, color: C.muted, letterSpacing: 3, textTransform: "uppercase" }}>Tailored by Taylor</span>
+          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.accent, letterSpacing: 3, textTransform: "uppercase" }}>The Tailored Co.</span>
+            <span style={{ fontSize: 8.5, fontWeight: 500, color: C.muted, letterSpacing: 2, textTransform: "uppercase", marginTop: 3 }}>Fit · Made · Mended</span>
+          </div>
+        </div>
+        <div style={{ padding: "4px 10px", borderRadius: 999, background: C.successBg, border: `1px solid ${C.successBorder}`, display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.success, boxShadow: `0 0 8px ${C.success}` }} />
+          <span style={{ fontSize: 9, fontWeight: 600, color: C.success, letterSpacing: 1 }}>LIVE</span>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, textAlign: "center" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, textAlign: "center", width: "100%" }}>
         <div style={{ opacity: phase >= 2 ? 1 : 0, transform: phase >= 2 ? "translateY(0)" : "translateY(20px)", transition: "all 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s" }}>
-          <h1 style={{ fontFamily: font.serif, fontSize: 44, fontWeight: 400, color: C.accent, lineHeight: 1.1, margin: 0, letterSpacing: -1 }}>
-            Fashion that<br />
-            <span style={{ color: C.gold, fontStyle: "italic" }}>fits you.</span>
+          <h1 style={{ fontFamily: font.serif, fontSize: 46, fontWeight: 400, color: C.accent, lineHeight: 1.05, margin: 0, letterSpacing: -1.2 }}>
+            Clothes that<br />
+            <span style={{ color: C.goldLight, fontStyle: "italic", fontWeight: 500 }}>actually fit.</span>
           </h1>
         </div>
         <div style={{ opacity: phase >= 3 ? 1 : 0, transform: phase >= 3 ? "translateY(0)" : "translateY(16px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s" }}>
-          <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, maxWidth: 280, margin: 0 }}>
-            Your exact measurements. Every item scored for fit. No more guessing — just confidence.
+          <p style={{ fontSize: 15, color: C.mutedLight, lineHeight: 1.65, maxWidth: 300, margin: 0 }}>
+            Body-scan once. Get the right size at every brand. Fewer returns, less waste, more wear.
           </p>
         </div>
 
-        <div style={{ opacity: phase >= 3 ? 1 : 0, transition: "opacity 0.7s 0.5s", display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 280, marginTop: 8 }}>
+        <div style={{ opacity: phase >= 3 ? 1 : 0, transition: "opacity 0.7s 0.5s", display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 300, marginTop: 4 }}>
           {[
-            { icon: "📐", text: "AI body scan in 30 seconds" },
-            { icon: "✨", text: "Fit score on every item" },
-            { icon: "👗", text: "Virtual try-on on your body" },
-          ].map(({ icon, text }) => (
-            <div key={text} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12 }}>
-              <span style={{ fontSize: 18 }}>{icon}</span>
-              <span style={{ fontSize: 13, color: C.mutedLight }}>{text}</span>
+            { glyph: "◐", text: "3D body scan in 30 seconds", sub: "On-device · no upload" },
+            { glyph: "≋", text: "Fit confidence on every item", sub: "Across 12+ brands" },
+            { glyph: "❋", text: "Built for circular wardrobes", sub: "Buy less, keep longer" },
+          ].map(({ glyph, text, sub }) => (
+            <div key={text} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", background: "rgba(24,31,29,0.6)", backdropFilter: "blur(8px)", border: `1px solid ${C.border}`, borderRadius: 12, textAlign: "left" }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: C.goldBg, border: `1px solid ${C.goldBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontSize: 14, color: C.goldLight, fontFamily: font.serif }}>{glyph}</span>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: C.accent, fontWeight: 600 }}>{text}</div>
+                <div style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>{sub}</div>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       <div style={{ width: "100%", maxWidth: 320, opacity: phase >= 3 ? 1 : 0, transform: phase >= 3 ? "translateY(0)" : "translateY(12px)", transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s" }}>
-        <button onClick={onContinue} style={{ width: "100%", padding: "16px 0", borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 15, fontWeight: 600, letterSpacing: 0.5, cursor: "pointer", boxShadow: `0 8px 32px rgba(201,169,110,0.35)` }}>
-          Get Started
+        <button onClick={onContinue} style={{ width: "100%", padding: "16px 0", borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 14, fontWeight: 700, letterSpacing: 1.5, cursor: "pointer", boxShadow: `0 12px 36px rgba(92,128,104,0.4), 0 2px 0 rgba(255,255,255,0.06) inset`, textTransform: "uppercase" }}>
+          Start Your Fit Profile
         </button>
-        <p style={{ textAlign: "center", fontSize: 11, color: C.muted, marginTop: 14 }}>No account required · Works on any body</p>
+        <p style={{ textAlign: "center", fontSize: 11, color: C.muted, marginTop: 14, letterSpacing: 0.3 }}>No account · 30 seconds · Stays on your device</p>
       </div>
     </div>
   );
@@ -1094,8 +1177,8 @@ function OnboardingScreen({ onComplete }) {
           </div>
         </div>
 
-        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
-          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
+        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
             Save & Start Shopping
           </button>
         </div>
@@ -1132,8 +1215,8 @@ function OnboardingScreen({ onComplete }) {
             </div>
           </div>
         </div>
-        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
-          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
+        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
             Start Shopping
           </button>
         </div>
@@ -1166,19 +1249,27 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-          <div>
-            <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>For You</h2>
-            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>{perfectFits} perfect fits · avg {avgFit}% match</p>
+      <div style={{ padding: "22px 18px 0" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px rgba(92,128,104,0.3)` }}>
+              <span style={{ color: "#0d1210", fontSize: 16, fontWeight: 700, fontFamily: font.serif, fontStyle: "italic" }}>t</span>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: C.muted, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 600 }}>The Tailored Co.</div>
+              <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, marginTop: 1 }}>Your fits, ranked</div>
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, color: C.muted, fontSize: 11, padding: "6px 10px", cursor: "pointer", outline: "none" }}>
-              <option value="fit">Best Fit</option>
-              <option value="price_asc">Price ↑</option>
-              <option value="price_desc">Price ↓</option>
-            </select>
-          </div>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, color: C.mutedLight, fontSize: 11, padding: "7px 10px", cursor: "pointer", outline: "none" }}>
+            <option value="fit">Best fit</option>
+            <option value="price_asc">Price ↑</option>
+            <option value="price_desc">Price ↓</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 400, color: C.accent, margin: "0 0 4px", fontFamily: font.serif, lineHeight: 1.05, letterSpacing: -0.5 }}>For your body, <span style={{ fontStyle: "italic", color: C.goldLight }}>tonight</span>.</h2>
+          <p style={{ fontSize: 12, color: C.muted, margin: 0 }}><span style={{ color: C.success, fontWeight: 600 }}>{perfectFits}</span> perfect fits · avg <span style={{ color: C.goldLight, fontWeight: 600 }}>{avgFit}%</span> match across {catalog.length} pieces</p>
         </div>
 
         {/* Search */}
@@ -1202,7 +1293,7 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
                 <TargetIcon size={14} />
                 <span style={{ fontSize: 13, fontWeight: 600, color: C.accent }}>Highest Fit Scores</span>
               </div>
-              <button onClick={() => setSortBy("fit")} style={{ background: "none", border: "none", color: C.gold, fontSize: 11, cursor: "pointer", fontWeight: 500 }}>See all →</button>
+              <button onClick={() => setSortBy("fit")} style={{ background: "none", border: "none", color: C.goldLight, fontSize: 11, cursor: "pointer", fontWeight: 600, letterSpacing: 0.5 }}>See all →</button>
             </div>
             <div style={{ display: "flex", gap: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 4 }}>
               {topPicks.map(item => (
@@ -1226,11 +1317,11 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
 
         {/* Fit confidence summary */}
         {!search && category === "All" && (
-          <div style={{ padding: "14px 16px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 14, marginBottom: 20, display: "flex", gap: 16, alignItems: "center" }}>
+          <div style={{ padding: "16px 16px", background: `linear-gradient(135deg, ${C.goldBg}, rgba(92,128,104,0.05))`, border: `1px solid ${C.goldBorder}`, borderRadius: 14, marginBottom: 22, display: "flex", gap: 16, alignItems: "center" }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: C.goldLight, marginBottom: 4, fontWeight: 500 }}>Your Fit Profile</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: C.gold }}>{avgFit}%</div>
-              <div style={{ fontSize: 10, color: C.muted }}>average match across {catalog.length} items</div>
+              <div style={{ fontSize: 9.5, color: C.goldLight, marginBottom: 4, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>Your Fit Profile</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: C.accent, fontFamily: font.serif, lineHeight: 1 }}>{avgFit}<span style={{ fontSize: 14, color: C.goldLight, fontFamily: font.sans, marginLeft: 2 }}>%</span></div>
+              <div style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>average match across {catalog.length} pieces</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {[["Perfect (90%+)", perfectFits, C.success], ["Good (75–89%)", catalog.filter(i => i.fit >= 75 && i.fit < 90).length, C.warning], ["Fair (<75%)", catalog.filter(i => i.fit < 75).length, C.danger]].map(([label, count, color]) => (
@@ -1281,7 +1372,7 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
               <div style={{ height: 170, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)`, position: "relative" }}>
                 <div style={{ position: "absolute", top: 8, left: 8 }}><FitBadge fit={item.fit} /></div>
                 <button onClick={e => { e.stopPropagation(); toggleFav(item.id); }} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><HeartIcon filled={favorites.has(item.id)} /></button>
-                {item.badge && <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(201,169,110,0.9)", padding: "2px 8px", borderRadius: 6, fontSize: 8, fontWeight: 700, color: "#fff", letterSpacing: 0.5, textTransform: "uppercase" }}>{item.badge}</div>}
+                {item.badge && <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(13,18,16,0.78)", backdropFilter: "blur(8px)", padding: "2px 8px", borderRadius: 6, fontSize: 8, fontWeight: 700, color: C.goldLight, letterSpacing: 0.5, textTransform: "uppercase", border: `1px solid rgba(143,182,155,0.3)` }}>{item.badge}</div>}
               </div>
               <div style={{ padding: "8px 10px 10px" }}>
                 <div style={{ fontSize: 8, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>{item.brand}</div>
@@ -1425,7 +1516,7 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-      <div style={{ position: "sticky", top: 0, zIndex: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(10,10,10,0.9)", backdropFilter: "blur(16px)" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(13,18,16,0.9)", backdropFilter: "blur(16px)" }}>
         <BackButton onClick={onBack} />
         <button onClick={() => toggleFav(item.id)} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, borderRadius: 12, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <HeartIcon filled={isFav} />
@@ -1442,7 +1533,7 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
                 <div style={{ position: "absolute", top: 16, left: 16, right: 16, pointerEvents: "none" }}>
                   <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
                     {fitRegions.map(r => (
-                      <div key={r.label} style={{ padding: "3px 8px", borderRadius: 6, background: r.score >= 90 ? "rgba(74,222,128,0.3)" : r.score >= 75 ? "rgba(251,191,36,0.3)" : "rgba(248,113,113,0.3)", border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(248,113,113,0.3)"}` }}>
+                      <div key={r.label} style={{ padding: "3px 8px", borderRadius: 6, background: r.score >= 90 ? "rgba(127,203,156,0.25)" : r.score >= 75 ? "rgba(95,176,176,0.25)" : "rgba(224,133,133,0.25)", border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(224,133,133,0.3)"}` }}>
                         <div style={{ fontSize: 8, color: C.muted, textAlign: "center" }}>{r.label}</div>
                         <div style={{ fontSize: 11, fontWeight: 700, color: r.score >= 90 ? C.success : r.score >= 75 ? C.warning : C.danger, textAlign: "center" }}>{r.score}%</div>
                       </div>
@@ -1580,7 +1671,7 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
             <ScissorsIcon size={14} /> Tailor It
           </button>
           {item.url && (
-            <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ flex: 2, padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ flex: 2, padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               Shop at {item.brand} →
             </button>
           )}
@@ -1746,7 +1837,7 @@ function TailorScreen({ item, onBack, onConfirm }) {
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Describe your custom alteration..." style={{ width: "100%", background: C.card, border: `1px solid ${C.tailorBorder}`, borderRadius: 12, padding: "12px 14px", color: C.accent, fontSize: 12, lineHeight: 1.6, resize: "none", outline: "none", boxSizing: "border-box", minHeight: 80, marginTop: 4 }} />
         )}
       </div>
-      <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(10,10,10,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+      <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <span style={{ fontSize: 13, color: C.muted }}>{selected.size} alteration{selected.size !== 1 ? "s" : ""} selected</span>
           <span style={{ fontSize: 16, fontWeight: 700, color: C.accent }}>{total > 0 ? `+$${total}` : "Free consultation"}</span>
@@ -1773,7 +1864,7 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
         <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <BackButton onClick={() => setEditing(false)} label="Cancel" />
           <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif, flex: 1 }}>Edit Measurements</h2>
-          <button onClick={() => { onUpdateBody(editBody); setEditing(false); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Save</button>
+          <button onClick={() => { onUpdateBody(editBody); setEditing(false); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Save</button>
         </div>
         <div style={{ flex: 1, padding: "0 18px 40px" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
@@ -1936,17 +2027,21 @@ export default function App() {
   return (
     <div style={{ width: "100vw", height: "100vh", background: C.bg, display: "flex", justifyContent: "center", alignItems: "center", fontFamily: font.sans }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Manrope:wght@300;400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { display: none; }
-        input[type=range] { -webkit-appearance: none; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #c9a96e; cursor: pointer; box-shadow: 0 2px 8px rgba(201,169,110,0.4); }
+        input[type=range] { -webkit-appearance: none; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #8FB69B; cursor: pointer; box-shadow: 0 2px 10px rgba(143,182,155,0.45); border: 2px solid rgba(255,255,255,0.08); }
+        input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.08); border-radius: 50%; background: #8FB69B; cursor: pointer; box-shadow: 0 2px 10px rgba(143,182,155,0.45); }
         input[type=text], input[type=range], textarea, select { font-family: inherit; }
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid rgba(143,182,155,0.6); outline-offset: 2px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes scanLine { 0%, 100% { top: 10%; opacity: 0.5; } 50% { top: 85%; opacity: 1; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes pulseRing { 0% { transform: scale(0.9); opacity: 0.7; } 100% { transform: scale(1.4); opacity: 0; } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
       `}</style>
       <div style={{ width: "100%", maxWidth: 430, height: "100%", maxHeight: 932, background: C.bg, position: "relative", overflow: "hidden", boxShadow: "0 0 80px rgba(0,0,0,0.8)" }}>
         {screen === "splash" && <SplashScreen onContinue={() => setScreen("onboarding")} />}

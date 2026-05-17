@@ -13,31 +13,30 @@ import {
 } from "@mediapipe/tasks-vision";
 import { trpc } from "@/lib/trpc";
 
-// ─── Design Tokens · Earthy Luxury Palette ─────────────────
-// Sage, forest, olive, beige, tan, sand, cream, clay/cocoa brown, warm gray.
-// No orange. Editorial accent is a warm clay brown, not terracotta.
-// The original "gold" / "tailor" tokens are remapped to the new palette so the
-// entire app inherits the new identity without thousands of surgical edits.
+// ─── Design Tokens · Earthy Sustainability Palette ─────────
+// Sage, forest, moss, stone, deep cocoa, charcoal. NO orange/gold/amber/terracotta/copper.
+// Legacy "tan/sand/clay/terracotta" token names retained but remapped to cool olive/stone
+// tones so the whole tree inherits the cleansed palette without thousands of surgical edits.
 const PALETTE = {
   sage: "#9CAF88",
   forest: "#6B8E5A",
   olive: "#8B9556",
-  beige: "#F5F1E8",
-  tan: "#D2B48C",
-  sand: "#C19A6B",
-  cream: "#F7F3E9",
-  clay: "#7C5A3A",
-  cocoa: "#5B4636",
-  warmGray: "#8B8680",
+  beige: "#EDEEE8",      // cool stone (was warm beige)
+  tan: "#A8AE9A",        // cool olive-stone (was orange tan)
+  sand: "#9AA88E",       // muted moss (was orange sand)
+  cream: "#F2F3EE",      // cool cream (was warm cream)
+  clay: "#4E5C49",       // deep forest (was clay brown)
+  cocoa: "#3A4537",      // espresso forest (was warm cocoa)
+  warmGray: "#7C857B",   // cool stone-gray
   // Derived shades
   forestDeep: "#4F6B43",
   sageDeep: "#7A9070",
   sageMist: "#C4D2B6",
-  ink: "#2C3327",
-  inkSoft: "#4A5043",
-  parchment: "#FBF8F1",
-  bark: "#5B4636",
-  oat: "#E8DFCB",
+  ink: "#1F2620",
+  inkSoft: "#3A4137",
+  parchment: "#F2F3EE",  // cool parchment (was warm)
+  bark: "#3A4537",       // espresso forest
+  oat: "#DBDEC9",        // cool oat-mint (was warm oat)
 };
 const C = {
   // Surfaces — warm cream / beige rather than near-black
@@ -50,8 +49,8 @@ const C = {
   muted: PALETTE.warmGray,
   mutedLight: PALETTE.inkSoft,
   // Borders
-  border: "rgba(75,65,52,0.10)",
-  borderLight: "rgba(75,65,52,0.18)",
+  border: "rgba(45,55,42,0.10)",
+  borderLight: "rgba(45,55,42,0.18)",
   // Primary CTA / brand (was "gold") → forest green
   gold: PALETTE.forest,
   goldDark: PALETTE.forestDeep,
@@ -62,19 +61,19 @@ const C = {
   success: PALETTE.forest,
   successBg: "rgba(107,142,90,0.12)",
   successBorder: "rgba(107,142,90,0.28)",
-  // Warning — sand
-  warning: PALETTE.sand,
-  warningBg: "rgba(193,154,107,0.14)",
-  warningBorder: "rgba(193,154,107,0.32)",
-  // Danger — clay brown (no orange)
-  danger: PALETTE.clay,
-  // Tailor accent — warm clay brown as the editorial pop
-  tailor: PALETTE.clay,
-  tailorBg: "rgba(124,90,58,0.10)",
-  tailorBorder: "rgba(124,90,58,0.28)",
+  // Warning — muted teal (clearly NOT amber/orange, distinct from success green)
+  warning: "#5B8F8A",
+  warningBg: "rgba(91,143,138,0.12)",
+  warningBorder: "rgba(91,143,138,0.30)",
+  // Danger — cool slate-rose (no orange/red-orange)
+  danger: "#8E5B5B",
+  // Tailor accent — deep espresso forest (reads neutral brown-green, not orange)
+  tailor: PALETTE.cocoa,
+  tailorBg: "rgba(58,69,55,0.12)",
+  tailorBorder: "rgba(58,69,55,0.30)",
   // Glass effects
-  glass: "rgba(255,253,247,0.55)",
-  glassBorder: "rgba(75,65,52,0.10)",
+  glass: "rgba(242,243,238,0.55)",
+  glassBorder: "rgba(45,55,42,0.10)",
   // Extra palette access for new components
   sage: PALETTE.sage,
   forest: PALETTE.forest,
@@ -698,7 +697,7 @@ function createGarmentMesh(body, item) {
     gap = 0.04,
     segs = 64,
     cat = item?.category || "Tops";
-  const hexColor = item?.color || "#c9a96e",
+  const hexColor = item?.color || "#8FB69B",
     color = new THREE.Color(hexColor);
   const fab = (item?.fabric || "").toLowerCase();
   const isDenim = fab.includes("denim"),
@@ -860,7 +859,7 @@ function Body3DViewer({
     const rim = new THREE.DirectionalLight(0x9cae88, 0.75); // sage rim
     rim.position.set(-1, 2.5, -4);
     scene.add(rim);
-    const accent = new THREE.PointLight(0x7c5a3a, 0.35, 8); // warm clay kicker
+    const accent = new THREE.PointLight(0x4E5C49, 0.35, 8); // deep forest kicker
     accent.position.set(1.5, 2.2, -2.2);
     scene.add(accent);
 
@@ -1015,7 +1014,7 @@ function Body3DViewer({
             ? `radial-gradient(ellipse at 50% 40%, ${C.sageMist} 0%, ${C.beige} 60%, ${C.oat} 100%)`
             : `radial-gradient(ellipse at 50% 38%, ${C.cream} 0%, ${C.beige} 75%, ${C.oat} 100%)`,
         border: `1px solid ${C.border}`,
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 20px 40px rgba(75,65,52,0.10)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 20px 40px rgba(45,55,42,0.10)",
       }}
     >
       {/* Subtle measurement grid background */}
@@ -1148,7 +1147,7 @@ function Body3DViewer({
               letterSpacing: 2,
               color: C.forest,
               textTransform: "uppercase",
-              background: "rgba(255,253,247,0.85)",
+              background: "rgba(242,243,238,0.85)",
               padding: "4px 10px",
               borderRadius: 999,
               border: `1px solid ${C.goldBorder}`,
@@ -1573,12 +1572,12 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
               if (frameQuality.ok) framesTarget.current.push([...lm]);
               const drawUtils = new DrawingUtils(ctx);
               drawUtils.drawConnectors(lm, PoseLandmarker.POSE_CONNECTIONS, {
-                color: "rgba(201,169,110,0.6)",
+                color: "rgba(143,182,155,0.6)",
                 lineWidth: 2.5,
               });
               drawUtils.drawLandmarks(lm, {
-                color: "rgba(201,169,110,0.9)",
-                fillColor: "rgba(201,169,110,0.25)",
+                color: "rgba(143,182,155,0.9)",
+                fillColor: "rgba(143,182,155,0.25)",
                 lineWidth: 1,
                 radius: 4,
               });
@@ -1822,7 +1821,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
           overflow: "hidden",
           border: `1px solid ${isActive ? C.goldBorder : C.border}`,
           background: "#000",
-          boxShadow: isActive ? `0 0 40px rgba(201,169,110,0.2)` : "none",
+          boxShadow: isActive ? `0 0 40px rgba(143,182,155,0.2)` : "none",
           transition: "all 0.3s",
         }}
       >
@@ -2364,7 +2363,7 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
             fontWeight: 600,
             letterSpacing: 1,
             cursor: "pointer",
-            boxShadow: `0 4px 20px rgba(201,169,110,0.3)`,
+            boxShadow: `0 4px 20px rgba(143,182,155,0.3)`,
           }}
         >
           Start 3D Body Scan
@@ -5862,7 +5861,7 @@ function SplashScreen({ onContinue }) {
           height: 320,
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(210,180,140,0.40) 0%, transparent 70%)",
+            "radial-gradient(circle, rgba(168,174,154,0.40) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -6000,7 +5999,7 @@ function SplashScreen({ onContinue }) {
                 backdropFilter: "blur(8px)",
                 border: `1px solid ${C.border}`,
                 borderRadius: 14,
-                boxShadow: "0 4px 14px rgba(75,65,52,0.06)",
+                boxShadow: "0 4px 14px rgba(45,55,42,0.06)",
               }}
             >
               <div
@@ -6833,51 +6832,53 @@ function HomeScreen({
         background: C.bg,
       }}
     >
-      <div className="tb-screen__header" style={{ padding: "18px 18px 0" }}>
+      <div className="tb-screen__header" style={{ padding: "22px 18px 0" }}>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: 16,
+            alignItems: "center",
+            marginBottom: 14,
           }}
         >
-          <div>
-            <h2
-              style={{
-                fontSize: 24,
-                fontWeight: 400,
-                color: C.accent,
-                margin: "0 0 2px",
-                fontFamily: font.serif,
-              }}
-            >
-              Your Edit
-            </h2>
-            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>
-              {perfectFits} ready-to-order fits · avg {avgFit}% match
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 16px rgba(107,142,90,0.28)` }}>
+              <span style={{ color: C.cream, fontSize: 17, fontWeight: 700, fontFamily: font.serif, fontStyle: "italic" }}>t</span>
+            </div>
+            <div>
+              <div style={{ fontSize: 9.5, color: C.muted, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 700 }}>The Tailored Co.</div>
+              <div style={{ fontSize: 12, color: C.accent, fontWeight: 700, marginTop: 1 }}>Your edit · ranked by fit</div>
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              style={{
-                background: C.card,
-                border: `1px solid ${C.border}`,
-                borderRadius: 10,
-                color: C.muted,
-                fontSize: 11,
-                padding: "6px 10px",
-                cursor: "pointer",
-                outline: "none",
-              }}
-            >
-              <option value="fit">Best Fit</option>
-              <option value="price_asc">Price ↑</option>
-              <option value="price_desc">Price ↓</option>
-            </select>
-          </div>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            aria-label="Sort items"
+            style={{
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              borderRadius: 10,
+              color: C.mutedLight,
+              fontSize: 11,
+              padding: "7px 10px",
+              cursor: "pointer",
+              outline: "none",
+              fontWeight: 600,
+            }}
+          >
+            <option value="fit">Best fit</option>
+            <option value="price_asc">Price ↑</option>
+            <option value="price_desc">Price ↓</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 30, fontWeight: 400, color: C.accent, margin: "0 0 4px", fontFamily: font.serif, lineHeight: 1.02, letterSpacing: -0.6 }}>
+            For your body, <span style={{ fontStyle: "italic", color: C.forest, fontWeight: 500 }}>tonight</span>.
+          </h2>
+          <p style={{ fontSize: 12, color: C.muted, margin: 0, letterSpacing: 0.2 }}>
+            <span style={{ color: C.forest, fontWeight: 700 }}>{perfectFits}</span> ready-to-order · avg <span style={{ color: C.forest, fontWeight: 700 }}>{avgFit}%</span> match across {catalog.length} pieces
+          </p>
         </div>
 
         {/* Search */}
@@ -7839,7 +7840,7 @@ function ItemDetailScreen({
                                 r.score >= 90
                                   ? "rgba(74,222,128,0.3)"
                                   : r.score >= 75
-                                    ? "rgba(251,191,36,0.3)"
+                                    ? "rgba(91,143,138,0.3)"
                                     : "rgba(248,113,113,0.3)",
                               border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(248,113,113,0.3)"}`,
                             }}
@@ -10274,7 +10275,7 @@ export default function TailoredApp() {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { display: none; }
-        input[type=range] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(75,65,52,0.12); }
+        input[type=range] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(45,55,42,0.12); }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: ${C.forest}; cursor: pointer; box-shadow: 0 2px 10px rgba(107,142,90,0.45); border: 2px solid ${PALETTE.cream}; }
         input[type=text], input[type=range], textarea, select { font-family: inherit; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -10292,7 +10293,7 @@ export default function TailoredApp() {
           padding: 24px;
           background:
             radial-gradient(circle at top left, rgba(156,175,136,0.30), transparent 32%),
-            radial-gradient(circle at bottom right, rgba(210,180,140,0.32), transparent 36%),
+            radial-gradient(circle at bottom right, rgba(168,174,154,0.32), transparent 36%),
             radial-gradient(circle at 60% 50%, rgba(139,149,86,0.08), transparent 55%),
             linear-gradient(180deg, ${PALETTE.parchment} 0%, ${PALETTE.beige} 100%);
         }
@@ -10321,7 +10322,7 @@ export default function TailoredApp() {
           border: 1px solid ${C.border};
           background: linear-gradient(180deg, ${PALETTE.cream} 0%, ${PALETTE.beige} 100%);
           backdrop-filter: blur(24px);
-          box-shadow: 0 24px 60px rgba(75,65,52,0.10), 0 1px 0 rgba(255,255,255,0.6) inset;
+          box-shadow: 0 24px 60px rgba(45,55,42,0.10), 0 1px 0 rgba(255,255,255,0.6) inset;
           overflow: auto;
           padding: 24px;
         }
@@ -10331,7 +10332,7 @@ export default function TailoredApp() {
           border-radius: 34px;
           border: 1px solid ${C.border};
           background: linear-gradient(180deg, #FFFFFF 0%, ${PALETTE.parchment} 100%);
-          box-shadow: 0 40px 100px rgba(75,65,52,0.18), 0 1px 0 rgba(255,255,255,0.7) inset;
+          box-shadow: 0 40px 100px rgba(45,55,42,0.18), 0 1px 0 rgba(255,255,255,0.7) inset;
         }
         .tb-stage--immersive .tb-stage__main {
           max-width: 1100px;
@@ -10381,7 +10382,7 @@ export default function TailoredApp() {
           border-radius: 24px;
           border: 1px solid ${C.border};
           background: linear-gradient(180deg, #FFFFFF 0%, ${PALETTE.cream} 100%);
-          box-shadow: 0 6px 18px rgba(75,65,52,0.06);
+          box-shadow: 0 6px 18px rgba(45,55,42,0.06);
           margin-bottom: 16px;
         }
         .tb-sidebar-card--hero {
@@ -10553,7 +10554,7 @@ export default function TailoredApp() {
         .tb-sidebar-progress__track {
           height: 5px;
           border-radius: 999px;
-          background: rgba(75,65,52,0.10);
+          background: rgba(45,55,42,0.10);
           overflow: hidden;
         }
         .tb-sidebar-progress__fill {
@@ -10627,7 +10628,7 @@ export default function TailoredApp() {
           }
           .tb-sticky-cta {
             padding: 18px 30px 30px !important;
-            background: rgba(251,248,241,0.95) !important;
+            background: rgba(237,238,232,0.95) !important;
             border-top: 1px solid ${C.border};
           }
           .tb-top-picks-row,
@@ -10672,7 +10673,7 @@ export default function TailoredApp() {
             position: sticky;
             bottom: 0;
             padding-top: 18px;
-            background: linear-gradient(180deg, rgba(251,248,241,0) 0%, rgba(251,248,241,0.92) 28%, rgba(251,248,241,0.98) 100%);
+            background: linear-gradient(180deg, rgba(237,238,232,0) 0%, rgba(237,238,232,0.92) 28%, rgba(237,238,232,0.98) 100%);
           }
           .tb-style-hero > div,
           .tb-profile-overview > div {

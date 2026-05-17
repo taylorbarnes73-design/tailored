@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "wouter";
 
-// ─── Palette · earthy luxury ───────────────────────────────
+// ─── Palette · earthy sustainability (NO orange/amber/copper/terracotta) ──
 const P = {
   sage: "#9CAF88",
   sageMist: "#C4D2B6",
   forest: "#6B8E5A",
   forestDeep: "#4F6B43",
   olive: "#8B9556",
-  beige: "#F5F1E8",
-  cream: "#F7F3E9",
-  parchment: "#FBF8F1",
-  tan: "#D2B48C",
-  sand: "#C19A6B",
-  clay: "#7C5A3A",
-  cocoa: "#5B4636",
-  warmGray: "#8B8680",
-  ink: "#2C3327",
-  inkSoft: "#4A5043",
-  oat: "#E8DFCB",
-  bark: "#5B4636",
+  beige: "#EDEEE8",      // cool stone
+  cream: "#F2F3EE",      // cool cream
+  parchment: "#F2F3EE",  // cool parchment
+  tan: "#A8AE9A",        // cool olive-stone (legacy name kept)
+  sand: "#9AA88E",       // muted moss (legacy name kept)
+  clay: "#4E5C49",       // deep forest (legacy name kept)
+  cocoa: "#3A4537",      // espresso forest
+  warmGray: "#7C857B",   // cool stone-gray
+  ink: "#1F2620",
+  inkSoft: "#3A4137",
+  oat: "#DBDEC9",        // cool oat-mint
+  bark: "#3A4537",
 };
 const FONT_SERIF = "'Cormorant Garamond', Georgia, serif";
 const FONT_SANS = "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif";
@@ -146,9 +146,9 @@ function HeroBodyScan() {
           inset: 0,
           borderRadius: 32,
           background: `linear-gradient(180deg, ${P.cream} 0%, ${P.beige} 100%)`,
-          border: `1px solid rgba(75,65,52,0.10)`,
+          border: `1px solid rgba(45,55,42,0.10)`,
           boxShadow:
-            "0 60px 120px rgba(75,65,52,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
+            "0 60px 120px rgba(45,55,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
           overflow: "hidden",
         }}
       >
@@ -165,7 +165,7 @@ function HeroBodyScan() {
               <path d="M 22 0 L 0 0 0 22" fill="none" stroke={P.warmGray} strokeOpacity="0.15" strokeWidth="0.5" />
             </pattern>
             <linearGradient id="bodyFill" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#EFE5CF" />
+              <stop offset="0%" stopColor="#DBDEC9" />
               <stop offset="55%" stopColor={P.oat} />
               <stop offset="100%" stopColor={P.sageMist} />
             </linearGradient>
@@ -333,7 +333,7 @@ function HeroBodyScan() {
             top: 22,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "rgba(255,253,247,0.92)",
+            background: "rgba(242,243,238,0.92)",
             border: `1px solid rgba(107,142,90,0.32)`,
             color: P.forestDeep,
             padding: "8px 14px",
@@ -345,7 +345,7 @@ function HeroBodyScan() {
             display: "flex",
             alignItems: "center",
             gap: 8,
-            boxShadow: "0 6px 18px rgba(75,65,52,0.10)",
+            boxShadow: "0 6px 18px rgba(45,55,42,0.10)",
           }}
         >
           <span
@@ -366,14 +366,14 @@ function HeroBodyScan() {
             position: "absolute",
             bottom: 24,
             left: 24,
-            background: "rgba(255,253,247,0.92)",
-            border: `1px solid rgba(75,65,52,0.10)`,
+            background: "rgba(242,243,238,0.92)",
+            border: `1px solid rgba(45,55,42,0.10)`,
             padding: "10px 14px",
             borderRadius: 16,
             display: "flex",
             alignItems: "center",
             gap: 12,
-            boxShadow: "0 10px 24px rgba(75,65,52,0.10)",
+            boxShadow: "0 10px 24px rgba(45,55,42,0.10)",
           }}
         >
           <div
@@ -413,7 +413,7 @@ function HeroBodyScan() {
             fontWeight: 800,
             letterSpacing: 1.4,
             textTransform: "uppercase",
-            boxShadow: "0 8px 22px rgba(124,90,58,0.32)",
+            boxShadow: "0 8px 22px rgba(78,92,73,0.32)",
           }}
         >
           On-device · 0.6 cm
@@ -431,9 +431,9 @@ function LandingNav() {
         position: "sticky",
         top: 0,
         zIndex: 100,
-        background: "rgba(251,248,241,0.78)",
+        background: "rgba(237,238,232,0.78)",
         backdropFilter: "blur(20px)",
-        borderBottom: `1px solid rgba(75,65,52,0.08)`,
+        borderBottom: `1px solid rgba(45,55,42,0.08)`,
       }}
     >
       <div
@@ -529,7 +529,7 @@ function Hero() {
         padding: "84px 24px 100px",
         background: `
           radial-gradient(60% 70% at 20% 20%, rgba(156,175,136,0.32) 0%, transparent 60%),
-          radial-gradient(50% 60% at 90% 80%, rgba(210,180,140,0.38) 0%, transparent 60%),
+          radial-gradient(50% 60% at 90% 80%, rgba(168,174,154,0.38) 0%, transparent 60%),
           linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)
         `,
       }}
@@ -553,7 +553,7 @@ function Hero() {
               gap: 8,
               padding: "8px 14px",
               borderRadius: 999,
-              background: "rgba(255,253,247,0.7)",
+              background: "rgba(242,243,238,0.7)",
               border: `1px solid rgba(107,142,90,0.30)`,
               color: P.forestDeep,
               fontSize: 11,
@@ -627,14 +627,14 @@ function Hero() {
             <a
               href="#how"
               style={{
-                background: "rgba(255,253,247,0.7)",
+                background: "rgba(242,243,238,0.7)",
                 color: P.ink,
                 padding: "18px 26px",
                 borderRadius: 16,
                 fontSize: 15,
                 fontWeight: 700,
                 textDecoration: "none",
-                border: `1px solid rgba(75,65,52,0.14)`,
+                border: `1px solid rgba(45,55,42,0.14)`,
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 10,
@@ -682,8 +682,8 @@ function PressMarquee() {
       id="press"
       style={{
         background: P.cream,
-        borderTop: `1px solid rgba(75,65,52,0.08)`,
-        borderBottom: `1px solid rgba(75,65,52,0.08)`,
+        borderTop: `1px solid rgba(45,55,42,0.08)`,
+        borderBottom: `1px solid rgba(45,55,42,0.08)`,
         padding: "28px 24px",
       }}
     >
@@ -815,12 +815,12 @@ function ValuePillars() {
               key={title}
               style={{
                 background: P.cream,
-                border: `1px solid rgba(75,65,52,0.10)`,
+                border: `1px solid rgba(45,55,42,0.10)`,
                 borderRadius: 28,
                 padding: 32,
                 position: "relative",
                 overflow: "hidden",
-                boxShadow: "0 24px 60px rgba(75,65,52,0.06)",
+                boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
               }}
             >
               <div
@@ -973,7 +973,7 @@ function HowItWorks() {
                 padding: "12px 18px",
                 borderRadius: 999,
                 border: `1px solid rgba(107,142,90,0.32)`,
-                background: "rgba(255,253,247,0.6)",
+                background: "rgba(242,243,238,0.6)",
               }}
             >
               Start your scan <IconArrow />
@@ -993,7 +993,7 @@ function HowItWorks() {
               key={s.n}
               style={{
                 background: P.cream,
-                border: `1px solid rgba(75,65,52,0.10)`,
+                border: `1px solid rgba(45,55,42,0.10)`,
                 borderRadius: 22,
                 padding: 26,
                 position: "relative",
@@ -1107,7 +1107,7 @@ function TechShowcase() {
             A couture atelier, <br />
             <em style={{ color: P.sage }}>compiled into your pocket.</em>
           </h2>
-          <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: "rgba(247,243,233,0.78)", maxWidth: 560 }}>
+          <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: "rgba(219,222,201,0.78)", maxWidth: 560 }}>
             We rebuilt a tailor's bench in software. MediaPipe pose tracking, brand-by-brand size chart normalization, garment ease models, a 3D body renderer, and a professional tailoring network — all working together so you know what will fit before you ever try it on, and so what doesn't fit returns to circulation instead of landfill.
           </p>
           <ul style={{ listStyle: "none", padding: 0, margin: "28px 0 0", display: "grid", gap: 12 }}>
@@ -1129,7 +1129,7 @@ function TechShowcase() {
                 >
                   <IconCheck />
                 </span>
-                <span style={{ fontSize: 14.5, lineHeight: 1.55, color: "rgba(247,243,233,0.86)" }}>{text}</span>
+                <span style={{ fontSize: 14.5, lineHeight: 1.55, color: "rgba(219,222,201,0.86)" }}>{text}</span>
               </li>
             ))}
           </ul>
@@ -1139,14 +1139,14 @@ function TechShowcase() {
           <div
             style={{
               borderRadius: 28,
-              background: "linear-gradient(180deg, rgba(255,253,247,0.06) 0%, rgba(255,253,247,0.02) 100%)",
-              border: `1px solid rgba(247,243,233,0.10)`,
+              background: "linear-gradient(180deg, rgba(242,243,238,0.06) 0%, rgba(242,243,238,0.02) 100%)",
+              border: `1px solid rgba(219,222,201,0.10)`,
               padding: 24,
               boxShadow: "0 50px 120px rgba(0,0,0,0.45)",
             }}
           >
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 18 }}>
-              {["#7C5A3A", "#D2B48C", "#9CAF88"].map(c => (
+              {["#4E5C49", "#A8AE9A", "#9CAF88"].map(c => (
                 <span key={c} style={{ width: 9, height: 9, borderRadius: 999, background: c, opacity: 0.7 }} />
               ))}
               <div
@@ -1154,7 +1154,7 @@ function TechShowcase() {
                   marginLeft: "auto",
                   fontSize: 10,
                   letterSpacing: 2,
-                  color: "rgba(247,243,233,0.5)",
+                  color: "rgba(219,222,201,0.5)",
                   fontWeight: 700,
                   textTransform: "uppercase",
                 }}
@@ -1173,7 +1173,7 @@ function TechShowcase() {
                 key={name}
                 style={{
                   padding: "16px 0",
-                  borderTop: "1px solid rgba(247,243,233,0.08)",
+                  borderTop: "1px solid rgba(219,222,201,0.08)",
                   display: "grid",
                   gridTemplateColumns: "1fr auto",
                   gap: 8,
@@ -1182,7 +1182,7 @@ function TechShowcase() {
               >
                 <div>
                   <div style={{ fontSize: 14, color: P.cream, fontWeight: 600 }}>{name}</div>
-                  <div style={{ fontSize: 11.5, color: "rgba(247,243,233,0.55)", marginTop: 2 }}>{note}</div>
+                  <div style={{ fontSize: 11.5, color: "rgba(219,222,201,0.55)", marginTop: 2 }}>{note}</div>
                 </div>
                 <div
                   style={{
@@ -1194,7 +1194,7 @@ function TechShowcase() {
                 >
                   {score}
                 </div>
-                <div style={{ gridColumn: "1 / -1", marginTop: 6, height: 4, background: "rgba(247,243,233,0.08)", borderRadius: 999 }}>
+                <div style={{ gridColumn: "1 / -1", marginTop: 6, height: 4, background: "rgba(219,222,201,0.08)", borderRadius: 999 }}>
                   <div
                     style={{
                       width: `${score}%`,
@@ -1310,7 +1310,7 @@ function Sustainability() {
               key={s.label}
               style={{
                 background: P.cream,
-                border: `1px solid rgba(75,65,52,0.10)`,
+                border: `1px solid rgba(45,55,42,0.10)`,
                 borderRadius: 22,
                 padding: 26,
               }}
@@ -1464,7 +1464,7 @@ function Testimonials() {
               style={{
                 margin: 0,
                 background: P.parchment,
-                border: `1px solid rgba(75,65,52,0.10)`,
+                border: `1px solid rgba(45,55,42,0.10)`,
                 borderRadius: 22,
                 padding: 28,
               }}
@@ -1572,7 +1572,7 @@ function Footer() {
     <footer
       style={{
         background: P.ink,
-        color: "rgba(247,243,233,0.7)",
+        color: "rgba(219,222,201,0.7)",
         padding: "64px 24px 32px",
       }}
     >
@@ -1636,7 +1636,7 @@ function Footer() {
                 <li key={l}>
                   <a
                     href="#"
-                    style={{ color: "rgba(247,243,233,0.72)", textDecoration: "none", fontSize: 14 }}
+                    style={{ color: "rgba(219,222,201,0.72)", textDecoration: "none", fontSize: 14 }}
                   >
                     {l}
                   </a>
@@ -1652,14 +1652,14 @@ function Footer() {
           maxWidth: 1280,
           margin: "48px auto 0",
           paddingTop: 24,
-          borderTop: "1px solid rgba(247,243,233,0.10)",
+          borderTop: "1px solid rgba(219,222,201,0.10)",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           gap: 12,
           fontSize: 12,
-          color: "rgba(247,243,233,0.55)",
+          color: "rgba(219,222,201,0.55)",
         }}
       >
         <span>© {new Date().getFullYear()} The Tailored Company · All rights reserved</span>
