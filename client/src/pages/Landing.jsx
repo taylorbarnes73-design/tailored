@@ -419,6 +419,8 @@ function HeroBodyScan() {
             top: 22,
             left: "50%",
             transform: "translateX(-50%)",
+            maxWidth: "calc(100% - 32px)",
+            whiteSpace: "nowrap",
             background: "rgba(242,243,238,0.92)",
             border: `1px solid rgba(107,142,90,0.32)`,
             color: P.forestDeep,
@@ -485,12 +487,13 @@ function HeroBodyScan() {
           </div>
         </div>
 
-        {/* Confidence chip top right */}
+        {/* Confidence chip bottom right — kept clear of the top status pill */}
         <div
           style={{
             position: "absolute",
-            top: 70,
+            bottom: 36,
             right: 20,
+            maxWidth: "44%",
             background: P.clay,
             color: P.cream,
             padding: "6px 12px",
@@ -499,6 +502,7 @@ function HeroBodyScan() {
             fontWeight: 800,
             letterSpacing: 1.4,
             textTransform: "uppercase",
+            whiteSpace: "nowrap",
             boxShadow: "0 8px 22px rgba(78,92,73,0.32)",
           }}
         >
