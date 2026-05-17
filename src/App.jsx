@@ -951,6 +951,37 @@ function Pill({ label, active, onClick, gold = false }) {
   const color = active ? (gold ? C.gold : C.accent) : C.muted;
   return <button onClick={onClick} style={{ padding: "6px 16px", borderRadius: 20, border: `1px solid ${border}`, background: bg, color, fontSize: 11, fontWeight: active ? 600 : 400, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s", letterSpacing: 0.3 }}>{label}</button>;
 }
+function Segmented({ tabs, value, onChange, dense = false }) {
+  return (
+    <div style={{ display: "flex", gap: 0, background: C.card, borderRadius: 12, padding: 4, border: `1px solid ${C.border}` }}>
+      {tabs.map(t => {
+        const active = value === t.id;
+        return (
+          <button key={t.id} onClick={() => onChange(t.id)} style={{ flex: 1, padding: dense ? "6px 0" : "8px 0", borderRadius: 9, border: "none", background: active ? C.bgElevated : "transparent", color: active ? C.accent : C.muted, fontSize: dense ? 10.5 : 11, fontWeight: active ? 600 : 500, cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap", letterSpacing: 0.3 }}>{t.label}</button>
+        );
+      })}
+    </div>
+  );
+}
+function Stepper({ steps, current }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
+      {steps.map((s, i) => {
+        const done = i < current;
+        const active = i === current;
+        return (
+          <React.Fragment key={s}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: done ? C.gold : active ? C.goldBg : C.bgElevated, border: `1px solid ${done || active ? C.goldBorder : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: done ? "#0d1210" : active ? C.gold : C.muted, flexShrink: 0 }}>{done ? "✓" : i + 1}</div>
+              <span style={{ fontSize: 10, color: active ? C.accent : C.muted, fontWeight: active ? 600 : 500, letterSpacing: 0.3, textTransform: "uppercase" }}>{s}</span>
+            </div>
+            {i < steps.length - 1 && <div style={{ flex: 1, height: 1, background: done ? C.goldBorder : C.border }} />}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
 
 // ─── Splash Screen ─────────────────────────────────────────
 function SplashScreen({ onContinue }) {
@@ -1042,17 +1073,13 @@ function OnboardingScreen({ onComplete }) {
   };
 
   const SliderRow = ({ label, key2, min, max, unit = '"', step2 = 0.5 }) => (
-    <div style={{ marginBottom: 18 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-        <span style={{ fontSize: 13, color: C.accent, fontWeight: 500 }}>{label}</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{body[key2]}{unit}</span>
+    <div style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 11 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 11, color: C.mutedLight, fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.goldLight }}>{body[key2]}<span style={{ fontSize: 9, color: C.muted, marginLeft: 2 }}>{unit}</span></span>
       </div>
       <input type="range" min={min} max={max} step={step2} value={body[key2]} onChange={e => setBody(b => ({ ...b, [key2]: parseFloat(e.target.value) }))}
         style={{ width: "100%", accentColor: C.gold, cursor: "pointer" }} />
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-        <span style={{ fontSize: 9, color: C.muted }}>{min}{unit}</span>
-        <span style={{ fontSize: 9, color: C.muted }}>{max}{unit}</span>
-      </div>
     </div>
   );
 
@@ -1075,10 +1102,13 @@ function OnboardingScreen({ onComplete }) {
 
   if (step === "choose") {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, padding: "52px 24px 44px", overflow: "auto" }}>
-        <div style={{ marginBottom: 32, textAlign: "center" }}>
-          <h1 style={{ fontFamily: font.serif, fontSize: 32, fontWeight: 400, color: C.accent, margin: "0 0 10px", lineHeight: 1.2 }}>Let's get your fit</h1>
-          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>We need your measurements to score every item for fit. How would you like to proceed?</p>
+      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, padding: "32px 24px 36px", overflow: "auto" }}>
+        <div style={{ marginBottom: 18 }}>
+          <Stepper steps={["Method", "Body", "Review"]} current={0} />
+        </div>
+        <div style={{ marginBottom: 24, textAlign: "center" }}>
+          <h1 style={{ fontFamily: font.serif, fontSize: 30, fontWeight: 400, color: C.accent, margin: "0 0 8px", lineHeight: 1.15 }}>Let's get your fit</h1>
+          <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.55, maxWidth: 320, margin: "0 auto" }}>We score every item against your body. Choose how to capture your measurements.</p>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
@@ -1122,63 +1152,71 @@ function OnboardingScreen({ onComplete }) {
 
   if (step === "manual") {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-        <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+        <div style={{ flexShrink: 0, padding: "16px 18px 10px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${C.border}` }}>
           <BackButton onClick={() => setStep("choose")} />
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>Your Measurements</h2>
-            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>Drag sliders to match your measurements</p>
+          <div style={{ flex: 1 }}>
+            <Stepper steps={["Method", "Body", "Review"]} current={1} />
           </div>
         </div>
 
-        <div style={{ flex: 1, padding: "16px 18px 100px", overflow: "auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12 }}>
-            <span style={{ fontSize: 12, color: C.muted }}>Units</span>
-            <div style={{ display: "flex", gap: 6 }}>
-              <Pill label="in / ft" active={!useMetric} onClick={() => setUseMetric(false)} />
-              <Pill label="cm / m" active={useMetric} onClick={() => setUseMetric(true)} />
+        <div style={{ flexShrink: 0, padding: "10px 18px 6px", display: "flex", gap: 12, alignItems: "center", background: C.bgElevated, borderBottom: `1px solid ${C.border}` }}>
+          <Body3DViewer body={body} width={70} height={95} autoRotate />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 9.5, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 600 }}>Live preview</div>
+            <div style={{ fontSize: 14, color: C.accent, fontWeight: 600, fontFamily: font.serif, marginTop: 2 }}>{body.bust}–{body.waist}–{body.hips}<span style={{ fontSize: 10, color: C.muted, marginLeft: 4 }}>{useMetric ? "cm" : "in"}</span></div>
+            <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
+              <Pill label="in/ft" active={!useMetric} onClick={() => setUseMetric(false)} />
+              <Pill label="cm/m" active={useMetric} onClick={() => setUseMetric(true)} />
             </div>
           </div>
+        </div>
 
-          <div style={{ marginBottom: 24 }}>
-            <p style={{ fontSize: 11, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, marginBottom: 14 }}>Height</p>
-            {useMetric ? (
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: C.accent, fontWeight: 500 }}>Height</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{heightCm} cm</span>
+        <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 12px", minHeight: 0 }}>
+          <div style={{ fontSize: 9.5, color: C.goldLight, textTransform: "uppercase", letterSpacing: 1.4, fontWeight: 700, marginBottom: 8 }}>Height</div>
+          {useMetric ? (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 11 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: C.mutedLight, fontWeight: 500 }}>Height</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.goldLight }}>{heightCm}<span style={{ fontSize: 9, color: C.muted, marginLeft: 2 }}>cm</span></span>
                 </div>
                 <input type="range" min={140} max={200} step={1} value={heightCm} onChange={e => setHeightCm(parseInt(e.target.value))} style={{ width: "100%", accentColor: C.gold }} />
               </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}><span style={{ fontSize: 13, color: C.accent }}>Feet</span><span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{heightFt}ft</span></div>
-                  <input type="range" min={4} max={7} step={1} value={heightFt} onChange={e => setHeightFt(parseInt(e.target.value))} style={{ width: "100%", accentColor: C.gold }} />
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+              <div style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 11 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: C.mutedLight }}>Feet</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.goldLight }}>{heightFt}<span style={{ fontSize: 9, color: C.muted, marginLeft: 2 }}>ft</span></span>
                 </div>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}><span style={{ fontSize: 13, color: C.accent }}>Inches</span><span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{heightIn}"</span></div>
-                  <input type="range" min={0} max={11} step={1} value={heightIn} onChange={e => setHeightIn(parseInt(e.target.value))} style={{ width: "100%", accentColor: C.gold }} />
-                </div>
+                <input type="range" min={4} max={7} step={1} value={heightFt} onChange={e => setHeightFt(parseInt(e.target.value))} style={{ width: "100%", accentColor: C.gold }} />
               </div>
-            )}
-          </div>
+              <div style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 11 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: C.mutedLight }}>Inches</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.goldLight }}>{heightIn}<span style={{ fontSize: 9, color: C.muted, marginLeft: 2 }}>"</span></span>
+                </div>
+                <input type="range" min={0} max={11} step={1} value={heightIn} onChange={e => setHeightIn(parseInt(e.target.value))} style={{ width: "100%", accentColor: C.gold }} />
+              </div>
+            </div>
+          )}
 
-          <div style={{ height: 1, background: C.border, marginBottom: 24 }} />
-          <p style={{ fontSize: 11, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, marginBottom: 14 }}>Body Measurements</p>
-          <SliderRow label="Bust / Chest" key2="bust" min={28} max={52} />
-          <SliderRow label="Waist" key2="waist" min={20} max={44} />
-          <SliderRow label="Hips" key2="hips" min={30} max={56} />
-          <SliderRow label="Inseam" key2="inseam" min={22} max={36} />
-          <SliderRow label="Shoulder Width" key2="shoulder" min={12} max={20} />
-
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 8, marginBottom: 16 }}>
-            <Body3DViewer body={body} width={160} height={220} autoRotate />
+          <div style={{ fontSize: 9.5, color: C.goldLight, textTransform: "uppercase", letterSpacing: 1.4, fontWeight: 700, marginBottom: 8 }}>Body measurements</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <SliderRow label="Bust" key2="bust" min={28} max={52} />
+            <SliderRow label="Waist" key2="waist" min={20} max={44} />
+            <SliderRow label="Hips" key2="hips" min={30} max={56} />
+            <SliderRow label="Inseam" key2="inseam" min={22} max={36} />
+            <div style={{ gridColumn: "1 / -1" }}>
+              <SliderRow label="Shoulder Width" key2="shoulder" min={12} max={20} />
+            </div>
           </div>
         </div>
 
-        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
-          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
+        <div style={{ flexShrink: 0, padding: "10px 18px 22px", background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 12.5, fontWeight: 700, letterSpacing: 1, cursor: "pointer" }}>
             Save & Start Shopping
           </button>
         </div>
@@ -1188,35 +1226,37 @@ function OnboardingScreen({ onComplete }) {
 
   if (step === "review") {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-        <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+        <div style={{ flexShrink: 0, padding: "16px 18px 10px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${C.border}` }}>
           <BackButton onClick={() => setStep("choose")} />
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif }}>Your Measurements</h2>
-            <p style={{ fontSize: 11, color: C.success, margin: 0 }}>Scan complete — review below</p>
+          <div style={{ flex: 1 }}>
+            <Stepper steps={["Method", "Body", "Review"]} current={2} />
           </div>
         </div>
-        <div style={{ flex: 1, padding: "0 18px 100px" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-            <Body3DViewer body={body} width={200} height={280} autoRotate />
+        <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 12px", minHeight: 0 }}>
+          <div style={{ padding: "10px 14px", background: C.successBg, border: `1px solid ${C.successBorder}`, borderRadius: 12, marginBottom: 12, display: "flex", gap: 8, alignItems: "center" }}>
+            <CheckCircle size={14} />
+            <p style={{ fontSize: 11, color: C.success, margin: 0, fontWeight: 500 }}>Scan complete — 33 landmarks captured in under 60 seconds.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
-            {Object.entries(body).map(([k, v]) => (
-              <GlassCard key={k} style={{ padding: "12px 14px" }}>
-                <div style={{ fontSize: 10, color: C.muted, textTransform: "capitalize", marginBottom: 4 }}>{k}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: C.gold }}>{v}"</div>
-              </GlassCard>
-            ))}
-          </div>
-          <div style={{ padding: "12px 14px", background: C.successBg, border: `1px solid ${C.successBorder}`, borderRadius: 12, marginBottom: 16 }}>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <CheckCircle size={16} />
-              <p style={{ fontSize: 12, color: C.success, margin: 0, fontWeight: 500 }}>Measurements captured successfully. You can fine-tune these anytime in your profile.</p>
+          <div style={{ display: "flex", gap: 12, alignItems: "stretch", marginBottom: 12 }}>
+            <div style={{ width: 140, background: C.bgElevated, border: `1px solid ${C.border}`, borderRadius: 14, padding: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Body3DViewer body={body} width={120} height={170} autoRotate />
+            </div>
+            <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, gridAutoRows: "min-content" }}>
+              {Object.entries(body).map(([k, v]) => (
+                <div key={k} style={{ padding: "8px 10px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+                  <div style={{ fontSize: 8.5, color: C.muted, textTransform: "capitalize", letterSpacing: 0.5 }}>{k}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: C.goldLight, marginTop: 2 }}>{v}<span style={{ fontSize: 9, color: C.muted, marginLeft: 1 }}>"</span></div>
+                </div>
+              ))}
             </div>
           </div>
+          <div style={{ padding: "10px 12px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 11 }}>
+            <p style={{ fontSize: 10.5, color: "rgba(250,250,249,0.72)", lineHeight: 1.5, margin: 0 }}>Tune anytime in <strong style={{ color: C.tailor }}>Profile · Body</strong>. Your 3D model never leaves this device.</p>
+          </div>
         </div>
-        <div style={{ position: "sticky", bottom: 0, padding: "12px 18px 28px", background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
-          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "15px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, letterSpacing: 1, cursor: "pointer" }}>
+        <div style={{ flexShrink: 0, padding: "10px 18px 22px", background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}` }}>
+          <button onClick={() => onComplete(body)} style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 12.5, fontWeight: 700, letterSpacing: 1, cursor: "pointer" }}>
             Start Shopping
           </button>
         </div>
@@ -1247,66 +1287,67 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
   const avgFit = Math.round(catalog.reduce((s, i) => s + i.fit, 0) / catalog.length);
   const perfectFits = catalog.filter(i => i.fit >= 90).length;
 
+  const [showRail, setShowRail] = useState(true);
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "22px 18px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+      {/* Compact app bar */}
+      <div style={{ padding: "16px 18px 10px", flexShrink: 0, borderBottom: `1px solid ${C.border}`, background: "rgba(13,18,16,0.85)", backdropFilter: "blur(16px)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px rgba(92,128,104,0.3)` }}>
-              <span style={{ color: "#0d1210", fontSize: 16, fontWeight: 700, fontFamily: font.serif, fontStyle: "italic" }}>t</span>
+            <div style={{ width: 30, height: 30, borderRadius: 9, background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px rgba(92,128,104,0.3)` }}>
+              <span style={{ color: "#0d1210", fontSize: 15, fontWeight: 700, fontFamily: font.serif, fontStyle: "italic" }}>t</span>
             </div>
-            <div>
-              <div style={{ fontSize: 10, color: C.muted, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 600 }}>The Tailored Co.</div>
-              <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, marginTop: 1 }}>Your fits, ranked</div>
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
+              <span style={{ fontSize: 9.5, color: C.muted, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 600 }}>The Tailored Co.</span>
+              <span style={{ fontSize: 13, color: C.accent, fontWeight: 600, fontFamily: font.serif, fontStyle: "italic" }}>For your body, tonight.</span>
             </div>
           </div>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, color: C.mutedLight, fontSize: 11, padding: "7px 10px", cursor: "pointer", outline: "none" }}>
+          <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "5px 9px", borderRadius: 999, background: C.goldBg, border: `1px solid ${C.goldBorder}` }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.goldLight, fontFamily: font.serif }}>{avgFit}%</span>
+            <span style={{ fontSize: 8.5, color: C.muted, letterSpacing: 0.6, textTransform: "uppercase" }}>avg fit</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ position: "relative", flex: 1 }}>
+            <div style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)" }}><SearchIcon size={14} /></div>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items or brands…" style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: "8px 10px 8px 32px", color: C.accent, fontSize: 12, outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, color: C.mutedLight, fontSize: 11, padding: "0 8px", cursor: "pointer", outline: "none" }}>
             <option value="fit">Best fit</option>
-            <option value="price_asc">Price ↑</option>
-            <option value="price_desc">Price ↓</option>
+            <option value="price_asc">$ ↑</option>
+            <option value="price_desc">$ ↓</option>
           </select>
         </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 400, color: C.accent, margin: "0 0 4px", fontFamily: font.serif, lineHeight: 1.05, letterSpacing: -0.5 }}>For your body, <span style={{ fontStyle: "italic", color: C.goldLight }}>tonight</span>.</h2>
-          <p style={{ fontSize: 12, color: C.muted, margin: 0 }}><span style={{ color: C.success, fontWeight: 600 }}>{perfectFits}</span> perfect fits · avg <span style={{ color: C.goldLight, fontWeight: 600 }}>{avgFit}%</span> match across {catalog.length} pieces</p>
-        </div>
-
-        {/* Search */}
-        <div style={{ position: "relative", marginBottom: 14 }}>
-          <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}><SearchIcon size={15} /></div>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items or brands..." style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px 10px 36px", color: C.accent, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-        </div>
-
-        {/* Category pills */}
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", gap: 6, marginTop: 10, overflowX: "auto", scrollbarWidth: "none" }}>
           {categories.map(c => <Pill key={c} label={c} active={category === c} onClick={() => setCategory(c)} />)}
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
-        {/* Top Picks Hero */}
-        {!search && category === "All" && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+      {/* Scrollable workspace */}
+      <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 90px", minHeight: 0 }}>
+        {/* Top picks rail — only when default view */}
+        {!search && category === "All" && showRail && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <TargetIcon size={14} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: C.accent }}>Highest Fit Scores</span>
+                <TargetIcon size={12} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: C.accent, letterSpacing: 0.4 }}>Top fits for you</span>
+                <span style={{ fontSize: 9.5, color: C.success, fontWeight: 700 }}>· {perfectFits} at 90%+</span>
               </div>
-              <button onClick={() => setSortBy("fit")} style={{ background: "none", border: "none", color: C.goldLight, fontSize: 11, cursor: "pointer", fontWeight: 600, letterSpacing: 0.5 }}>See all →</button>
+              <button onClick={() => setShowRail(false)} aria-label="Hide rail" style={{ background: "none", border: "none", color: C.muted, fontSize: 11, cursor: "pointer", padding: "2px 6px" }}>Hide</button>
             </div>
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 4 }}>
+            <div style={{ display: "flex", gap: 10, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 4 }}>
               {topPicks.map(item => (
-                <div key={item.id} onClick={() => onItemClick(item)} style={{ flexShrink: 0, width: 150, cursor: "pointer" }}>
+                <div key={item.id} onClick={() => onItemClick(item)} style={{ flexShrink: 0, width: 126, cursor: "pointer" }}>
                   <GlassCard hover style={{ overflow: "hidden" }}>
-                    <div style={{ height: 160, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)`, position: "relative" }}>
-                      <div style={{ position: "absolute", top: 8, left: 8 }}><FitBadge fit={item.fit} /></div>
-                      <button onClick={e => { e.stopPropagation(); toggleFav(item.id); }} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><HeartIcon filled={favorites.has(item.id)} /></button>
+                    <div style={{ height: 132, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)`, position: "relative" }}>
+                      <div style={{ position: "absolute", top: 6, left: 6 }}><FitBadge fit={item.fit} /></div>
+                      <button onClick={e => { e.stopPropagation(); toggleFav(item.id); }} style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><HeartIcon filled={favorites.has(item.id)} /></button>
                     </div>
-                    <div style={{ padding: "8px 10px 10px" }}>
+                    <div style={{ padding: "6px 9px 8px" }}>
                       <div style={{ fontSize: 8, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>{item.brand}</div>
-                      <div style={{ fontSize: 11, color: C.accent, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: C.accent, marginTop: 4 }}>${item.price}</div>
+                      <div style={{ fontSize: 10.5, color: C.accent, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, marginTop: 3 }}>${item.price}</div>
                     </div>
                   </GlassCard>
                 </div>
@@ -1315,34 +1356,18 @@ function HomeScreen({ catalog, onItemClick, favorites, toggleFav, onNav, userBod
           </div>
         )}
 
-        {/* Fit confidence summary */}
-        {!search && category === "All" && (
-          <div style={{ padding: "16px 16px", background: `linear-gradient(135deg, ${C.goldBg}, rgba(92,128,104,0.05))`, border: `1px solid ${C.goldBorder}`, borderRadius: 14, marginBottom: 22, display: "flex", gap: 16, alignItems: "center" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9.5, color: C.goldLight, marginBottom: 4, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>Your Fit Profile</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: C.accent, fontFamily: font.serif, lineHeight: 1 }}>{avgFit}<span style={{ fontSize: 14, color: C.goldLight, fontFamily: font.sans, marginLeft: 2 }}>%</span></div>
-              <div style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>average match across {catalog.length} pieces</div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {[["Perfect (90%+)", perfectFits, C.success], ["Good (75–89%)", catalog.filter(i => i.fit >= 75 && i.fit < 90).length, C.warning], ["Fair (<75%)", catalog.filter(i => i.fit < 75).length, C.danger]].map(([label, count, color]) => (
-                <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
-                  <span style={{ fontSize: 10, color: C.muted }}>{label}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color }}>{count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, color: C.muted, letterSpacing: 0.5, textTransform: "uppercase", fontWeight: 600 }}>{category === "All" ? "All pieces" : category} · {filtered.length}</span>
+          {!showRail && !search && category === "All" && <button onClick={() => setShowRail(true)} style={{ background: "none", border: "none", color: C.goldLight, fontSize: 10.5, cursor: "pointer", fontWeight: 600 }}>Show top picks</button>}
+        </div>
 
-        {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {filtered.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
         </div>
         {filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
-            <p style={{ fontSize: 14, color: C.muted }}>No items found for "{search}"</p>
+            <div style={{ fontSize: 28, marginBottom: 10, color: C.muted, fontFamily: font.serif }}>—</div>
+            <p style={{ fontSize: 13, color: C.muted }}>No items found{search ? ` for "${search}"` : ""}</p>
           </div>
         )}
       </div>
@@ -1389,33 +1414,42 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
     </div>
   );
 
+  const [filter, setFilter] = useState("all");
+  const filteredItems = filter === "viral" ? viral : filter === "editor" ? editorsPicks : filter === "best" ? bestSellers : trendingItems;
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
-        <div style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Trending Now</h2>
-          <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>Curated for your fit · Spring 2026</p>
-        </div>
-
-        {/* Trend stats banner */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 16, overflowX: "auto", scrollbarWidth: "none" }}>
-          {[["🔥", "Viral", viral.length], ["✨", "Editor's Pick", editorsPicks.length], ["⭐", "Best Seller", bestSellers.length]].map(([icon, label, count]) => (
-            <div key={label} style={{ flexShrink: 0, padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>{icon}</span>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.accent }}>{count}</div>
-                <div style={{ fontSize: 9, color: C.muted, letterSpacing: 0.5 }}>{label}</div>
+      <div style={{ flexShrink: 0, padding: "16px 18px 10px", borderBottom: `1px solid ${C.border}`, background: "rgba(13,18,16,0.85)", backdropFilter: "blur(16px)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 10 }}>
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 400, color: C.accent, margin: "0 0 1px", fontFamily: font.serif, lineHeight: 1 }}>Trending Now</h2>
+            <p style={{ fontSize: 10, color: C.muted, margin: 0 }}>Curated for your fit · Spring 2026</p>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {[["Viral", viral.length, C.danger], ["Editor", editorsPicks.length, C.goldLight], ["Best", bestSellers.length, C.warning]].map(([label, count, color]) => (
+              <div key={label} style={{ padding: "4px 8px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, textAlign: "center" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color }}>{count}</div>
+                <div style={{ fontSize: 8, color: C.muted, letterSpacing: 0.4, textTransform: "uppercase" }}>{label}</div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+        <Segmented value={filter} onChange={setFilter} dense tabs={[
+          { id: "all", label: `All (${trendingItems.length})` },
+          { id: "viral", label: "Viral" },
+          { id: "editor", label: "Editor" },
+          { id: "best", label: "Best" },
+        ]} />
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
-        <Section title="Going Viral" icon="🔥" items={viral} color={C.danger} />
-        <Section title="Editor's Picks" icon="✨" items={editorsPicks} color={C.gold} />
-        <Section title="Best Sellers" icon="⭐" items={bestSellers} color={C.warning} />
-        <Section title="All Trending" icon="📈" items={trendingItems} />
+      <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 90px", minHeight: 0 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {filteredItems.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
+        </div>
+        {filteredItems.length === 0 && (
+          <div style={{ textAlign: "center", padding: "60px 20px", color: C.muted }}>
+            <p style={{ fontSize: 13 }}>Nothing trending here yet.</p>
+          </div>
+        )}
       </div>
       <NavBar active="trending" onNav={onNav} />
     </div>
@@ -1426,12 +1460,12 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
 function BrandsScreen({ catalog, onBrandClick, onNav }) {
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
-        <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Brands</h2>
-        <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Shop by brand — fit scores included</p>
+      <div style={{ flexShrink: 0, padding: "16px 18px 12px", borderBottom: `1px solid ${C.border}`, background: "rgba(13,18,16,0.85)", backdropFilter: "blur(16px)" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 400, color: C.accent, margin: "0 0 1px", fontFamily: font.serif, lineHeight: 1 }}>Brands</h2>
+        <p style={{ fontSize: 10, color: C.muted, margin: 0 }}>{BRANDS.length} partners · fit-scored for your body</p>
       </div>
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 90px", minHeight: 0 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {BRANDS.map(b => {
             const items = catalog.filter(i => i.brandId === b.id);
             const avgFit = items.length ? Math.round(items.reduce((s, i) => s + i.fit, 0) / items.length) : 0;
@@ -1515,167 +1549,177 @@ function ItemDetailScreen({ item, onBack, isFav, toggleFav, onSendToTailor, user
   ];
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-      <div style={{ position: "sticky", top: 0, zIndex: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(13,18,16,0.9)", backdropFilter: "blur(16px)" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+      {/* App bar */}
+      <div style={{ flexShrink: 0, padding: "12px 18px 10px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(13,18,16,0.92)", backdropFilter: "blur(16px)", borderBottom: `1px solid ${C.border}` }}>
         <BackButton onClick={onBack} />
-        <button onClick={() => toggleFav(item.id)} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, borderRadius: 12, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+        <div style={{ flex: 1, minWidth: 0, margin: "0 12px", textAlign: "center" }}>
+          <div style={{ fontSize: 9.5, color: C.muted, letterSpacing: 1, textTransform: "uppercase", fontWeight: 600 }}>{item.brand}</div>
+          <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{item.name}</div>
+        </div>
+        <button onClick={() => toggleFav(item.id)} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, borderRadius: 12, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
           <HeartIcon filled={isFav} />
         </button>
       </div>
 
-      <div style={{ padding: "0 18px 40px" }}>
-        {/* Image / Try-On */}
-        <div style={{ borderRadius: 20, overflow: "hidden", marginBottom: 14, border: `1px solid ${showTryOn ? C.goldBorder : C.border}`, transition: "border-color 0.3s" }}>
+      {/* Hero pane — fixed height, no scroll */}
+      <div style={{ flexShrink: 0, padding: "12px 18px 8px" }}>
+        <div style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${showTryOn ? C.goldBorder : C.border}`, transition: "border-color 0.3s", height: 280, position: "relative" }}>
           {showTryOn ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0 12px", background: C.bgElevated, position: "relative" }}>
-              <Body3DViewer body={userBody} width={300} height={400} garment={{ ...item, color: tryOnColor }} autoRotate />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", background: C.bgElevated, position: "relative" }}>
+              <Body3DViewer body={userBody} width={220} height={260} garment={{ ...item, color: tryOnColor }} autoRotate />
               {showFitMap && (
-                <div style={{ position: "absolute", top: 16, left: 16, right: 16, pointerEvents: "none" }}>
+                <div style={{ position: "absolute", top: 10, left: 10, right: 10, pointerEvents: "none" }}>
                   <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
                     {fitRegions.map(r => (
-                      <div key={r.label} style={{ padding: "3px 8px", borderRadius: 6, background: r.score >= 90 ? "rgba(127,203,156,0.25)" : r.score >= 75 ? "rgba(95,176,176,0.25)" : "rgba(224,133,133,0.25)", border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(224,133,133,0.3)"}` }}>
-                        <div style={{ fontSize: 8, color: C.muted, textAlign: "center" }}>{r.label}</div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: r.score >= 90 ? C.success : r.score >= 75 ? C.warning : C.danger, textAlign: "center" }}>{r.score}%</div>
+                      <div key={r.label} style={{ padding: "2px 6px", borderRadius: 6, background: r.score >= 90 ? "rgba(127,203,156,0.25)" : r.score >= 75 ? "rgba(95,176,176,0.25)" : "rgba(224,133,133,0.25)", border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(224,133,133,0.3)"}` }}>
+                        <div style={{ fontSize: 7.5, color: C.muted, textAlign: "center", lineHeight: 1 }}>{r.label}</div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: r.score >= 90 ? C.success : r.score >= 75 ? C.warning : C.danger, textAlign: "center" }}>{r.score}%</div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-              {colors.length > 1 && (
-                <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "center" }}>
-                  {colors.map(c => <button key={c} onClick={() => setTryOnColor(c)} style={{ width: 24, height: 24, borderRadius: "50%", background: c, border: `2px solid ${tryOnColor === c ? C.gold : "transparent"}`, outline: tryOnColor === c ? `1px solid ${C.gold}` : "none", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 0 0 1px rgba(255,255,255,0.1)" }} />)}
-                </div>
-              )}
-              <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", justifyContent: "center", padding: "0 16px" }}>
-                {sizes.map(([sz]) => <button key={sz} onClick={() => setTryOnSize(sz)} style={{ padding: "4px 12px", borderRadius: 8, border: `1px solid ${tryOnSize === sz ? C.goldBorder : C.border}`, background: tryOnSize === sz ? C.goldBg : "transparent", color: tryOnSize === sz ? C.gold : C.muted, fontSize: 10, fontWeight: tryOnSize === sz ? 700 : 500, cursor: "pointer", transition: "all 0.2s" }}>{sz}</button>)}
-              </div>
-              <div style={{ display: "flex", gap: 12, marginTop: 8, alignItems: "center" }}>
-                <p style={{ fontSize: 9, color: C.muted, letterSpacing: 0.5 }}>Drag to rotate · Size {tryOnSize}</p>
-                <button onClick={() => setShowFitMap(f => !f)} style={{ fontSize: 9, color: showFitMap ? C.gold : C.muted, background: "none", border: `1px solid ${showFitMap ? C.goldBorder : C.border}`, borderRadius: 6, padding: "2px 8px", cursor: "pointer" }}>Fit Map</button>
-              </div>
             </div>
           ) : (
-            <div style={{ height: 340, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)` }} />
+            <div style={{ height: "100%", background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)`, position: "relative" }}>
+              <div style={{ position: "absolute", top: 10, left: 10 }}><FitBadge fit={item.fit} size="lg" /></div>
+              {item.badge && <div style={{ position: "absolute", top: 10, right: 10, padding: "3px 10px", borderRadius: 6, background: "rgba(13,18,16,0.78)", backdropFilter: "blur(8px)", fontSize: 9, fontWeight: 700, color: C.goldLight, letterSpacing: 0.5, textTransform: "uppercase", border: `1px solid ${C.goldBorder}` }}>{item.badge}</div>}
+              <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                <div style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(13,18,16,0.75)", backdropFilter: "blur(8px)", fontSize: 11, fontWeight: 700, color: C.accent }}>${item.price}</div>
+                <div style={{ padding: "3px 8px", borderRadius: 8, background: "rgba(13,18,16,0.75)", backdropFilter: "blur(8px)", fontSize: 9, fontWeight: 600, color: item.risk === "Low" ? C.success : C.warning, letterSpacing: 0.4 }}>{item.risk} risk</div>
+              </div>
+            </div>
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-          <button onClick={() => setShowTryOn(false)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${!showTryOn ? C.goldBorder : C.border}`, background: !showTryOn ? C.goldBg : "transparent", color: !showTryOn ? C.gold : C.muted, fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Photo</button>
-          <button onClick={() => setShowTryOn(true)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${showTryOn ? C.goldBorder : C.border}`, background: showTryOn ? C.goldBg : "transparent", color: showTryOn ? C.gold : C.muted, fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Virtual Try-On</button>
-        </div>
-
-        {/* Item Info */}
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-            <p style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, margin: 0 }}>Sourced from {item.brand}</p>
-            {item.url && <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>}
+        {/* Segmented: Photo / Try-On + tools */}
+        <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
+          <div style={{ display: "flex", flex: 1, background: C.card, borderRadius: 10, padding: 3, border: `1px solid ${C.border}` }}>
+            <button onClick={() => setShowTryOn(false)} style={{ flex: 1, padding: "6px 0", borderRadius: 8, border: "none", background: !showTryOn ? C.bgElevated : "transparent", color: !showTryOn ? C.accent : C.muted, fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>Photo</button>
+            <button onClick={() => setShowTryOn(true)} style={{ flex: 1, padding: "6px 0", borderRadius: 8, border: "none", background: showTryOn ? C.bgElevated : "transparent", color: showTryOn ? C.accent : C.muted, fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>3D Try-On</button>
           </div>
-          <h2 style={{ fontSize: 22, fontWeight: 400, color: C.accent, fontFamily: font.serif, margin: "4px 0 8px", lineHeight: 1.3 }}>{item.name}</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 24, fontWeight: 700, color: C.accent }}>${item.price}</span>
-            <FitBadge fit={item.fit} size="lg" />
-          </div>
-          {item.badge && <div style={{ display: "inline-block", marginTop: 8, padding: "3px 10px", borderRadius: 6, background: C.goldBg, border: `1px solid ${C.goldBorder}`, fontSize: 9, fontWeight: 600, color: C.gold, letterSpacing: 0.5, textTransform: "uppercase" }}>{item.badge}</div>}
+          {showTryOn && (
+            <button onClick={() => setShowFitMap(f => !f)} style={{ fontSize: 10, color: showFitMap ? C.gold : C.muted, background: showFitMap ? C.goldBg : "transparent", border: `1px solid ${showFitMap ? C.goldBorder : C.border}`, borderRadius: 10, padding: "6px 10px", cursor: "pointer", fontWeight: 600 }}>Fit Map</button>
+          )}
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 0, marginBottom: 16, background: C.card, borderRadius: 12, padding: 4, border: `1px solid ${C.border}` }}>
-          {[["fit", "Fit Intelligence"], ["size", "Size Chart"], ["reviews", "Reviews"]].map(([id, label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, padding: "8px 0", borderRadius: 9, border: "none", background: activeTab === id ? C.bgElevated : "transparent", color: activeTab === id ? C.accent : C.muted, fontSize: 11, fontWeight: activeTab === id ? 600 : 400, cursor: "pointer", transition: "all 0.2s" }}>{label}</button>
-          ))}
-        </div>
+      {/* Segmented tabs */}
+      <div style={{ flexShrink: 0, padding: "6px 18px 8px" }}>
+        <Segmented value={activeTab} onChange={setActiveTab} dense tabs={[{ id: "fit", label: "Fit AI" }, { id: "size", label: "Sizes" }, { id: "reviews", label: "Reviews" }]} />
+      </div>
 
+      {/* Scrollable tab content */}
+      <div style={{ flex: 1, overflow: "auto", padding: "4px 18px 12px", minHeight: 0 }}>
         {activeTab === "fit" && (
-          <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <TargetIcon size={16} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.accent }}>Fit Intelligence</span>
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+              <div style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+                <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>Your size</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: C.goldLight, marginTop: 2 }}>{item.bestSize}</div>
+              </div>
+              <div style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+                <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>Fit score</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: item.fit >= 90 ? C.success : C.warning, marginTop: 2 }}>{item.fit}%</div>
+              </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 12, color: C.muted }}>Recommended size</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{item.bestSize}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <span style={{ fontSize: 12, color: C.muted }}>Return risk</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: item.risk === "Low" ? C.success : C.warning }}>{item.risk}</span>
-            </div>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ padding: "12px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <TargetIcon size={12} />
+                <span style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, fontWeight: 600 }}>Region fit · 33 landmarks</span>
+              </div>
               {fitRegions.map(r => <FitBar key={r.label} fit={r.score} label={r.label} />)}
             </div>
-            <div style={{ padding: "12px 14px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 10, marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <div style={{ padding: "10px 12px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 10, marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                 <SparkleIcon size={12} />
                 <span style={{ fontSize: 9, fontWeight: 600, color: C.tailor, textTransform: "uppercase", letterSpacing: 0.5 }}>AI Stylist</span>
               </div>
-              <p style={{ fontSize: 11, color: "rgba(250,250,249,0.75)", lineHeight: 1.6, fontStyle: "italic", margin: 0 }}>{generateFitReason(item, userBody)}</p>
+              <p style={{ fontSize: 11, color: "rgba(250,250,249,0.78)", lineHeight: 1.55, fontStyle: "italic", margin: 0 }}>{generateFitReason(item, userBody)}</p>
             </div>
-            <div style={{ padding: "10px 12px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 10, marginBottom: 10 }}>
-              <p style={{ fontSize: 11, color: C.goldLight, lineHeight: 1.5, margin: 0 }}>{item.sizingNote}</p>
+            <div style={{ padding: "9px 12px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 10, marginBottom: 8 }}>
+              <p style={{ fontSize: 10.5, color: C.goldLight, lineHeight: 1.5, margin: 0 }}>{item.sizingNote}</p>
             </div>
-            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>{item.fabric}</p>
-          </GlassCard>
+            <p style={{ fontSize: 10.5, color: C.muted, margin: 0, padding: "0 4px" }}>{item.fabric}</p>
+          </div>
         )}
 
         {activeTab === "size" && (
-          <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Size Chart</p>
-            {sizes.map(([sz, meas]) => {
-              const isBest = sz === item.bestSize;
-              return (
-                <div key={sz} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 12px", borderRadius: 10, marginBottom: 8, background: isBest ? C.goldBg : C.bgElevated, border: `1px solid ${isBest ? C.goldBorder : C.border}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: isBest ? 700 : 500, color: isBest ? C.gold : C.accent }}>{sz}</span>
-                    {isBest && <div style={{ padding: "2px 8px", borderRadius: 6, background: C.gold, fontSize: 8, fontWeight: 700, color: "#fff" }}>YOUR SIZE</div>}
-                  </div>
-                  <span style={{ fontSize: 10, color: C.muted, textAlign: "right", maxWidth: "60%" }}>{meas}</span>
+          <div>
+            {showTryOn && colors.length > 1 && (
+              <div style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, marginBottom: 10 }}>
+                <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1, fontWeight: 600, marginBottom: 6 }}>Colors</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {colors.map(c => <button key={c} onClick={() => setTryOnColor(c)} style={{ width: 26, height: 26, borderRadius: "50%", background: c, border: `2px solid ${tryOnColor === c ? C.gold : "transparent"}`, outline: tryOnColor === c ? `1px solid ${C.gold}` : "none", cursor: "pointer", boxShadow: "0 0 0 1px rgba(255,255,255,0.1)" }} />)}
                 </div>
-              );
-            })}
-          </GlassCard>
+              </div>
+            )}
+            <div style={{ padding: "12px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12 }}>
+              <div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: 1, fontWeight: 600, marginBottom: 8 }}>Size chart</div>
+              {sizes.map(([sz, meas]) => {
+                const isBest = sz === item.bestSize;
+                const isSel = sz === tryOnSize;
+                return (
+                  <button key={sz} onClick={() => setTryOnSize(sz)} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 12px", borderRadius: 10, marginBottom: 6, background: isBest ? C.goldBg : isSel ? C.bgElevated : "transparent", border: `1px solid ${isBest ? C.goldBorder : isSel ? C.borderLight : C.border}`, cursor: "pointer", textAlign: "left" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: isBest ? 700 : 500, color: isBest ? C.goldLight : C.accent }}>{sz}</span>
+                      {isBest && <span style={{ padding: "2px 6px", borderRadius: 5, background: C.goldBorder, fontSize: 8, fontWeight: 700, color: C.goldLight, letterSpacing: 0.5 }}>YOUR SIZE</span>}
+                    </div>
+                    <span style={{ fontSize: 10, color: C.muted, textAlign: "right", maxWidth: "55%" }}>{meas}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {activeTab === "reviews" && (
-          <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, margin: 0 }}>Community Reviews</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{(reviews.filter(r => r.kept).length / reviews.length * 5).toFixed(1)}</span>
+          <div>
+            <div style={{ padding: "10px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: 1, fontWeight: 600 }}>Kept rate</span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: C.goldLight, fontFamily: font.serif }}>{(reviews.filter(r => r.kept).length / reviews.length * 5).toFixed(1)}</span>
                 <span style={{ fontSize: 10, color: C.muted }}>/ 5</span>
               </div>
             </div>
             {reviews.map((r, i) => (
-              <div key={i} style={{ padding: "12px 0", borderBottom: i < reviews.length - 1 ? `1px solid ${C.border}` : "none" }}>
+              <div key={i} style={{ padding: "11px 12px", marginBottom: 6, background: C.card, border: `1px solid ${C.border}`, borderRadius: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.goldBg, border: `1px solid ${C.goldBorder}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: C.gold }}>{r.initials}</span>
+                    <div style={{ width: 26, height: 26, borderRadius: "50%", background: C.goldBg, border: `1px solid ${C.goldBorder}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 8.5, fontWeight: 700, color: C.goldLight }}>{r.initials}</span>
                     </div>
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: C.accent }}>{r.initials}</div>
                       <div style={{ fontSize: 9, color: C.muted }}>{r.meas}</div>
                     </div>
                   </div>
-                  <div style={{ padding: "2px 8px", borderRadius: 6, background: r.kept ? C.successBg : "rgba(248,113,113,0.1)", border: `1px solid ${r.kept ? C.successBorder : "rgba(248,113,113,0.2)"}`, fontSize: 9, fontWeight: 600, color: r.kept ? C.success : C.danger }}>
+                  <div style={{ padding: "2px 8px", borderRadius: 6, background: r.kept ? C.successBg : "rgba(248,113,113,0.1)", border: `1px solid ${r.kept ? C.successBorder : "rgba(248,113,133,0.2)"}`, fontSize: 9, fontWeight: 600, color: r.kept ? C.success : C.danger }}>
                     {r.kept ? "Kept" : "Returned"}
                   </div>
                 </div>
                 <p style={{ fontSize: 11, color: C.mutedLight, lineHeight: 1.5, margin: 0 }}>{r.note}</p>
               </div>
             ))}
-          </GlassCard>
+          </div>
         )}
+      </div>
 
-        {/* CTA Buttons */}
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => onSendToTailor(item)} style={{ flex: 1, padding: "14px 0", borderRadius: 12, border: `1px solid ${C.tailorBorder}`, background: C.tailorBg, color: C.tailor, fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <ScissorsIcon size={14} /> Tailor It
+      {/* Sticky bottom CTA */}
+      <div style={{ flexShrink: 0, padding: "10px 18px 18px", borderTop: `1px solid ${C.border}`, background: "rgba(13,18,16,0.95)", backdropFilter: "blur(16px)", display: "flex", gap: 8 }}>
+        <button onClick={() => onSendToTailor(item)} style={{ flex: 1, padding: "12px 0", borderRadius: 11, border: `1px solid ${C.tailorBorder}`, background: C.tailorBg, color: C.tailor, fontSize: 11.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <ScissorsIcon size={13} /> Tailor It
+        </button>
+        {item.url ? (
+          <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ flex: 2, padding: "12px 0", borderRadius: 11, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 12, fontWeight: 700, letterSpacing: 0.5, cursor: "pointer" }}>
+            Shop at {item.brand} →
           </button>
-          {item.url && (
-            <button onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')} style={{ flex: 2, padding: "14px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              Shop at {item.brand} →
-            </button>
-          )}
-        </div>
+        ) : (
+          <button disabled style={{ flex: 2, padding: "12px 0", borderRadius: 11, border: "none", background: C.bgElevated, color: C.muted, fontSize: 12, fontWeight: 600, cursor: "not-allowed" }}>
+            Coming soon
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1704,86 +1748,79 @@ function StyleAIScreen({ catalog, userBody, onItemClick, favorites, toggleFav, o
     Rectangle: "Your proportions are similar throughout — cinched waists, peplum tops, and ruffled skirts add beautiful definition.",
   };
 
+  const [tab, setTab] = useState("shape");
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
-        <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Style AI</h2>
-        <p style={{ fontSize: 11, color: C.muted, margin: "0 0 16px" }}>Personalized insights for your body</p>
+      <div style={{ flexShrink: 0, padding: "16px 18px 10px", borderBottom: `1px solid ${C.border}`, background: "rgba(13,18,16,0.85)", backdropFilter: "blur(16px)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 400, color: C.accent, margin: "0 0 1px", fontFamily: font.serif, lineHeight: 1 }}>Style AI</h2>
+            <p style={{ fontSize: 10, color: C.muted, margin: 0 }}>33-landmark intelligence · personal</p>
+          </div>
+          <div style={{ padding: "4px 9px", borderRadius: 999, background: C.goldBg, border: `1px solid ${C.goldBorder}` }}>
+            <span style={{ fontSize: 10, color: C.goldLight, fontWeight: 700, letterSpacing: 0.6 }}>{insights.shape}</span>
+          </div>
+        </div>
+        <Segmented value={tab} onChange={setTab} dense tabs={[{ id: "shape", label: "Shape" }, { id: "picks", label: `Picks (${insights.topFits.length})` }, { id: "tips", label: "Tips" }]} />
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
-        {/* Body Shape Card */}
-        <GlassCard style={{ padding: 20, marginBottom: 16 }}>
-          <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 10, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, marginBottom: 6 }}>Your Body Shape</div>
-              <div style={{ fontSize: 28, fontWeight: 400, color: C.accent, fontFamily: font.serif, marginBottom: 8 }}>{insights.shape}</div>
-              <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.6, margin: 0 }}>{shapeAdvice[insights.shape]}</p>
+      <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 90px", minHeight: 0 }}>
+        {tab === "shape" && (
+          <div>
+            <div style={{ padding: "14px 16px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, marginBottom: 10, display: "flex", gap: 12, alignItems: "center" }}>
+              <Body3DViewer body={userBody} width={86} height={120} autoRotate />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 9.5, color: C.goldLight, textTransform: "uppercase", letterSpacing: 1.3, fontWeight: 700, marginBottom: 4 }}>Body shape</div>
+                <div style={{ fontSize: 22, fontWeight: 400, color: C.accent, fontFamily: font.serif, lineHeight: 1, marginBottom: 6 }}>{insights.shape}</div>
+                <p style={{ fontSize: 10.5, color: C.muted, lineHeight: 1.5, margin: 0 }}>{shapeAdvice[insights.shape]}</p>
+              </div>
             </div>
-            <Body3DViewer body={userBody} width={100} height={140} autoRotate />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
+              {[
+                { label: "Low risk", value: insights.lowRisk, color: C.tailor },
+                { label: "90%+ fits", value: insights.topFits.length, color: C.success },
+                { label: "Best brand", value: insights.bestBrand ? insights.bestBrand.name : "—", color: C.goldLight, small: true },
+              ].map(({ label, value, color, small }) => (
+                <div key={label} style={{ padding: "10px 8px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, textAlign: "center" }}>
+                  <div style={{ fontSize: small ? 12 : 18, fontWeight: 700, color, fontFamily: small ? font.sans : font.serif, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+                  <div style={{ fontSize: 8.5, color: C.muted, marginTop: 2, letterSpacing: 0.5, textTransform: "uppercase" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: "12px 14px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <SparkleIcon size={13} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.tailor, textTransform: "uppercase", letterSpacing: 0.6 }}>AI Stylist</span>
+              </div>
+              <p style={{ fontSize: 11, color: "rgba(250,250,249,0.78)", lineHeight: 1.55, margin: 0, fontStyle: "italic" }}>
+                Based on your {userBody.bust}–{userBody.waist}–{userBody.hips} measurements, {insights.bestBrand ? `${insights.bestBrand.name} runs closest to your body at ${Math.round(insights.bestBrand.avg)}% average fit. ` : ""}{insights.lowRisk} catalog items are flagged low return-risk.
+              </p>
+            </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 16 }}>
-            {[["Bust", userBody.bust], ["Waist", userBody.waist], ["Hips", userBody.hips]].map(([k, v]) => (
-              <div key={k} style={{ textAlign: "center", padding: "8px 0", background: C.bgElevated, borderRadius: 10, border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>{k}</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: C.gold, marginTop: 2 }}>{v}"</div>
+        )}
+
+        {tab === "picks" && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {insights.topFits.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
+          </div>
+        )}
+
+        {tab === "tips" && (
+          <div style={{ padding: "14px 16px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 14 }}>
+            <div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 600, marginBottom: 10 }}>Style notes for {insights.shape.toLowerCase()}</div>
+            {[
+              { kind: "do", tip: "Fitted waistlines highlight your proportions" },
+              { kind: "do", tip: "Stretch fabrics (jersey, modal) score highest" },
+              { kind: "do", tip: "High-waist bottoms elongate your silhouette" },
+              { kind: "skip", tip: "Avoid boxy cuts — they hide your shape" },
+            ].map(({ kind, tip }, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "9px 0", borderBottom: i < 3 ? `1px solid ${C.border}` : "none" }}>
+                <div style={{ width: 22, height: 22, borderRadius: 7, background: kind === "do" ? C.successBg : "rgba(224,133,133,0.12)", border: `1px solid ${kind === "do" ? C.successBorder : "rgba(224,133,133,0.25)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 10, fontWeight: 700, color: kind === "do" ? C.success : C.danger }}>{kind === "do" ? "✓" : "—"}</div>
+                <span style={{ fontSize: 11.5, color: C.mutedLight, lineHeight: 1.45 }}>{tip}</span>
               </div>
             ))}
           </div>
-        </GlassCard>
-
-        {/* AI Insight */}
-        <div style={{ padding: "16px 18px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 16, marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <SparkleIcon size={16} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.tailor }}>AI Stylist Insight</span>
-          </div>
-          <p style={{ fontSize: 12, color: "rgba(250,250,249,0.8)", lineHeight: 1.7, margin: "0 0 12px", fontStyle: "italic" }}>
-            "Based on your {userBody.bust}-{userBody.waist}-{userBody.hips} measurements, you have a {insights.shape.toLowerCase()} shape. 
-            {insights.bestBrand ? ` ${insights.bestBrand.name} is your best-matching brand at ${Math.round(insights.bestBrand.avg)}% average fit.` : ""} 
-            {insights.lowRisk} items in the catalog are low return-risk for you."
-          </p>
-          <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ flex: 1, padding: "10px 12px", background: "rgba(167,139,250,0.1)", borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: C.tailor }}>{insights.lowRisk}</div>
-              <div style={{ fontSize: 9, color: C.muted, marginTop: 2 }}>Low risk items</div>
-            </div>
-            <div style={{ flex: 1, padding: "10px 12px", background: C.successBg, borderRadius: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: C.success }}>{insights.topFits.length}</div>
-              <div style={{ fontSize: 9, color: C.muted, marginTop: 2 }}>Perfect fits (90%+)</div>
-            </div>
-            {insights.bestBrand && (
-              <div style={{ flex: 1, padding: "10px 12px", background: C.goldBg, borderRadius: 10, textAlign: "center" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{insights.bestBrand.name}</div>
-                <div style={{ fontSize: 9, color: C.muted, marginTop: 2 }}>Best brand</div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Style Tips */}
-        <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Style Tips for You</p>
-          {[
-            { icon: "✅", tip: "Fitted waistlines highlight your proportions" },
-            { icon: "✅", tip: "Stretch fabrics (jersey, modal) give the best fit scores" },
-            { icon: "✅", tip: "High-waist bottoms elongate your silhouette" },
-            { icon: "⚡", tip: "Avoid boxy cuts — they hide your shape" },
-          ].map(({ icon, tip }) => (
-            <div key={tip} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-              <span style={{ fontSize: 14 }}>{icon}</span>
-              <span style={{ fontSize: 12, color: C.mutedLight, lineHeight: 1.5 }}>{tip}</span>
-            </div>
-          ))}
-        </GlassCard>
-
-        {/* Top Picks */}
-        <div style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Your Top Picks</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {insights.topFits.map(item => <ItemCard key={item.id} item={item} onClick={() => onItemClick(item)} isFav={favorites.has(item.id)} toggleFav={toggleFav} />)}
-          </div>
-        </div>
+        )}
       </div>
       <NavBar active="style" onNav={onNav} />
     </div>
@@ -1860,128 +1897,138 @@ function ProfileScreen({ userBody, onUpdateBody, favorites, catalog, onNav, tail
 
   if (editing) {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg, overflow: "auto" }}>
-        <div style={{ padding: "18px 18px 0", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+      <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
+        <div style={{ flexShrink: 0, padding: "16px 18px 12px", display: "flex", alignItems: "center", gap: 10, background: "rgba(13,18,16,0.92)", backdropFilter: "blur(16px)", borderBottom: `1px solid ${C.border}` }}>
           <BackButton onClick={() => setEditing(false)} label="Cancel" />
-          <h2 style={{ fontSize: 18, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif, flex: 1 }}>Edit Measurements</h2>
-          <button onClick={() => { onUpdateBody(editBody); setEditing(false); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Save</button>
+          <h2 style={{ fontSize: 15, fontWeight: 500, color: C.accent, margin: 0, fontFamily: font.serif, flex: 1, textAlign: "center" }}>Edit Body</h2>
+          <button onClick={() => { onUpdateBody(editBody); setEditing(false); }} style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, color: "#0d1210", fontSize: 11.5, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5 }}>Save</button>
         </div>
-        <div style={{ flex: 1, padding: "0 18px 40px" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-            <Body3DViewer body={editBody} width={160} height={220} autoRotate />
+        <div style={{ flexShrink: 0, padding: "10px 18px 6px", display: "flex", gap: 12, alignItems: "center", background: C.bgElevated, borderBottom: `1px solid ${C.border}` }}>
+          <Body3DViewer body={editBody} width={70} height={95} autoRotate />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 9.5, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 600 }}>Live preview</div>
+            <div style={{ fontSize: 14, color: C.accent, fontWeight: 600, fontFamily: font.serif, marginTop: 2 }}>{editBody.bust}–{editBody.waist}–{editBody.hips}<span style={{ fontSize: 10, color: C.muted, marginLeft: 4 }}>in</span></div>
           </div>
-          {Object.entries(editBody).map(([key, val]) => {
-            const ranges = { bust: [28, 52], waist: [20, 44], hips: [30, 56], inseam: [22, 36], shoulder: [12, 20] };
-            const [min, max] = ranges[key] || [10, 60];
-            return (
-              <div key={key} style={{ marginBottom: 18 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: C.accent, fontWeight: 500, textTransform: "capitalize" }}>{key}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{val}"</span>
+        </div>
+        <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 28px", minHeight: 0 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {Object.entries(editBody).map(([key, val], idx) => {
+              const ranges = { bust: [28, 52], waist: [20, 44], hips: [30, 56], inseam: [22, 36], shoulder: [12, 20] };
+              const [min, max] = ranges[key] || [10, 60];
+              const isLast = idx === Object.entries(editBody).length - 1 && Object.entries(editBody).length % 2 === 1;
+              return (
+                <div key={key} style={{ padding: "10px 12px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, gridColumn: isLast ? "1 / -1" : undefined }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, color: C.mutedLight, fontWeight: 500, textTransform: "capitalize" }}>{key}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: C.goldLight }}>{val}<span style={{ fontSize: 9, color: C.muted, marginLeft: 2 }}>"</span></span>
+                  </div>
+                  <input type="range" min={min} max={max} step={0.5} value={val} onChange={e => setEditBody(b => ({ ...b, [key]: parseFloat(e.target.value) }))} style={{ width: "100%", accentColor: C.gold }} />
                 </div>
-                <input type="range" min={min} max={max} step={0.5} value={val} onChange={e => setEditBody(b => ({ ...b, [key]: parseFloat(e.target.value) }))} style={{ width: "100%", accentColor: C.gold }} />
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   }
 
+  const [tab, setTab] = useState("body");
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: C.bg }}>
-      <div style={{ padding: "18px 18px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-          <div>
-            <h2 style={{ fontSize: 24, fontWeight: 400, color: C.accent, margin: "0 0 2px", fontFamily: font.serif }}>Profile</h2>
-            <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>Your fit identity</p>
+      {/* Identity strip */}
+      <div style={{ flexShrink: 0, padding: "16px 18px 12px", background: "rgba(13,18,16,0.85)", backdropFilter: "blur(16px)", borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 12 }}>
+          <div style={{ width: 64, height: 80, borderRadius: 12, background: C.bgElevated, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+            <Body3DViewer body={userBody} width={62} height={78} autoRotate />
           </div>
-          <button onClick={() => setEditing(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontSize: 11, cursor: "pointer" }}>
-            <EditIcon size={13} /> Edit
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: C.muted, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 600 }}>Fit profile</div>
+            <h2 style={{ fontSize: 20, fontWeight: 400, color: C.accent, margin: "2px 0 4px", fontFamily: font.serif, lineHeight: 1 }}>{userBody.bust}–{userBody.waist}–{userBody.hips}<span style={{ fontSize: 12, color: C.muted, marginLeft: 4 }}>in</span></h2>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 9.5, color: C.success, fontWeight: 700, padding: "2px 7px", background: C.successBg, border: `1px solid ${C.successBorder}`, borderRadius: 6 }}>{perfectFits} perfect</span>
+              <span style={{ fontSize: 9.5, color: C.goldLight, fontWeight: 700, padding: "2px 7px", background: C.goldBg, border: `1px solid ${C.goldBorder}`, borderRadius: 6 }}>{avgFit}% avg</span>
+              <span style={{ fontSize: 9.5, color: C.mutedLight, fontWeight: 600, padding: "2px 7px", background: C.bgElevated, border: `1px solid ${C.border}`, borderRadius: 6 }}>{favorites.size} saved</span>
+            </div>
+          </div>
+          <button onClick={() => setEditing(true)} aria-label="Edit measurements" style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 11px", borderRadius: 10, border: `1px solid ${C.border}`, background: "transparent", color: C.mutedLight, fontSize: 11, cursor: "pointer", flexShrink: 0 }}>
+            <EditIcon size={12} /> Edit
           </button>
         </div>
+        <Segmented value={tab} onChange={setTab} dense tabs={[{ id: "body", label: "Body" }, { id: "saved", label: `Saved (${favItems.length})` }, { id: "orders", label: `Tailor (${tailorOrders.length})` }]} />
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}>
-        {/* Body preview */}
-        <GlassCard style={{ padding: 20, marginBottom: 16 }}>
-          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-            <Body3DViewer body={userBody} width={100} height={140} autoRotate />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: C.gold, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600, marginBottom: 8 }}>Your Measurements</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+      <div style={{ flex: 1, overflow: "auto", padding: "12px 18px 90px", minHeight: 0 }}>
+        {tab === "body" && (
+          <div>
+            <div style={{ padding: "14px 16px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, marginBottom: 12 }}>
+              <div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 600, marginBottom: 10 }}>Measurements</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 {Object.entries(userBody).map(([k, v]) => (
-                  <div key={k} style={{ padding: "6px 8px", background: C.bgElevated, borderRadius: 8, border: `1px solid ${C.border}` }}>
-                    <div style={{ fontSize: 8, color: C.muted, textTransform: "capitalize" }}>{k}</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: C.gold }}>{v}"</div>
+                  <div key={k} style={{ padding: "9px 10px", background: C.bgElevated, borderRadius: 10, border: `1px solid ${C.border}` }}>
+                    <div style={{ fontSize: 9, color: C.muted, textTransform: "capitalize", letterSpacing: 0.5 }}>{k}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.goldLight, marginTop: 2 }}>{v}<span style={{ fontSize: 10, color: C.muted, marginLeft: 2 }}>"</span></div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </GlassCard>
-
-        {/* Fit Stats */}
-        <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Fit Statistics</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-            {[
-              { label: "Avg Fit", value: `${avgFit}%`, color: C.gold },
-              { label: "Perfect Fits", value: perfectFits, color: C.success },
-              { label: "Saved", value: favorites.size, color: C.tailor },
-            ].map(({ label, value, color }) => (
-              <div key={label} style={{ textAlign: "center", padding: "12px 8px", background: C.bgElevated, borderRadius: 12, border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color }}>{value}</div>
-                <div style={{ fontSize: 9, color: C.muted, marginTop: 3 }}>{label}</div>
-              </div>
-            ))}
-          </div>
-        </GlassCard>
-
-        {/* Tailor Orders */}
-        {tailorOrders.length > 0 && (
-          <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 14 }}>Tailor Orders</p>
-            {tailorOrders.map((order, i) => (
-              <div key={i} style={{ padding: "12px 0", borderBottom: i < tailorOrders.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 500, color: C.accent }}>{order.item.name}</div>
-                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{order.alterations.length} alteration{order.alterations.length !== 1 ? "s" : ""}</div>
-                  </div>
-                  <div style={{ display: "flex", flex: "column", alignItems: "flex-end", gap: 4 }}>
-                    {order.total > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: C.accent }}>+${order.total}</span>}
-                    <div style={{ padding: "2px 8px", borderRadius: 6, background: C.successBg, border: `1px solid ${C.successBorder}`, fontSize: 9, fontWeight: 600, color: C.success }}>Confirmed</div>
-                  </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+              {[
+                { label: "Avg fit", value: `${avgFit}%`, color: C.goldLight },
+                { label: "Perfect (90%+)", value: perfectFits, color: C.success },
+                { label: "Saved", value: favorites.size, color: C.tailor },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ padding: "10px 8px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, textAlign: "center" }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color, fontFamily: font.serif }}>{value}</div>
+                  <div style={{ fontSize: 8.5, color: C.muted, marginTop: 2, letterSpacing: 0.5, textTransform: "uppercase" }}>{label}</div>
                 </div>
-              </div>
-            ))}
-          </GlassCard>
-        )}
-
-        {/* Saved Items */}
-        {favItems.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginBottom: 12 }}>Saved Items ({favItems.length})</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {favItems.slice(0, 4).map(item => (
-                <GlassCard key={item.id} style={{ overflow: "hidden" }}>
-                  <div style={{ height: 120, background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(145deg, ${item.color}, ${item.color}88)` }} />
-                  <div style={{ padding: "8px 10px 10px" }}>
-                    <div style={{ fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>{item.brand}</div>
-                    <div style={{ fontSize: 11, color: C.accent, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
-                    <FitBadge fit={item.fit} />
-                  </div>
-                </GlassCard>
               ))}
+            </div>
+            <div style={{ padding: "12px 14px", background: C.tailorBg, border: `1px solid ${C.tailorBorder}`, borderRadius: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <ShieldIcon />
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: C.tailor, textTransform: "uppercase", letterSpacing: 0.6 }}>Private by design</span>
+              </div>
+              <p style={{ fontSize: 11, color: "rgba(250,250,249,0.72)", lineHeight: 1.55, margin: 0 }}>Your 33-landmark body model never leaves this device. Re-scan anytime to refine fit precision.</p>
             </div>
           </div>
         )}
 
-        {favItems.length === 0 && (
-          <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🤍</div>
-            <p style={{ fontSize: 13 }}>No saved items yet — tap the heart on any item to save it here.</p>
+        {tab === "saved" && (
+          <div>
+            {favItems.length > 0 ? (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {favItems.map(item => <ItemCard key={item.id} item={item} onClick={() => {}} isFav={true} toggleFav={(id) => favorites.delete(id)} />)}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "50px 20px", color: C.muted }}>
+                <div style={{ fontSize: 28, marginBottom: 10, fontFamily: font.serif, color: C.muted }}>♡</div>
+                <p style={{ fontSize: 12.5 }}>Nothing saved yet — tap the heart on any item to add it here.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "orders" && (
+          <div>
+            {tailorOrders.length > 0 ? tailorOrders.map((order, i) => (
+              <div key={i} style={{ padding: "12px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: C.accent, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{order.item.name}</div>
+                    <div style={{ fontSize: 10, color: C.muted, marginTop: 3 }}>{order.alterations.length} alteration{order.alterations.length !== 1 ? "s" : ""} · {order.item.brand}</div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
+                    {order.total > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: C.accent }}>+${order.total}</span>}
+                    <div style={{ padding: "2px 7px", borderRadius: 6, background: C.successBg, border: `1px solid ${C.successBorder}`, fontSize: 9, fontWeight: 600, color: C.success, letterSpacing: 0.4 }}>Confirmed</div>
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <div style={{ textAlign: "center", padding: "50px 20px", color: C.muted }}>
+                <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><ScissorsIcon size={28} /></div>
+                <p style={{ fontSize: 12.5 }}>No tailor orders yet — open any item and tap “Tailor It” to start one.</p>
+              </div>
+            )}
           </div>
         )}
       </div>
