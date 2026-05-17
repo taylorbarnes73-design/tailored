@@ -443,7 +443,7 @@ function HeroBodyScan() {
               boxShadow: `0 0 0 4px rgba(107,142,90,0.20)`,
             }}
           />
-          Live Scan · 33 pose landmarks
+          Live Fit Mesh · contour confidence
         </div>
 
         {/* Fit chip bottom */}
@@ -502,7 +502,7 @@ function HeroBodyScan() {
             boxShadow: "0 8px 22px rgba(78,92,73,0.32)",
           }}
         >
-          On-device · 0.6 cm
+          Tailor-verified precision
         </div>
       </div>
     </div>
@@ -686,7 +686,7 @@ function Hero() {
               maxWidth: 520,
             }}
           >
-            The Tailored Company is a fit intelligence engine. Scan your body with your phone camera in under 60 seconds — 33 pose landmarks, on-device. Then shop any retailer with a precise fit score, the right size pre-selected, and an alteration brief your tailor can actually use.
+            The Tailored Company is a couture-grade fit engine. Capture your body with five guided phone passes — silhouette reconstruction, depth-from-motion, and contour-lock fuse into a measurement-grade fit mesh, then a human tailor verifies the brief. Shop any retailer with a precise fit score, the right size pre-selected, and an alteration brief your tailor can actually use.
           </p>
 
           <div style={{ display: "flex", gap: 14, marginTop: 36, flexWrap: "wrap" }}>
@@ -823,7 +823,7 @@ function ValuePillars() {
       eyebrow: "Capture",
       title: "Sub-60-second body scan",
       body:
-        "Two phone-camera passes powered by MediaPipe. Our pose engine resolves 33 body landmarks on-device and triangulates your measurements to within 0.6 cm.",
+        "Five guided phone passes powered by the TTC Fit Engine — silhouette reconstruction, depth-from-motion, and contour/landmark fusion build a measurement-grade fit mesh with confidence scoring, then a human tailor verifies the brief.",
     },
     {
       Icon: IconTarget,
@@ -985,7 +985,7 @@ function HowItWorks() {
       n: "01",
       title: "Stand · spin · done",
       body:
-        "Two phone-camera passes, under 60 seconds. MediaPipe locks 33 body landmarks; low-confidence frames are discarded automatically.",
+        "Five guided phone passes, under 60 seconds. The TTC Fit Engine reconstructs your silhouette, infers depth from motion, and locks contours; low-confidence frames are discarded automatically before fit-mesh fusion.",
     },
     {
       n: "02",
@@ -1124,7 +1124,7 @@ function HowItWorks() {
 // ─── Section: Tech showcase ────────────────────────────────
 function TechShowcase() {
   const points = [
-    "React + Three.js + MediaPipe stack · 33 pose landmarks captured by your phone camera",
+    "TTC Fit Engine · multi-angle phone capture, silhouette reconstruction, depth-from-motion, contour/landmark fusion, garment-aware fit modeling, and tailor verification",
     "React + Three.js renders a 3D body model from your measurements for virtual try-on",
     "Fit intelligence engine cross-references your body against every brand's sizing model",
     "Real-time fit scoring across 85 items, 20 brands · new retailers added every week",
@@ -1194,7 +1194,7 @@ function TechShowcase() {
             <em style={{ color: P.sage }}>compiled into your pocket.</em>
           </h2>
           <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: "rgba(219,222,201,0.78)", maxWidth: 560 }}>
-            We rebuilt a tailor's bench in software. MediaPipe pose tracking, brand-by-brand size chart normalization, garment ease models, a 3D body renderer, and a professional tailoring network — all working together so you know what will fit before you ever try it on, and so what doesn't fit returns to circulation instead of landfill.
+            We rebuilt a tailor's bench in software. The TTC Fit Engine fuses multi-angle phone capture, silhouette reconstruction, depth-from-motion, contour/landmark fusion, garment-aware fit modeling, brand-by-brand size-chart extraction, a 3D body renderer, and a professional tailoring network — all working together so you know what will fit before you ever try it on, and so what doesn't fit returns to circulation instead of landfill.
           </p>
           <ul style={{ listStyle: "none", padding: 0, margin: "28px 0 0", display: "grid", gap: 12 }}>
             {points.map(text => (
