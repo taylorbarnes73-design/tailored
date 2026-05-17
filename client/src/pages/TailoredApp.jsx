@@ -1592,13 +1592,16 @@ function Body3DViewer({
   const shoulder = body?.shoulder ?? 15;
   const inseam = body?.inseam ?? 30;
 
-  // Anchor points in viewer-relative percentages (top=0, bottom=100)
+  // Anchor points in viewer-relative percentages (top=0, bottom=100). Ordered
+  // top-down so leader lines never cross. Each is a chip on alternating sides
+  // with a leader line, measurement label and the live value — reads like a
+  // pattern-card spec sheet.
   const anchors = [
-    { y: 22, label: "Bust", value: `${bust}"`, color: C.forest },
-    { y: 41, label: "Waist", value: `${waist}"`, color: C.terracotta },
-    { y: 55, label: "Hips", value: `${hips}"`, color: C.olive },
-    { y: 10, label: "Shoulder", value: `${shoulder}"`, color: C.sage },
-    { y: 78, label: "Inseam", value: `${inseam}"`, color: C.tan },
+    { y: 11, label: "Shoulder", value: `${shoulder}"`, color: C.forest, side: "left" },
+    { y: 22, label: "Bust",     value: `${bust}"`,     color: C.forestDeep, side: "right" },
+    { y: 41, label: "Waist",    value: `${waist}"`,    color: C.tailor,    side: "left" },
+    { y: 56, label: "Hips",     value: `${hips}"`,     color: C.olive,     side: "right" },
+    { y: 80, label: "Inseam",   value: `${inseam}"`,   color: PALETTE.sageDeep,  side: "left" },
   ];
 
   return (
@@ -1642,60 +1645,91 @@ function Body3DViewer({
         }}
       />
 
-      {/* Premium annotation overlay */}
-      {annotated && width >= 240 && (
+      {/* Premium measurement-callout overlay — leader lines + pattern-card chips */}
+      {annotated && width >= 200 && (
         <svg
           width={width}
           height={height}
           style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
         >
+          {/* Soft tape-line across the figure for each anchor, with a tick on
+              the body and a chip floating to one side. */}
           {anchors.map((a, i) => {
             const yPx = (height * a.y) / 100;
-            const labelOnLeft = i % 2 === 0;
-            const x1 = labelOnLeft ? width * 0.32 : width * 0.68;
-            const x2 = labelOnLeft ? width * 0.10 : width * 0.90;
+            const labelOnLeft = a.side === "left";
+            // Tape across the body — small dashed segment that hints at a tape
+            // measure rather than crossing the whole figure.
+            const tapeHalf = width * 0.18;
+            const cx = width / 2;
+            // Leader anchored just outside the body, then a horizontal line to
+            // the chip on the chosen side.
+            const elbowX = labelOnLeft ? cx - tapeHalf - 6 : cx + tapeHalf + 6;
+            const chipX = labelOnLeft ? width * 0.04 : width - width * 0.04;
+            const chipW = Math.max(58, Math.min(78, width * 0.28));
+            const chipH = 22;
+            const chipY = yPx - chipH / 2;
+            const chipLeft = labelOnLeft ? chipX : chipX - chipW;
             return (
               <g key={a.label} style={{ animation: `tbFadeIn 0.7s ${i * 0.08}s both` }}>
-                <circle cx={width / 2} cy={yPx} r={3.5} fill={a.color} opacity={0.85} />
-                <circle cx={width / 2} cy={yPx} r={7} fill="none" stroke={a.color} strokeOpacity={0.35} strokeWidth={1} />
+                {/* Body tape (subtle) */}
                 <line
-                  x1={width / 2}
+                  x1={cx - tapeHalf}
                   y1={yPx}
-                  x2={x1}
+                  x2={cx + tapeHalf}
                   y2={yPx}
                   stroke={a.color}
                   strokeOpacity={0.55}
                   strokeWidth={1}
                   strokeDasharray="2 3"
                 />
+                {/* Body tick on the chip side */}
+                <circle cx={labelOnLeft ? cx - tapeHalf : cx + tapeHalf} cy={yPx} r={3} fill={a.color} />
+                {/* Leader to chip */}
                 <line
-                  x1={x1}
+                  x1={elbowX}
                   y1={yPx}
-                  x2={x2}
+                  x2={labelOnLeft ? chipLeft + chipW : chipLeft}
                   y2={yPx}
                   stroke={a.color}
-                  strokeOpacity={0.55}
+                  strokeOpacity={0.7}
                   strokeWidth={1}
                 />
+                {/* Chip */}
+                <rect
+                  x={chipLeft}
+                  y={chipY}
+                  width={chipW}
+                  height={chipH}
+                  rx={11}
+                  ry={11}
+                  fill="rgba(255,255,255,0.94)"
+                  stroke={a.color}
+                  strokeOpacity={0.45}
+                  strokeWidth={1}
+                />
+                {/* Chip color dot */}
+                <circle cx={chipLeft + 9} cy={yPx} r={3} fill={a.color} />
+                {/* Label */}
                 <text
-                  x={labelOnLeft ? x2 + 2 : x2 - 2}
-                  y={yPx - 4}
-                  fontSize="9"
+                  x={chipLeft + 16}
+                  y={yPx - 2}
+                  fontSize="7.5"
                   fontWeight="800"
-                  letterSpacing="1.5"
+                  letterSpacing="1.2"
                   fill={C.muted}
-                  textAnchor={labelOnLeft ? "start" : "end"}
+                  textAnchor="start"
                   style={{ textTransform: "uppercase" }}
                 >
                   {a.label}
                 </text>
+                {/* Value */}
                 <text
-                  x={labelOnLeft ? x2 + 2 : x2 - 2}
-                  y={yPx + 8}
-                  fontSize="12"
-                  fontWeight="700"
+                  x={chipLeft + chipW - 8}
+                  y={yPx + 5}
+                  fontSize="11"
+                  fontWeight="800"
                   fill={a.color}
-                  textAnchor={labelOnLeft ? "start" : "end"}
+                  textAnchor="end"
                 >
                   {a.value}
                 </text>
@@ -2053,8 +2087,32 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
 
   const confirmMeasurements = useCallback(() => {
     if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    onScanComplete(measurements);
-  }, [measurements, onScanComplete]);
+    // Roll per-measurement confidence out of stage metrics — bust/waist/hips
+    // ride on silhouette+depth, shoulder leans on contour, inseam leans on
+    // depth-informed mesh. Camera-less fallback runs scored lower so the user
+    // sees an honest "estimated from avatar" signal in the passport.
+    const camMul = cameraAvailable ? 1 : 0.78;
+    const c = Math.round(
+      (stageMetrics.silhouette * 0.28 +
+        stageMetrics.depth * 0.28 +
+        stageMetrics.contour * 0.22 +
+        stageMetrics.fitMesh * 0.22) * camMul
+    );
+    const meta = {
+      confidence: {
+        bust: Math.max(40, Math.min(96, Math.round(c * 0.98))),
+        waist: Math.max(40, Math.min(96, Math.round(c * 0.94))),
+        hips: Math.max(40, Math.min(96, Math.round(c * 0.96))),
+        inseam: Math.max(40, Math.min(96, Math.round(c * 0.88))),
+        shoulder: Math.max(40, Math.min(96, Math.round(c * 0.90))),
+      },
+      verified: { bust: false, waist: false, hips: false, inseam: false, shoulder: false },
+      source: "scan",
+      cameraAvailable,
+      overall: c,
+    };
+    onScanComplete({ measurements, meta });
+  }, [measurements, onScanComplete, stageMetrics, cameraAvailable]);
 
   const isCapturing =
     phase === "calibrate" ||
@@ -5257,6 +5315,183 @@ const DEFAULT_BODY = {
   inseam: 30,
   shoulder: 15,
 };
+// Measurement registry — single source of truth for ranges, labels, anatomical
+// guidance and which fit-zone each measurement belongs to. Driving the manual
+// entry, profile editor and Fit Studio "measurement basis" panel from one list
+// keeps copy consistent and lets future measurements (sleeve, neck, rise) drop
+// in without surgery.
+const MEASUREMENT_FIELDS = [
+  {
+    key: "shoulder",
+    label: "Shoulder width",
+    zone: "Upper body",
+    icon: "shoulder",
+    min: 12,
+    max: 20,
+    step: 0.25,
+    typical: [14, 17],
+    unit: '"',
+    cmRange: [30, 52],
+    how: "Across the back, from shoulder seam to shoulder seam.",
+    why: "Drives jacket, blazer and shirt shoulder-seam alignment.",
+  },
+  {
+    key: "bust",
+    label: "Bust / chest",
+    zone: "Upper body",
+    icon: "bust",
+    min: 28,
+    max: 52,
+    step: 0.25,
+    typical: [32, 42],
+    unit: '"',
+    cmRange: [71, 132],
+    how: "Around the fullest part of the chest, tape parallel to the floor.",
+    why: "Sets top, dress and outerwear ease at the chest.",
+  },
+  {
+    key: "waist",
+    label: "Waist",
+    zone: "Mid body",
+    icon: "waist",
+    min: 20,
+    max: 44,
+    step: 0.25,
+    typical: [24, 36],
+    unit: '"',
+    cmRange: [51, 112],
+    how: "Around the narrowest part of the torso, usually above the navel.",
+    why: "Tells us where to take in dresses, trousers and tailored tops.",
+  },
+  {
+    key: "hips",
+    label: "Hips / seat",
+    zone: "Lower body",
+    icon: "hips",
+    min: 30,
+    max: 56,
+    step: 0.25,
+    typical: [34, 44],
+    unit: '"',
+    cmRange: [76, 142],
+    how: "Around the fullest part of the hips, about 8\" below the waist.",
+    why: "Drives trouser, skirt and dress hip-and-seat fit.",
+  },
+  {
+    key: "inseam",
+    label: "Inseam",
+    zone: "Lower body",
+    icon: "inseam",
+    min: 22,
+    max: 36,
+    step: 0.25,
+    typical: [26, 34],
+    unit: '"',
+    cmRange: [56, 92],
+    how: "From crotch seam down the inside of the leg to the ankle.",
+    why: "Sets trouser length and where the hem lands.",
+  },
+];
+
+const BODY_ZONES = [
+  {
+    id: "upper",
+    label: "Upper body",
+    blurb: "Shoulders & chest — drives tops, jackets and dresses.",
+    keys: ["shoulder", "bust"],
+  },
+  {
+    id: "mid",
+    label: "Mid body",
+    blurb: "Waist — where most tailoring happens.",
+    keys: ["waist"],
+  },
+  {
+    id: "lower",
+    label: "Lower body",
+    blurb: "Hips & inseam — trousers, skirts, hem drop.",
+    keys: ["hips", "inseam"],
+  },
+];
+
+const FIT_PREFERENCES = [
+  { id: "fitted", label: "Fitted", blurb: "Snug to the body — minimum ease." },
+  { id: "tailored", label: "Tailored", blurb: "Skimming, not pulling — our default." },
+  { id: "relaxed", label: "Relaxed", blurb: "Easy room through torso and seat." },
+  { id: "oversized", label: "Oversized", blurb: "Deliberately roomy and drape-led." },
+];
+
+const DEFAULT_BODY_META = {
+  source: "manual", // "manual" | "scan" | "imported"
+  confidence: { bust: 70, waist: 70, hips: 70, inseam: 70, shoulder: 70 },
+  verified: { bust: false, waist: false, hips: false, inseam: false, shoulder: false },
+  fitPreference: "tailored",
+  lastReviewedAt: null,
+  tailorVerified: false,
+};
+
+function fieldByKey(key) {
+  return MEASUREMENT_FIELDS.find(f => f.key === key);
+}
+
+// Friendly proportion warnings — never block, just nudge. Returns array of
+// { key, severity: "info"|"warn", message } so callers can surface them inline
+// next to the offending measurement or as a single passport notice.
+function validateBody(body, heightInches) {
+  const out = [];
+  const h = heightInches && heightInches > 36 ? heightInches : 66;
+  for (const f of MEASUREMENT_FIELDS) {
+    const v = body?.[f.key];
+    if (v == null || Number.isNaN(v)) {
+      out.push({ key: f.key, severity: "warn", message: `${f.label} is missing — add it for a better fit score.` });
+      continue;
+    }
+    if (v < f.min || v > f.max) {
+      out.push({
+        key: f.key,
+        severity: "warn",
+        message: `${f.label} is outside the typical range (${f.min}${f.unit}–${f.max}${f.unit}). Double-check or let a tailor verify.`,
+      });
+    }
+  }
+  const { bust, waist, hips, inseam, shoulder } = body || {};
+  if (bust && waist && waist >= bust + 2) {
+    out.push({ key: "waist", severity: "warn", message: "Waist is larger than bust — uncommon. If correct, our tailors will adapt the alteration brief." });
+  }
+  if (hips && waist && waist >= hips + 2) {
+    out.push({ key: "waist", severity: "warn", message: "Waist is larger than hips — uncommon. We'll route this to a tailor for a quick review." });
+  }
+  if (inseam && h && inseam > h * 0.55) {
+    out.push({ key: "inseam", severity: "warn", message: "Inseam looks long for your height — measure from crotch seam, not waist." });
+  }
+  if (inseam && h && inseam < h * 0.36) {
+    out.push({ key: "inseam", severity: "info", message: "Inseam looks short for your height — that's fine if you wear a high rise." });
+  }
+  if (shoulder && bust && shoulder > bust * 0.55) {
+    out.push({ key: "shoulder", severity: "warn", message: "Shoulder width is unusually broad compared to bust — re-check across the back." });
+  }
+  return out;
+}
+
+function aggregateConfidence(meta) {
+  const vals = Object.values(meta?.confidence || {});
+  if (!vals.length) return 0;
+  return Math.round(vals.reduce((s, n) => s + n, 0) / vals.length);
+}
+
+function confidenceLabel(c) {
+  if (c >= 88) return "High confidence";
+  if (c >= 72) return "Tailor will spot-check";
+  if (c >= 55) return "Needs tailor check";
+  return "Estimated — please refine";
+}
+
+function sourceLabel(source) {
+  if (source === "scan") return "AI scan";
+  if (source === "imported") return "Imported";
+  return "Confirmed manually";
+}
+
 const STORAGE_KEY = "tailored_v2_data";
 const TAILOR_OPTIONS = [
   {
@@ -6610,11 +6845,361 @@ function SplashScreen({ onContinue }) {
   );
 }
 
+// ─── Measurement primitives ────────────────────────────────
+// A single measurement row with: label, "why we use this", numeric input, slider
+// with min/typical/max ticks, status pill (high confidence / needs tailor check),
+// and inline validation messages. Designed to drop into the onboarding manual
+// step, the profile editor and the Fit Studio measurement basis panel.
+function MeasurementInput({
+  field,
+  value,
+  confidence = 70,
+  source = "manual",
+  warning = null,
+  onChange,
+  compact = false,
+}) {
+  const [draft, setDraft] = useState(String(value ?? ""));
+  useEffect(() => {
+    setDraft(String(value ?? ""));
+  }, [value]);
+
+  const commit = next => {
+    const n = parseFloat(next);
+    if (Number.isNaN(n)) return;
+    const clamped = Math.min(field.max + 4, Math.max(field.min - 4, n));
+    onChange(Math.round(clamped * 4) / 4);
+  };
+
+  const inTypical = value >= field.typical[0] && value <= field.typical[1];
+  const conf = Math.max(0, Math.min(100, confidence));
+  const confTone = conf >= 88 ? C.forest : conf >= 70 ? C.warning : C.tailor;
+  const sourceText = sourceLabel(source);
+
+  return (
+    <div
+      style={{
+        background: C.card,
+        border: `1px solid ${warning ? C.tailorBorder : C.border}`,
+        borderRadius: 14,
+        padding: compact ? "10px 12px" : "12px 14px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.accent, letterSpacing: 0.1 }}>
+            {field.label}
+          </div>
+          {!compact && (
+            <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2, lineHeight: 1.4 }}>
+              {field.how}
+            </div>
+          )}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <input
+            type="number"
+            inputMode="decimal"
+            min={field.min - 4}
+            max={field.max + 4}
+            step={field.step}
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onBlur={e => commit(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            aria-label={`${field.label} value`}
+            style={{
+              width: 64,
+              padding: "6px 8px",
+              borderRadius: 9,
+              border: `1px solid ${C.border}`,
+              background: C.bgElevated,
+              color: C.accent,
+              fontSize: 14,
+              fontWeight: 800,
+              fontFamily: font.sans,
+              textAlign: "right",
+              outline: "none",
+            }}
+          />
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{field.unit}</span>
+        </div>
+      </div>
+
+      <div style={{ position: "relative" }}>
+        <input
+          type="range"
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          value={Math.min(field.max, Math.max(field.min, value || field.min))}
+          onChange={e => commit(e.target.value)}
+          aria-label={`${field.label} slider`}
+          style={{ width: "100%", accentColor: C.forest, cursor: "pointer" }}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2, fontSize: 9.5, color: C.muted, fontWeight: 600, letterSpacing: 0.3 }}>
+          <span>{field.min}{field.unit}</span>
+          <span style={{ color: inTypical ? C.forest : C.muted }}>
+            typical {field.typical[0]}–{field.typical[1]}{field.unit}
+          </span>
+          <span>{field.max}{field.unit}</span>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "3px 8px",
+            borderRadius: 999,
+            background: `${confTone}14`,
+            border: `1px solid ${confTone}40`,
+            color: confTone,
+            fontSize: 9.5,
+            fontWeight: 800,
+            letterSpacing: 0.5,
+            textTransform: "uppercase",
+          }}
+        >
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: confTone }} />
+          {conf}% · {confidenceLabel(conf)}
+        </span>
+        <span style={{ fontSize: 10, color: C.muted, fontWeight: 600 }}>{sourceText}</span>
+      </div>
+
+      {warning && (
+        <div
+          role="status"
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "flex-start",
+            padding: "8px 10px",
+            borderRadius: 10,
+            background: warning.severity === "warn" ? C.warningBg : C.goldBg,
+            border: `1px solid ${warning.severity === "warn" ? C.warningBorder : C.goldBorder}`,
+            fontSize: 11,
+            color: warning.severity === "warn" ? C.warning : C.forestDeep,
+            lineHeight: 1.5,
+          }}
+        >
+          <span style={{ marginTop: 2 }}>•</span>
+          <span>{warning.message}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Fit Passport — compact, app-like summary of every measurement, its confidence
+// and source. Used in onboarding review, profile overview and as the "measurement
+// basis" embed inside Fit Studio.
+function MeasurementPassport({
+  body,
+  meta,
+  heightInches,
+  onRefine,
+  onRescan,
+  compact = false,
+  title = "Measurement Passport",
+  subtitle = null,
+}) {
+  const warnings = useMemo(() => validateBody(body, heightInches), [body, heightInches]);
+  const warningByKey = useMemo(() => {
+    const m = {};
+    for (const w of warnings) {
+      if (!m[w.key]) m[w.key] = w;
+    }
+    return m;
+  }, [warnings]);
+  const overall = aggregateConfidence(meta);
+  const overallTone = overall >= 88 ? C.forest : overall >= 70 ? C.warning : C.tailor;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div
+        style={{
+          padding: compact ? "12px 14px" : "14px 16px",
+          borderRadius: 16,
+          background: `linear-gradient(135deg, ${C.bgElevated}, ${C.card})`,
+          border: `1px solid ${C.border}`,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
+              Fit Passport
+            </div>
+            <div style={{ fontSize: compact ? 15 : 18, fontWeight: 600, color: C.accent, fontFamily: font.serif, lineHeight: 1.2, marginTop: 2 }}>
+              {title}
+            </div>
+            {subtitle && (
+              <div style={{ fontSize: 11, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{subtitle}</div>
+            )}
+          </div>
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <div style={{ fontSize: 9, color: C.muted, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+              Overall confidence
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: overallTone, fontFamily: font.sans, lineHeight: 1.1 }}>
+              {overall}%
+            </div>
+            <div style={{ fontSize: 9.5, color: overallTone, fontWeight: 700, letterSpacing: 0.4 }}>
+              {confidenceLabel(overall)}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: compact ? "1fr 1fr" : "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: 8,
+          }}
+        >
+          {MEASUREMENT_FIELDS.map(f => {
+            const v = body?.[f.key];
+            const c = meta?.confidence?.[f.key] ?? 70;
+            const verified = meta?.verified?.[f.key];
+            const tone = c >= 88 ? C.forest : c >= 70 ? C.warning : C.tailor;
+            const hasWarn = !!warningByKey[f.key];
+            return (
+              <div
+                key={f.key}
+                style={{
+                  padding: "10px 11px",
+                  borderRadius: 12,
+                  background: C.card,
+                  border: `1px solid ${hasWarn ? C.warningBorder : C.border}`,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 6 }}>
+                  <span style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" }}>
+                    {f.label}
+                  </span>
+                  {verified && (
+                    <span title="Tailor confirmed" style={{ fontSize: 9, fontWeight: 800, color: C.forest, letterSpacing: 0.4 }}>
+                      ✓ VERIFIED
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: C.accent, fontFamily: font.serif }}>
+                  {v ?? "—"}<span style={{ fontSize: 11, color: C.muted, fontWeight: 700, marginLeft: 2 }}>{f.unit}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ flex: 1, height: 4, borderRadius: 999, background: C.bgElevated, overflow: "hidden" }}>
+                    <span style={{ display: "block", width: `${c}%`, height: "100%", background: `linear-gradient(90deg, ${tone}, ${tone}AA)` }} />
+                  </span>
+                  <span style={{ fontSize: 9.5, fontWeight: 800, color: tone, letterSpacing: 0.3 }}>{c}%</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 10.5, color: C.muted }}>
+          <span>
+            Source: <strong style={{ color: C.accent, fontWeight: 700 }}>{sourceLabel(meta?.source)}</strong>
+            {meta?.fitPreference && (
+              <> · Fit preference: <strong style={{ color: C.accent, fontWeight: 700, textTransform: "capitalize" }}>{meta.fitPreference}</strong></>
+            )}
+          </span>
+          {meta?.tailorVerified ? (
+            <span style={{ color: C.forest, fontWeight: 700 }}>✓ Tailor verified</span>
+          ) : (
+            <span style={{ color: C.tailor, fontWeight: 700 }}>Tailor review on first order</span>
+          )}
+        </div>
+      </div>
+
+      {warnings.length > 0 && (
+        <div
+          style={{
+            padding: "10px 12px",
+            borderRadius: 12,
+            background: C.warningBg,
+            border: `1px solid ${C.warningBorder}`,
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 800, color: C.warning, letterSpacing: 1.4, textTransform: "uppercase" }}>
+            Smart checks · {warnings.length}
+          </div>
+          {warnings.slice(0, 3).map((w, i) => (
+            <div key={i} style={{ fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>
+              <strong style={{ color: C.warning, textTransform: "capitalize", fontWeight: 700 }}>{w.key}:</strong> {w.message}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(onRefine || onRescan) && (
+        <div style={{ display: "flex", gap: 8 }}>
+          {onRefine && (
+            <button
+              onClick={onRefine}
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: `1px solid ${C.border}`,
+                background: C.card,
+                color: C.accent,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                letterSpacing: 0.3,
+              }}
+            >
+              Refine manually
+            </button>
+          )}
+          {onRescan && (
+            <button
+              onClick={onRescan}
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "none",
+                background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+                color: C.cream,
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                letterSpacing: 0.4,
+                boxShadow: "0 10px 22px rgba(107,142,90,0.30)",
+              }}
+            >
+              Re-run AI scan
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Onboarding Screen ─────────────────────────────────────
 function OnboardingScreen({ onComplete }) {
   const [step, setStep] = useState("choose");
   const [useMetric, setUseMetric] = useState(false);
   const [body, setBody] = useState({ ...DEFAULT_BODY });
+  const [bodyMeta, setBodyMeta] = useState({ ...DEFAULT_BODY_META });
+  const [zoneIndex, setZoneIndex] = useState(0);
   const [heightFt, setHeightFt] = useState(5);
   const [heightIn, setHeightIn] = useState(5);
   const [heightCm, setHeightCm] = useState(165);
@@ -6624,66 +7209,51 @@ function OnboardingScreen({ onComplete }) {
     ? Math.round(heightCm / 2.54)
     : heightFt * 12 + heightIn;
 
-  const handleScanComplete = meas => {
-    setBody(meas);
+  const warnings = useMemo(() => validateBody(body, heightInches), [body, heightInches]);
+  const warningByKey = useMemo(() => {
+    const m = {};
+    for (const w of warnings) {
+      if (!m[w.key]) m[w.key] = w;
+    }
+    return m;
+  }, [warnings]);
+
+  const handleScanComplete = result => {
+    // CameraBodyScanner emits either the legacy plain measurements object or a
+    // richer { measurements, meta } shape now that we capture per-measurement
+    // confidence. Accept both.
+    const meas = result?.measurements ?? result;
+    const scanMeta = result?.meta;
+    setBody({ ...meas });
+    setBodyMeta(prev => ({
+      ...prev,
+      source: "scan",
+      lastReviewedAt: Date.now(),
+      confidence: scanMeta?.confidence ?? prev.confidence,
+      verified: { bust: false, waist: false, hips: false, inseam: false, shoulder: false },
+    }));
     setScanning(false);
     setStep("review");
   };
 
-  const SliderRow = ({ label, key2, min, max, unit = '"', step2 = 0.5 }) => (
-    <div style={{ marginBottom: 20 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: 8,
-        }}
-      >
-        <span style={{ fontSize: 14, color: C.accent, fontWeight: 600 }}>
-          {label}
-        </span>
-        <span
-          style={{
-            fontSize: 16,
-            fontWeight: 700,
-            color: C.forest,
-            fontFamily: font.serif,
-          }}
-        >
-          {body[key2]}
-          {unit}
-        </span>
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step2}
-        value={body[key2]}
-        onChange={e =>
-          setBody(b => ({ ...b, [key2]: parseFloat(e.target.value) }))
-        }
-        style={{ width: "100%", accentColor: C.forest, cursor: "pointer" }}
-      />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: 4,
-        }}
-      >
-        <span style={{ fontSize: 11, color: C.muted, fontWeight: 500 }}>
-          {min}
-          {unit}
-        </span>
-        <span style={{ fontSize: 11, color: C.muted, fontWeight: 500 }}>
-          {max}
-          {unit}
-        </span>
-      </div>
-    </div>
-  );
+  const setMeasurement = (key, value) => {
+    setBody(b => ({ ...b, [key]: value }));
+    setBodyMeta(meta => ({
+      ...meta,
+      source: meta.source === "scan" ? "scan" : "manual",
+      confidence: { ...meta.confidence, [key]: 92 },
+      verified: { ...meta.verified, [key]: true },
+      lastReviewedAt: Date.now(),
+    }));
+  };
+
+  const setFitPreference = pref => {
+    setBodyMeta(meta => ({ ...meta, fitPreference: pref }));
+  };
+
+  const finish = () => {
+    onComplete(body, { ...bodyMeta, lastReviewedAt: Date.now() });
+  };
 
   if (scanning) {
     return (
@@ -6936,6 +7506,18 @@ function OnboardingScreen({ onComplete }) {
   }
 
   if (step === "manual") {
+    // Body-zone stepper: height/units → upper → mid → lower → fit preference → done
+    const totalSteps = 1 + BODY_ZONES.length + 1; // height + zones + prefs
+    const isHeightStep = zoneIndex === 0;
+    const isPrefStep = zoneIndex === BODY_ZONES.length + 1;
+    const currentZone = !isHeightStep && !isPrefStep ? BODY_ZONES[zoneIndex - 1] : null;
+    const progressPct = Math.round((zoneIndex / (totalSteps - 1)) * 100);
+    const goNext = () => setZoneIndex(i => Math.min(totalSteps - 1, i + 1));
+    const goPrev = () => {
+      if (zoneIndex === 0) setStep("choose");
+      else setZoneIndex(i => Math.max(0, i - 1));
+    };
+
     return (
       <div
         className="tb-screen tb-screen--onboarding-manual"
@@ -6957,8 +7539,8 @@ function OnboardingScreen({ onComplete }) {
             marginBottom: 8,
           }}
         >
-          <BackButton onClick={() => setStep("choose")} />
-          <div>
+          <BackButton onClick={goPrev} />
+          <div style={{ flex: 1, minWidth: 0 }}>
             <h2
               style={{
                 fontSize: 18,
@@ -6971,186 +7553,267 @@ function OnboardingScreen({ onComplete }) {
               Your Measurements
             </h2>
             <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>
-              Drag sliders to match your measurements
+              Step {zoneIndex + 1} of {totalSteps} ·{" "}
+              {isHeightStep
+                ? "Height & units"
+                : isPrefStep
+                  ? "Fit preference"
+                  : currentZone.label}
             </p>
+          </div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.forest, letterSpacing: 0.4 }}>
+            {progressPct}%
+          </div>
+        </div>
+        <div style={{ padding: "0 18px", marginBottom: 6 }}>
+          <div style={{ height: 4, background: C.bgElevated, borderRadius: 999, overflow: "hidden", border: `1px solid ${C.border}` }}>
+            <div
+              style={{
+                width: `${progressPct}%`,
+                height: "100%",
+                background: `linear-gradient(90deg, ${C.forest}, ${C.sage})`,
+                transition: "width 0.3s ease",
+              }}
+            />
           </div>
         </div>
 
         <div
           className="tb-screen__body tb-onboarding-manual__body"
-          style={{ flex: 1, padding: "16px 18px 24px", overflow: "auto", minHeight: 0 }}
+          style={{ flex: 1, padding: "10px 18px 12px", overflow: "auto", minHeight: 0 }}
         >
           <div
+            className="tb-onboarding-manual__grid"
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 20,
-              padding: "10px 14px",
-              background: C.card,
-              border: `1px solid ${C.border}`,
-              borderRadius: 12,
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gap: 14,
             }}
           >
-            <span style={{ fontSize: 12, color: C.muted }}>Units</span>
-            <div style={{ display: "flex", gap: 6 }}>
-              <Pill
-                label="in / ft"
-                active={!useMetric}
-                onClick={() => setUseMetric(false)}
-              />
-              <Pill
-                label="cm / m"
-                active={useMetric}
-                onClick={() => setUseMetric(true)}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 24 }}>
-            <p
+            {/* Live mini-preview at top — keeps measurements visually anchored */}
+            <div
+              className="tb-onboarding-preview"
               style={{
-                fontSize: 11,
-                color: C.gold,
-                textTransform: "uppercase",
-                letterSpacing: 1.5,
-                fontWeight: 600,
-                marginBottom: 14,
+                display: "flex",
+                justifyContent: "center",
+                background: `radial-gradient(ellipse at 50% 38%, ${C.cream} 0%, ${C.beige} 75%, ${C.oat} 100%)`,
+                borderRadius: 18,
+                border: `1px solid ${C.border}`,
+                padding: 12,
               }}
             >
-              Height
-            </p>
-            {useMetric ? (
-              <div>
+              <Body3DViewer
+                body={body}
+                width={220}
+                height={300}
+                autoRotate
+                annotated
+                variant="studio"
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {isHeightStep && (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 14px",
+                      background: C.card,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 12,
+                    }}
+                  >
+                    <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Units</span>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <Pill label="in / ft" active={!useMetric} onClick={() => setUseMetric(false)} />
+                      <Pill label="cm / m" active={useMetric} onClick={() => setUseMetric(true)} />
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: C.card,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 14,
+                      padding: "12px 14px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: C.accent }}>Height</span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: C.forest, fontFamily: font.sans }}>
+                        {useMetric ? `${heightCm} cm` : `${heightFt}′ ${heightIn}″`}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 10.5, color: C.muted, lineHeight: 1.4, margin: 0 }}>
+                      We use height to sanity-check inseam and hem drop, and to anchor the scan reference.
+                    </p>
+                    {useMetric ? (
+                      <input
+                        type="range"
+                        min={140}
+                        max={200}
+                        step={1}
+                        value={heightCm}
+                        onChange={e => setHeightCm(parseInt(e.target.value))}
+                        aria-label="Height in centimetres"
+                        style={{ width: "100%", accentColor: C.forest }}
+                      />
+                    ) : (
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        <div>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                            <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Feet</span>
+                            <span style={{ fontSize: 12, color: C.accent, fontWeight: 800 }}>{heightFt}′</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={4}
+                            max={7}
+                            step={1}
+                            value={heightFt}
+                            onChange={e => setHeightFt(parseInt(e.target.value))}
+                            aria-label="Height feet"
+                            style={{ width: "100%", accentColor: C.forest }}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                            <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Inches</span>
+                            <span style={{ fontSize: 12, color: C.accent, fontWeight: 800 }}>{heightIn}″</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={11}
+                            step={1}
+                            value={heightIn}
+                            onChange={e => setHeightIn(parseInt(e.target.value))}
+                            aria-label="Height inches"
+                            style={{ width: "100%", accentColor: C.forest }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {currentZone && (
+                <>
+                  <div
+                    style={{
+                      background: C.tailorBg,
+                      border: `1px solid ${C.tailorBorder}`,
+                      borderRadius: 12,
+                      padding: "10px 14px",
+                    }}
+                  >
+                    <div style={{ fontSize: 9.5, color: C.tailor, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
+                      Zone {zoneIndex} of {BODY_ZONES.length}
+                    </div>
+                    <div style={{ fontSize: 14, color: C.accent, fontWeight: 700, marginTop: 2, fontFamily: font.serif }}>
+                      {currentZone.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: C.mutedLight, marginTop: 4, lineHeight: 1.5 }}>
+                      {currentZone.blurb}
+                    </div>
+                  </div>
+
+                  {currentZone.keys.map(k => {
+                    const f = fieldByKey(k);
+                    if (!f) return null;
+                    return (
+                      <div key={k} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <MeasurementInput
+                          field={f}
+                          value={body[k]}
+                          confidence={bodyMeta.confidence[k] ?? 70}
+                          source={bodyMeta.source}
+                          warning={warningByKey[k]}
+                          onChange={v => setMeasurement(k, v)}
+                        />
+                        <div style={{ fontSize: 10.5, color: C.muted, lineHeight: 1.5, padding: "0 4px" }}>
+                          <strong style={{ color: C.accent, fontWeight: 700 }}>How we use it · </strong>{f.why}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {isPrefStep && (
+                <>
+                  <div
+                    style={{
+                      background: C.tailorBg,
+                      border: `1px solid ${C.tailorBorder}`,
+                      borderRadius: 12,
+                      padding: "10px 14px",
+                    }}
+                  >
+                    <div style={{ fontSize: 9.5, color: C.tailor, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
+                      Last step
+                    </div>
+                    <div style={{ fontSize: 14, color: C.accent, fontWeight: 700, marginTop: 2, fontFamily: font.serif }}>
+                      How do you like clothes to sit?
+                    </div>
+                    <div style={{ fontSize: 11, color: C.mutedLight, marginTop: 4, lineHeight: 1.5 }}>
+                      We bias the alteration brief so your pieces land closer to this feel.
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {FIT_PREFERENCES.map(p => {
+                      const active = bodyMeta.fitPreference === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => setFitPreference(p.id)}
+                          style={{
+                            textAlign: "left",
+                            padding: "12px 14px",
+                            borderRadius: 14,
+                            border: `1px solid ${active ? C.forest : C.border}`,
+                            background: active ? C.goldBg : C.card,
+                            color: C.accent,
+                            cursor: "pointer",
+                            boxShadow: active ? "0 8px 18px rgba(107,142,90,0.18)" : "none",
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: active ? C.forestDeep : C.accent }}>{p.label}</span>
+                            {active && <span style={{ fontSize: 10, fontWeight: 800, color: C.forest, letterSpacing: 0.6 }}>✓</span>}
+                          </div>
+                          <div style={{ fontSize: 10.5, color: C.muted, marginTop: 4, lineHeight: 1.4 }}>{p.blurb}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {warnings.length > 0 && !isHeightStep && (
                 <div
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: 8,
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    background: C.warningBg,
+                    border: `1px solid ${C.warningBorder}`,
+                    fontSize: 11,
+                    color: C.warning,
+                    lineHeight: 1.5,
                   }}
                 >
-                  <span
-                    style={{ fontSize: 13, color: C.accent, fontWeight: 500 }}
-                  >
-                    Height
-                  </span>
-                  <span
-                    style={{ fontSize: 14, fontWeight: 700, color: C.gold }}
-                  >
-                    {heightCm} cm
-                  </span>
+                  <strong style={{ fontWeight: 800, letterSpacing: 0.4 }}>Smart check:</strong>{" "}
+                  {warnings[0].message}
                 </div>
-                <input
-                  type="range"
-                  min={140}
-                  max={200}
-                  step={1}
-                  value={heightCm}
-                  onChange={e => setHeightCm(parseInt(e.target.value))}
-                  style={{ width: "100%", accentColor: C.gold }}
-                />
-              </div>
-            ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <span style={{ fontSize: 13, color: C.accent }}>Feet</span>
-                    <span
-                      style={{ fontSize: 14, fontWeight: 700, color: C.gold }}
-                    >
-                      {heightFt}ft
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={4}
-                    max={7}
-                    step={1}
-                    value={heightFt}
-                    onChange={e => setHeightFt(parseInt(e.target.value))}
-                    style={{ width: "100%", accentColor: C.gold }}
-                  />
-                </div>
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <span style={{ fontSize: 13, color: C.accent }}>
-                      Inches
-                    </span>
-                    <span
-                      style={{ fontSize: 14, fontWeight: 700, color: C.gold }}
-                    >
-                      {heightIn}"
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={11}
-                    step={1}
-                    value={heightIn}
-                    onChange={e => setHeightIn(parseInt(e.target.value))}
-                    style={{ width: "100%", accentColor: C.gold }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div style={{ height: 1, background: C.border, marginBottom: 24 }} />
-          <p
-            style={{
-              fontSize: 11,
-              color: C.gold,
-              textTransform: "uppercase",
-              letterSpacing: 1.5,
-              fontWeight: 600,
-              marginBottom: 14,
-            }}
-          >
-            Body Measurements
-          </p>
-          {/* Ordered head-to-toe: Shoulder → Bust → Waist → Hips → Inseam */}
-          <SliderRow label="Shoulder Width" key2="shoulder" min={12} max={20} />
-          <SliderRow label="Bust / Chest" key2="bust" min={28} max={52} />
-          <SliderRow label="Waist" key2="waist" min={20} max={44} />
-          <SliderRow label="Hips" key2="hips" min={30} max={56} />
-          <SliderRow label="Inseam" key2="inseam" min={22} max={36} />
-
-          <div
-            className="tb-onboarding-preview"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: 8,
-              marginBottom: 16,
-            }}
-          >
-            <Body3DViewer
-              body={body}
-              width={240}
-              height={320}
-              autoRotate
-              annotated
-              variant="studio"
-            />
+              )}
+            </div>
           </div>
         </div>
 
@@ -7162,39 +7825,52 @@ function OnboardingScreen({ onComplete }) {
             background: `linear-gradient(180deg, rgba(242,243,238,0.0) 0%, ${C.bg} 22%, ${C.bg} 100%)`,
             borderTop: `1px solid ${C.border}`,
             display: "flex",
-            flexDirection: "column",
-            gap: 6,
+            gap: 8,
             boxShadow: "0 -14px 28px rgba(45,55,42,0.06)",
           }}
         >
+          {zoneIndex > 0 && (
+            <button
+              onClick={() => setZoneIndex(i => Math.max(0, i - 1))}
+              style={{
+                padding: "14px 16px",
+                borderRadius: 14,
+                border: `1px solid ${C.border}`,
+                background: C.card,
+                color: C.accent,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                letterSpacing: 0.4,
+              }}
+            >
+              Back
+            </button>
+          )}
           <button
-            onClick={() => onComplete(body)}
+            onClick={zoneIndex < totalSteps - 1 ? goNext : finish}
             style={{
-              width: "100%",
+              flex: 1,
               padding: "15px 0",
               borderRadius: 14,
               border: "none",
               background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
               color: "#fff",
               fontSize: 14,
-              fontWeight: 700,
+              fontWeight: 800,
               letterSpacing: 0.6,
               cursor: "pointer",
               boxShadow: `0 10px 22px rgba(107,142,90,0.32)`,
             }}
           >
-            Save measurements & continue
+            {(() => {
+              if (zoneIndex >= totalSteps - 1) return "Save measurements & continue";
+              if (isHeightStep) return "Start with upper body";
+              const next = zoneIndex < BODY_ZONES.length ? BODY_ZONES[zoneIndex] : null;
+              if (next) return `Continue to ${next.label.toLowerCase()}`;
+              return "Almost done — fit preference";
+            })()}
           </button>
-          <p
-            style={{
-              fontSize: 10,
-              color: C.muted,
-              textAlign: "center",
-              margin: 0,
-            }}
-          >
-            You can update measurements anytime from your profile
-          </p>
         </div>
       </div>
     );
@@ -7209,7 +7885,7 @@ function OnboardingScreen({ onComplete }) {
           display: "flex",
           flexDirection: "column",
           background: C.bg,
-          overflow: "auto",
+          overflow: "hidden",
         }}
       >
         <div
@@ -7219,7 +7895,7 @@ function OnboardingScreen({ onComplete }) {
             display: "flex",
             alignItems: "center",
             gap: 12,
-            marginBottom: 20,
+            marginBottom: 14,
           }}
         >
           <BackButton onClick={() => setStep("choose")} />
@@ -7236,109 +7912,68 @@ function OnboardingScreen({ onComplete }) {
               Your Measurements
             </h2>
             <p style={{ fontSize: 11, color: C.success, margin: 0 }}>
-              Scan complete — review below
+              Scan complete — review your Fit Passport below
             </p>
           </div>
         </div>
         <div
           className="tb-screen__body"
-          style={{ flex: 1, padding: "0 18px 100px" }}
+          style={{ flex: 1, padding: "0 18px 18px", overflow: "auto", minHeight: 0 }}
         >
           <div
             style={{
               display: "flex",
               justifyContent: "center",
-              marginBottom: 20,
+              marginBottom: 16,
             }}
           >
             <Body3DViewer
               body={body}
               width={240}
-              height={340}
+              height={320}
               autoRotate
               annotated
               variant="scan"
             />
           </div>
-          <div
-            className="tb-review-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-              marginBottom: 20,
+          <MeasurementPassport
+            body={body}
+            meta={bodyMeta}
+            heightInches={heightInches}
+            title="Your Fit Passport"
+            subtitle="Tailor-verified before any cut. Anything off can be refined manually."
+            onRefine={() => setStep("manual")}
+            onRescan={() => {
+              setScanning(true);
             }}
-          >
-            {Object.entries(body).map(([k, v]) => (
-              <GlassCard key={k} style={{ padding: "12px 14px" }}>
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: C.muted,
-                    textTransform: "capitalize",
-                    marginBottom: 4,
-                  }}
-                >
-                  {k}
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: C.gold }}>
-                  {v}"
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-          <div
-            style={{
-              padding: "12px 14px",
-              background: C.successBg,
-              border: `1px solid ${C.successBorder}`,
-              borderRadius: 12,
-              marginBottom: 16,
-            }}
-          >
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <CheckCircle size={16} />
-              <p
-                style={{
-                  fontSize: 12,
-                  color: C.success,
-                  margin: 0,
-                  fontWeight: 500,
-                }}
-              >
-                Measurements captured successfully. You can fine-tune these
-                anytime in your profile.
-              </p>
-            </div>
-          </div>
+          />
         </div>
         <div
           className="tb-sticky-cta"
           style={{
-            position: "sticky",
-            bottom: 0,
-            padding: "12px 18px 28px",
-            background: "rgba(10,10,10,0.95)",
-            backdropFilter: "blur(16px)",
+            flexShrink: 0,
+            padding: "12px 18px 22px",
+            background: `linear-gradient(180deg, rgba(242,243,238,0.0) 0%, ${C.bg} 22%, ${C.bg} 100%)`,
             borderTop: `1px solid ${C.border}`,
           }}
         >
           <button
-            onClick={() => onComplete(body)}
+            onClick={finish}
             style={{
               width: "100%",
               padding: "15px 0",
-              borderRadius: 12,
+              borderRadius: 14,
               border: "none",
-              background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
-              color: "#fff",
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: 1,
+              background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+              color: C.cream,
+              fontSize: 14,
+              fontWeight: 800,
+              letterSpacing: 0.6,
               cursor: "pointer",
+              boxShadow: "0 10px 22px rgba(107,142,90,0.32)",
             }}
           >
-            Start Shopping
+            Save Passport & continue
           </button>
         </div>
       </div>
@@ -8630,7 +9265,7 @@ function FitMapOverlay({ width, height, regions, mode }) {
   );
 }
 
-function FitStudio({ item, userBody, onClose, onApprove }) {
+function FitStudio({ item, userBody, userBodyMeta, onClose, onApprove }) {
   const [mode, setMode] = useState("before"); // "before" | "tailored"
   const [activeTab, setActiveTab] = useState("map"); // "map" | "alter" | "specs"
   const [garmentSize, setGarmentSize] = useState(item.bestSize);
@@ -9075,6 +9710,8 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
             {regions.map(r => {
               const col = zoneColor(r.score);
               const off = Math.max(0, 100 - r.score);
+              const bodyConf = userBodyMeta?.confidence?.[r.key];
+              const bodyVerified = userBodyMeta?.verified?.[r.key];
               return (
                 <div key={r.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -9092,11 +9729,25 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
                     }} />
                   </div>
                   {r.unit && (
-                    <div style={{ fontSize: 10, color: C.muted }}>
-                      You {r.you}{r.unit} · Garment {r.garment}{r.unit}
-                      {r.risk !== 0 && (
-                        <span style={{ color: col, fontWeight: 700 }}>
-                          {` · ${r.risk > 0 ? "+" : ""}${r.risk}${r.unit} ease`}
+                    <div style={{ fontSize: 10, color: C.muted, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      <span>
+                        You {r.you}{r.unit} · Garment {r.garment}{r.unit}
+                        {r.risk !== 0 && (
+                          <span style={{ color: col, fontWeight: 700 }}>
+                            {` · ${r.risk > 0 ? "+" : ""}${r.risk}${r.unit} ease`}
+                          </span>
+                        )}
+                      </span>
+                      {bodyConf != null && (
+                        <span
+                          title={`Your ${r.label.toLowerCase()} measurement confidence`}
+                          style={{
+                            color: bodyConf >= 88 ? C.forest : bodyConf >= 70 ? C.warning : C.tailor,
+                            fontWeight: 800,
+                            letterSpacing: 0.4,
+                          }}
+                        >
+                          {bodyVerified ? "✓ " : ""}body {bodyConf}%
                         </span>
                       )}
                     </div>
@@ -9116,7 +9767,12 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
                 lineHeight: 1.5,
               }}
             >
-              Estimated drape from your scan + the retailer size chart. Tailor review required before any cut.
+              <strong style={{ color: C.tailor, fontWeight: 800 }}>Measurement basis · </strong>
+              {sourceLabel(userBodyMeta?.source)}
+              {userBodyMeta?.fitPreference && (
+                <> · prefers <strong style={{ color: C.accent, fontWeight: 700, textTransform: "capitalize" }}>{userBodyMeta.fitPreference}</strong> fit</>
+              )}
+              . Tailor review required before any cut.
             </div>
           </div>
         )}
@@ -9238,6 +9894,74 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
                 {item.sizingNote}
               </div>
             )}
+
+            {/* Measurement basis — exactly which body measurements are driving
+                the fit score, and how confident we are in each one. */}
+            <div
+              style={{
+                marginTop: 4,
+                padding: "10px 12px",
+                borderRadius: 12,
+                background: C.bgElevated,
+                border: `1px solid ${C.border}`,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+                  Measurement basis
+                </div>
+                <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 700 }}>
+                  Source: <strong style={{ color: C.accent, fontWeight: 800 }}>{sourceLabel(userBodyMeta?.source)}</strong>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                {baseRegions.filter(r => r.unit).map(r => {
+                  const conf = userBodyMeta?.confidence?.[r.key];
+                  const verified = userBodyMeta?.verified?.[r.key];
+                  const tone = conf == null ? C.muted : conf >= 88 ? C.forest : conf >= 70 ? C.warning : C.tailor;
+                  return (
+                    <div
+                      key={r.key}
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: 9,
+                        background: C.card,
+                        border: `1px solid ${C.border}`,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                        <span style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase" }}>
+                          {r.label}
+                        </span>
+                        {verified && (
+                          <span style={{ fontSize: 8.5, color: C.forest, fontWeight: 800, letterSpacing: 0.4 }}>✓</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 12.5, color: C.accent, fontWeight: 800, fontFamily: font.serif }}>
+                        {r.you}{r.unit}
+                      </div>
+                      {conf != null && (
+                        <div style={{ fontSize: 9.5, color: tone, fontWeight: 800, letterSpacing: 0.4 }}>
+                          {conf}% · {confidenceLabel(conf)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 10.5, color: C.muted, lineHeight: 1.5 }}>
+                Lower confidence = the tailor verifies in person before any cut.
+                {userBodyMeta?.fitPreference && (
+                  <> Your fit preference (<strong style={{ color: C.accent, fontWeight: 800, textTransform: "capitalize" }}>{userBodyMeta.fitPreference}</strong>) biases the alteration brief.</>
+                )}
+              </div>
+            </div>
           </div>
         )}
         </div>{/* /tb-fs-right */}
@@ -9305,6 +10029,7 @@ function ItemDetailScreen({
   toggleFav,
   onSendToTailor,
   userBody,
+  userBodyMeta,
 }) {
   const [showTryOn, setShowTryOn] = useState(false);
   const [activeTab, setActiveTab] = useState("fit");
@@ -9884,6 +10609,7 @@ function ItemDetailScreen({
         <FitStudio
           item={item}
           userBody={userBody}
+          userBodyMeta={userBodyMeta}
           onClose={() => setShowTryOn(false)}
           onApprove={(it) => {
             setShowTryOn(false);
@@ -11218,6 +11944,7 @@ function TailorScreen({ item, onBack, onConfirm }) {
 // ─── Profile Screen ─────────────────────────────────────────
 function ProfileScreen({
   userBody,
+  userBodyMeta,
   onUpdateBody,
   favorites,
   catalog,
@@ -11226,6 +11953,19 @@ function ProfileScreen({
 }) {
   const [editing, setEditing] = useState(false);
   const [editBody, setEditBody] = useState({ ...userBody });
+  const [editMeta, setEditMeta] = useState({
+    ...(userBodyMeta || DEFAULT_BODY_META),
+    confidence: { ...((userBodyMeta || DEFAULT_BODY_META).confidence) },
+    verified: { ...((userBodyMeta || DEFAULT_BODY_META).verified) },
+  });
+  const editWarnings = useMemo(() => validateBody(editBody), [editBody]);
+  const editWarningByKey = useMemo(() => {
+    const m = {};
+    for (const w of editWarnings) {
+      if (!m[w.key]) m[w.key] = w;
+    }
+    return m;
+  }, [editWarnings]);
   const favItems = catalog.filter(i => favorites.has(i.id));
   const avgFit = Math.round(
     catalog.reduce((s, i) => s + i.fit, 0) / catalog.length
@@ -11269,17 +12009,18 @@ function ProfileScreen({
           </h2>
           <button
             onClick={() => {
-              onUpdateBody(editBody);
+              onUpdateBody(editBody, editMeta);
               setEditing(false);
             }}
             style={{
               padding: "8px 16px",
               borderRadius: 10,
               border: "none",
-              background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
-              color: "#fff",
+              background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+              color: C.cream,
               fontSize: 12,
-              fontWeight: 600,
+              fontWeight: 800,
+              letterSpacing: 0.4,
               cursor: "pointer",
             }}
           >
@@ -11288,13 +12029,13 @@ function ProfileScreen({
         </div>
         <div
           className="tb-screen__body"
-          style={{ flex: 1, padding: "0 18px 40px" }}
+          style={{ flex: 1, padding: "0 18px 40px", overflow: "auto" }}
         >
           <div
             style={{
               display: "flex",
               justifyContent: "center",
-              marginBottom: 20,
+              marginBottom: 16,
             }}
           >
             <Body3DViewer
@@ -11306,57 +12047,65 @@ function ProfileScreen({
               variant="studio"
             />
           </div>
-          {Object.entries(editBody).map(([key, val]) => {
-            const ranges = {
-              bust: [28, 52],
-              waist: [20, 44],
-              hips: [30, 56],
-              inseam: [22, 36],
-              shoulder: [12, 20],
-            };
-            const [min, max] = ranges[key] || [10, 60];
-            return (
-              <div key={key} style={{ marginBottom: 18 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: 8,
-                  }}
-                >
-                  <span
+
+          {/* Fit preference editor */}
+          <div
+            style={{
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              borderRadius: 14,
+              padding: "12px 14px",
+              marginBottom: 14,
+            }}
+          >
+            <div style={{ fontSize: 10, color: C.muted, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 8 }}>
+              Fit preference
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              {FIT_PREFERENCES.map(p => {
+                const active = editMeta.fitPreference === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setEditMeta(m => ({ ...m, fitPreference: p.id }))}
                     style={{
-                      fontSize: 13,
-                      color: C.accent,
-                      fontWeight: 500,
-                      textTransform: "capitalize",
+                      textAlign: "left",
+                      padding: "8px 10px",
+                      borderRadius: 10,
+                      border: `1px solid ${active ? C.forest : C.border}`,
+                      background: active ? C.goldBg : "transparent",
+                      cursor: "pointer",
                     }}
                   >
-                    {key}
-                  </span>
-                  <span
-                    style={{ fontSize: 14, fontWeight: 700, color: C.gold }}
-                  >
-                    {val}"
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={min}
-                  max={max}
-                  step={0.5}
-                  value={val}
-                  onChange={e =>
-                    setEditBody(b => ({
-                      ...b,
-                      [key]: parseFloat(e.target.value),
-                    }))
-                  }
-                  style={{ width: "100%", accentColor: C.gold }}
-                />
-              </div>
-            );
-          })}
+                    <div style={{ fontSize: 12, fontWeight: 800, color: active ? C.forestDeep : C.accent }}>{p.label}</div>
+                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{p.blurb}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {MEASUREMENT_FIELDS.map(f => (
+              <MeasurementInput
+                key={f.key}
+                field={f}
+                value={editBody[f.key]}
+                confidence={editMeta.confidence?.[f.key] ?? 70}
+                source={editMeta.source}
+                warning={editWarningByKey[f.key]}
+                onChange={v => {
+                  setEditBody(b => ({ ...b, [f.key]: v }));
+                  setEditMeta(m => ({
+                    ...m,
+                    source: m.source === "scan" ? "scan" : "manual",
+                    confidence: { ...m.confidence, [f.key]: 92 },
+                    verified: { ...m.verified, [f.key]: true },
+                  }));
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -11421,76 +12170,63 @@ function ProfileScreen({
         className="tb-screen__body"
         style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}
       >
-        {/* Body preview */}
+        {/* Body preview + Fit Passport */}
         <GlassCard
           className="tb-profile-overview"
-          style={{ padding: 20, marginBottom: 16 }}
+          style={{ padding: 16, marginBottom: 14 }}
         >
-          <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
+          <div className="tb-profile-overview__row" style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 12 }}>
             <Body3DViewer
               body={userBody}
               width={150}
               height={210}
               autoRotate
+              annotated
               variant="studio"
             />
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  fontSize: 11,
+                  fontSize: 10,
                   color: C.forest,
                   textTransform: "uppercase",
                   letterSpacing: 1.5,
-                  fontWeight: 700,
-                  marginBottom: 10,
+                  fontWeight: 800,
+                  marginBottom: 6,
                 }}
               >
-                Your Measurements
+                Fit Passport
               </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 8,
-                }}
-              >
-                {Object.entries(userBody).map(([k, v]) => (
-                  <div
-                    key={k}
-                    style={{
-                      padding: "8px 10px",
-                      background: C.bgElevated,
-                      borderRadius: 10,
-                      border: `1px solid ${C.border}`,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: C.muted,
-                        textTransform: "capitalize",
-                        fontWeight: 600,
-                        letterSpacing: 0.4,
-                      }}
-                    >
-                      {k}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 700,
-                        color: C.accent,
-                        fontFamily: font.serif,
-                        marginTop: 2,
-                      }}
-                    >
-                      {v}"
-                    </div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: C.accent, fontFamily: font.serif, lineHeight: 1.2, marginBottom: 4 }}>
+                Your measurement record
+              </div>
+              <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
+                Confidence rolls into every fit score, the alteration brief and the tailor's review queue.
+              </div>
+              <div style={{ display: "flex", gap: 14, marginTop: 10, fontSize: 10.5 }}>
+                <div>
+                  <div style={{ color: C.muted, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase", fontSize: 9 }}>Overall</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: C.forest, fontFamily: font.sans }}>
+                    {aggregateConfidence(userBodyMeta)}%
                   </div>
-                ))}
+                </div>
+                <div>
+                  <div style={{ color: C.muted, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase", fontSize: 9 }}>Source</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: C.accent, marginTop: 4 }}>
+                    {sourceLabel(userBodyMeta?.source)}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          <MeasurementPassport
+            body={userBody}
+            meta={userBodyMeta}
+            compact
+            title="Body measurements"
+            subtitle={null}
+            onRefine={() => setEditing(true)}
+          />
         </GlassCard>
 
         {/* Fit Stats */}
@@ -11776,6 +12512,9 @@ export default function TailoredApp() {
   const isDesktop = useDesktopLayout();
   const [screen, setScreen] = useState(saved?.body ? "home" : "splash");
   const [userBody, setUserBody] = useState(saved?.body || DEFAULT_BODY);
+  const [userBodyMeta, setUserBodyMeta] = useState(
+    saved?.bodyMeta || { ...DEFAULT_BODY_META }
+  );
   const [favorites, setFavorites] = useState(saved?.favorites || new Set());
   const [tailorOrders, setTailorOrders] = useState(saved?.tailorOrders || []);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -11787,8 +12526,8 @@ export default function TailoredApp() {
   const catalog = useMemo(() => enrichCatalog(userBody), [userBody]);
 
   useEffect(() => {
-    saveUserData({ body: userBody, favorites, tailorOrders });
-  }, [userBody, favorites, tailorOrders]);
+    saveUserData({ body: userBody, bodyMeta: userBodyMeta, favorites, tailorOrders });
+  }, [userBody, userBodyMeta, favorites, tailorOrders]);
 
   const toggleFav = useCallback(id => {
     setFavorites(f => {
@@ -11821,8 +12560,11 @@ export default function TailoredApp() {
     setSelectedBrand(null);
     setTailorItem(null);
   };
-  const handleOnboardingComplete = body => {
+  const handleOnboardingComplete = (body, meta) => {
     setUserBody(body);
+    if (meta) {
+      setUserBodyMeta(prev => ({ ...prev, ...meta, lastReviewedAt: Date.now() }));
+    }
     setScreen("home");
     setNavTab("home");
   };
@@ -11835,8 +12577,14 @@ export default function TailoredApp() {
     setScreen("profile");
     setNavTab("profile");
   };
-  const handleUpdateBody = body => {
+  const handleUpdateBody = (body, metaPatch) => {
     setUserBody(body);
+    setUserBodyMeta(prev => ({
+      ...prev,
+      ...(metaPatch || {}),
+      source: metaPatch?.source ?? "manual",
+      lastReviewedAt: Date.now(),
+    }));
   };
 
   const sharedProps = {
@@ -11845,6 +12593,7 @@ export default function TailoredApp() {
     toggleFav,
     onNav: handleNav,
     userBody,
+    userBodyMeta,
   };
   const activeNav = NAV_ITEMS.find(item => item.id === navTab) || NAV_ITEMS[0];
   const showDesktopChrome =
@@ -12417,6 +13166,7 @@ export default function TailoredApp() {
                 toggleFav={toggleFav}
                 onSendToTailor={handleSendToTailor}
                 userBody={userBody}
+                userBodyMeta={userBodyMeta}
               />
             )}
             {screen === "tailor" && tailorItem && (
@@ -12429,6 +13179,7 @@ export default function TailoredApp() {
             {screen === "profile" && (
               <ProfileScreen
                 userBody={userBody}
+                userBodyMeta={userBodyMeta}
                 onUpdateBody={handleUpdateBody}
                 favorites={favorites}
                 catalog={catalog}
