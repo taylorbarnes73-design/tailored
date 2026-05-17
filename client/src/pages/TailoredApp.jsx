@@ -710,11 +710,43 @@ function createGarmentMesh(body, item) {
     nS = n(shoulder, 15),
     nI = n(inseam, 30);
   const group = new THREE.Group(),
-    gap = 0.04,
+    gap = 0.055, // wider air gap so garment silhouette reads off body
     segs = 64,
     cat = item?.category || "Tops";
-  const hexColor = item?.color || "#8FB69B",
-    color = new THREE.Color(hexColor);
+
+  // Push garment color far enough from the mannequin's warm-cream skin
+  // (~#EADFC8 luminance ~0.85) that it always reads as clothing on body.
+  // We clamp luminance into a deep cool-earthy range, and bias hue toward
+  // cool greens/olives/charcoals so beige/cream garment palette never blends
+  // into the cream figurine.
+  const ensureContrastColor = (hex) => {
+    const h = (hex || "#6B8E5A").replace("#", "");
+    const norm = h.length === 3
+      ? h.split("").map(c => c + c).join("")
+      : h.padEnd(6, "0").slice(0, 6);
+    let r = parseInt(norm.slice(0, 2), 16) / 255;
+    let g = parseInt(norm.slice(2, 4), 16) / 255;
+    let b = parseInt(norm.slice(4, 6), 16) / 255;
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    // If too close to skin luminance (cream ~0.85), drop and cool-shift
+    if (lum > 0.55) {
+      const factor = 0.42 / Math.max(lum, 0.01);
+      r *= factor; g *= factor; b *= factor;
+      // bias toward sage/forest so it doesn't read warm
+      g = Math.min(1, g * 1.06 + 0.02);
+      r = Math.max(0, r * 0.85);
+    }
+    // Suppress any orange/gold/amber hue lingering in legacy data
+    if (r > g && r > b && r - b > 0.12) {
+      const avg = (g + b) / 2;
+      r = Math.min(r, avg + 0.04);
+    }
+    const to2 = (v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0");
+    return `#${to2(r)}${to2(g)}${to2(b)}`;
+  };
+  const hexColor = ensureContrastColor(item?.color || "#4F6B43");
+  const color = new THREE.Color(hexColor);
+
   const fab = (item?.fabric || "").toLowerCase();
   const isDenim = fab.includes("denim"),
     isSilk = fab.includes("silk") || fab.includes("satin"),
@@ -723,16 +755,44 @@ function createGarmentMesh(body, item) {
     isLeather = fab.includes("leather");
   const fabricMat = new THREE.MeshPhysicalMaterial({
     color,
-    roughness: isDenim ? 0.92 : isSilk ? 0.22 : isKnit ? 0.88 : 0.75,
+    roughness: isDenim ? 0.92 : isSilk ? 0.22 : isKnit ? 0.88 : 0.7,
     metalness: isSilk ? 0.05 : 0,
-    clearcoat: isSilk ? 0.35 : 0.04,
+    clearcoat: isSilk ? 0.35 : 0.06,
     clearcoatRoughness: isSilk ? 0.25 : 0.8,
-    sheen: isKnit ? 0.6 : isSilk ? 0.5 : 0.2,
-    sheenRoughness: 0.5,
-    sheenColor: new THREE.Color(hexColor).multiplyScalar(isSilk ? 2.2 : 1.4),
-    side: THREE.FrontSide,
-    envMapIntensity: isSilk ? 1.2 : 0.3,
+    sheen: isKnit ? 0.7 : isSilk ? 0.55 : 0.3,
+    sheenRoughness: 0.45,
+    sheenColor: new THREE.Color(hexColor).multiplyScalar(isSilk ? 2.2 : 1.5),
+    side: THREE.DoubleSide,
+    envMapIntensity: isSilk ? 1.2 : 0.4,
   });
+
+  // Dark edge/seam material — used to draw a visible silhouette line so the
+  // garment reads as clothing on a body even when colors are close.
+  const seamColor = new THREE.Color(hexColor).multiplyScalar(0.45);
+  const seamMat = new THREE.MeshBasicMaterial({
+    color: seamColor,
+    transparent: true,
+    opacity: 0.85,
+    side: THREE.DoubleSide,
+  });
+  const addSeamRing = (y, rx, rz, ox = 0) => {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(Math.max(rx, rz), 0.012, 8, 48),
+      seamMat
+    );
+    ring.position.set(ox, y, 0);
+    ring.rotation.x = Math.PI / 2;
+    ring.scale.set(1, rz / Math.max(rx, rz), 1);
+    group.add(ring);
+  };
+  const addButton = (y, z = 0) => {
+    const btn = new THREE.Mesh(
+      new THREE.CircleGeometry(0.018, 16),
+      new THREE.MeshBasicMaterial({ color: seamColor, side: THREE.DoubleSide })
+    );
+    btn.position.set(0, y, z);
+    group.add(btn);
+  };
   if (cat === "Tops" || cat === "Outerwear") {
     const g = cat === "Outerwear" ? 0.065 : gap;
     group.add(
@@ -770,6 +830,36 @@ function createGarmentMesh(body, item) {
     };
     group.add(buildSleeve(-1));
     group.add(buildSleeve(1));
+    // Visible clothing details — collar/lapel rim, button placket, cuff bands, hem line
+    const hemY = 1.42, neckY = 2.6;
+    addSeamRing(neckY, 0.5 * nS + gap, 0.2 + gap);
+    addSeamRing(hemY, 0.4 * nH + gap, 0.24 * nH + gap);
+    // Cuff bands at sleeve ends
+    [-1, 1].forEach(sign => {
+      const sx = 0.48 * nS * sign + sign * 0.11;
+      addSeamRing(1.55, 0.063, 0.059, sx);
+    });
+    // Button placket — center front
+    if (cat === "Tops") {
+      for (let i = 0; i < 5; i++) {
+        addButton(2.32 - i * 0.2, 0.28 * nB + gap + 0.001);
+      }
+    } else {
+      // Outerwear — bigger lapel V + buttons
+      const lapelMat = new THREE.MeshBasicMaterial({
+        color: seamColor, transparent: true, opacity: 0.75, side: THREE.DoubleSide,
+      });
+      [-1, 1].forEach(sign => {
+        const geom = new THREE.PlaneGeometry(0.13, 0.42);
+        const lapel = new THREE.Mesh(geom, lapelMat);
+        lapel.position.set(sign * 0.09, 2.36, 0.29 * nB + gap + 0.002);
+        lapel.rotation.z = sign * 0.18;
+        group.add(lapel);
+      });
+      for (let i = 0; i < 3; i++) {
+        addButton(2.0 - i * 0.22, 0.28 * nB + gap + 0.002);
+      }
+    }
   } else if (cat === "Bottoms") {
     const legLen = 0.75 * nI;
     group.add(
@@ -803,6 +893,18 @@ function createGarmentMesh(body, item) {
       );
     group.add(buildPantsLeg(-0.17));
     group.add(buildPantsLeg(0.17));
+    // Waistband seam + hem cuffs
+    addSeamRing(1.58, 0.36 * nW + gap, 0.21 * nW + gap);
+    [-0.17, 0.17].forEach(xOff => {
+      addSeamRing(-0.75 * nI, 0.087 + gap, 0.085 + gap, xOff);
+    });
+    // Center front fly stitch
+    const flyMat = new THREE.MeshBasicMaterial({
+      color: seamColor, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
+    });
+    const fly = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.22), flyMat);
+    fly.position.set(0, 1.3, 0.29 * nH + gap + 0.002);
+    group.add(fly);
   } else if (cat === "Dresses") {
     group.add(
       buildSmoothMesh(
@@ -822,6 +924,10 @@ function createGarmentMesh(body, item) {
         fabricMat
       )
     );
+    // Neckline + waist seam + hem
+    addSeamRing(2.6, 0.5 * nS + gap, 0.2 + gap);
+    addSeamRing(1.72, 0.35 * nW + gap, 0.2 * nW + gap);
+    addSeamRing(0.2, 0.48 * nH + gap, 0.3 * nH + gap);
   }
   return group;
 }
@@ -2584,7 +2690,7 @@ const BRANDS = [
     id: "skims",
     name: "SKIMS",
     logo: "S",
-    color: "#C4A882",
+    color: "#8C9576",
     tagline: "Body-focused foundations",
     sizeNote: "Stretchy — true to size",
   },
@@ -2656,7 +2762,7 @@ const BRANDS = [
     id: "hm",
     name: "H&M",
     logo: "H&M",
-    color: "#CC0000",
+    color: "#5A3E3E",
     tagline: "Accessible fashion essentials",
     sizeNote: "Runs slightly large",
   },
@@ -2672,7 +2778,7 @@ const BRANDS = [
     id: "lululemon",
     name: "Lululemon",
     logo: "Lu",
-    color: "#D31334",
+    color: "#5A3E4A",
     tagline: "Technical performance wear",
     sizeNote: "True to size — check fit guide",
   },
@@ -2696,7 +2802,7 @@ const BRANDS = [
     id: "uniqlo",
     name: "Uniqlo",
     logo: "U",
-    color: "#FF0000",
+    color: "#3A4537",
     tagline: "Functional daily basics",
     sizeNote: "Runs slightly small — size up",
   },
@@ -2748,8 +2854,8 @@ const CATALOG = [
     price: 89.9,
     fit: 0,
     risk: "Low",
-    color: "#C4A67A",
-    colors: ["#C4A67A", "#1a1a1a", "#F5F0E8"],
+    color: "#8A9572",
+    colors: ["#8A9572", "#1a1a1a", "#F5F0E8"],
     category: "Outerwear",
     trending: true,
     badge: "Viral on TikTok",
@@ -2899,8 +3005,8 @@ const CATALOG = [
     price: 62,
     fit: 0,
     risk: "Low",
-    color: "#C4A882",
-    colors: ["#C4A882", "#1a1a1a", "#F5F0E8", "#8B4A5A", "#6A5A4A"],
+    color: "#8C9576",
+    colors: ["#8C9576", "#1a1a1a", "#F5F0E8", "#8B4A5A", "#6A5A4A"],
     category: "Tops",
     trending: true,
     badge: "Best Seller",
@@ -3277,7 +3383,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#E8E5E0",
-    colors: ["#E8E5E0", "#C4956a", "#6A8FA8", "#2D2D2D", "#8B4A5A"],
+    colors: ["#E8E5E0", "#7A8E6A", "#6A8FA8", "#2D2D2D", "#8B4A5A"],
     category: "Tops",
     trending: true,
     badge: "Trending Now",
@@ -3302,7 +3408,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#F5F0E8",
-    colors: ["#F5F0E8", "#1a1a1a", "#C4956a", "#6A8FA8"],
+    colors: ["#F5F0E8", "#1a1a1a", "#7A8E6A", "#6A8FA8"],
     category: "Tops",
     trending: true,
     badge: "Trending Now",
@@ -3352,7 +3458,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#E8E5E0",
-    colors: ["#E8E5E0", "#1a1a1a", "#A0B8A0", "#C4956a"],
+    colors: ["#E8E5E0", "#1a1a1a", "#A0B8A0", "#7A8E6A"],
     category: "Tops",
     trending: true,
     badge: "Viral on TikTok",
@@ -3503,7 +3609,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#E8E0D4",
-    colors: ["#E8E0D4", "#1A1A1A", "#C4A67A"],
+    colors: ["#E8E0D4", "#1A1A1A", "#8A9572"],
     category: "Outerwear",
     trending: true,
     badge: "Best Value",
@@ -3781,7 +3887,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#2D2D2D",
-    colors: ["#2D2D2D", "#D31334", "#4A6480"],
+    colors: ["#2D2D2D", "#5A3E4A", "#4A6480"],
     category: "Outerwear",
     trending: true,
     badge: "Classic",
@@ -3909,8 +4015,8 @@ const CATALOG = [
     price: 98,
     fit: 0,
     risk: "Low",
-    color: "#C4A67A",
-    colors: ["#C4A67A", "#E8E5E0", "#D4A5A5"],
+    color: "#8A9572",
+    colors: ["#8A9572", "#E8E5E0", "#D4A5A5"],
     category: "Tops",
     trending: false,
     badge: "Cozy Pick",
@@ -4088,7 +4194,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#F5F0E8",
-    colors: ["#F5F0E8", "#1A1A1A", "#6A8FA8", "#D4A5A5", "#C4A67A"],
+    colors: ["#F5F0E8", "#1A1A1A", "#6A8FA8", "#D4A5A5", "#8A9572"],
     category: "Tops",
     trending: false,
     badge: "Everyday Basic",
@@ -4242,7 +4348,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#2D2D2D",
-    colors: ["#2D2D2D", "#E8E0D4", "#C4A67A"],
+    colors: ["#2D2D2D", "#E8E0D4", "#8A9572"],
     category: "Outerwear",
     trending: true,
     badge: "Investment Piece",
@@ -4266,8 +4372,8 @@ const CATALOG = [
     price: 350,
     fit: 0,
     risk: "Low",
-    color: "#C4A67A",
-    colors: ["#C4A67A", "#1A1A1A", "#F5F0E8"],
+    color: "#8A9572",
+    colors: ["#8A9572", "#1A1A1A", "#F5F0E8"],
     category: "Tops",
     trending: true,
     badge: "Runway Pick",
@@ -4471,7 +4577,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#5A6B4A",
-    colors: ["#5A6B4A", "#1A1A1A", "#E8E5E0", "#C4A882"],
+    colors: ["#5A6B4A", "#1A1A1A", "#E8E5E0", "#8C9576"],
     category: "Tops",
     trending: true,
     badge: "New Collection",
@@ -4495,8 +4601,8 @@ const CATALOG = [
     price: 44,
     fit: 0,
     risk: "Low",
-    color: "#C4A882",
-    colors: ["#C4A882", "#1A1A1A", "#D4A5A5", "#87CEEB"],
+    color: "#8C9576",
+    colors: ["#8C9576", "#1A1A1A", "#D4A5A5", "#87CEEB"],
     category: "Tops",
     trending: true,
     badge: "Summer 2026",
@@ -4522,7 +4628,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#F5F0E8",
-    colors: ["#F5F0E8", "#1A1A1A", "#D31334"],
+    colors: ["#F5F0E8", "#1A1A1A", "#5A3E4A"],
     category: "Tops",
     trending: false,
     badge: "Everyday Basic",
@@ -4774,8 +4880,8 @@ const CATALOG = [
     price: 128,
     fit: 0,
     risk: "Low",
-    color: "#C4A882",
-    colors: ["#C4A882", "#1A1A1A", "#D4A5A5"],
+    color: "#8C9576",
+    colors: ["#8C9576", "#1A1A1A", "#D4A5A5"],
     category: "Tops",
     trending: true,
     badge: "Date Night",
@@ -4800,7 +4906,7 @@ const CATALOG = [
     fit: 0,
     risk: "Low",
     color: "#2D2D2D",
-    colors: ["#2D2D2D", "#C4A67A", "#F5F0E8"],
+    colors: ["#2D2D2D", "#8A9572", "#F5F0E8"],
     category: "Dresses",
     trending: true,
     badge: "Power Dressing",
@@ -6008,15 +6114,15 @@ function DesktopContextPanel({
             ))}
           </div>
         ) : (
-          <div className="tb-sidebar-stats">
-            <div>
-              <span className="tb-sidebar-stat__value">
+          <div className="tb-sidebar-stats tb-sidebar-stats--snapshot">
+            <div className="tb-sidebar-stat">
+              <span className="tb-sidebar-stat__value tb-sidebar-stat__value--text">
                 {inferBodyShape(userBody)}
               </span>
               <span className="tb-sidebar-stat__label">Shape profile</span>
             </div>
-            <div>
-              <span className="tb-sidebar-stat__value">
+            <div className="tb-sidebar-stat">
+              <span className="tb-sidebar-stat__value tb-sidebar-stat__value--text">
                 {bestBrand?.name || "TBD"}
               </span>
               <span className="tb-sidebar-stat__label">Best brand</span>
@@ -6436,9 +6542,11 @@ function OnboardingScreen({ onComplete }) {
             marginBottom: 32,
           }}
         >
+          {/* Manual entry first — most reliable for web preview where camera
+              access may be blocked. AI scan stays available below. */}
           <GlassCard
             hover
-            onClick={() => setScanning(true)}
+            onClick={() => setStep("manual")}
             style={{ padding: 20 }}
           >
             <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -6455,7 +6563,7 @@ function OnboardingScreen({ onComplete }) {
                   flexShrink: 0,
                 }}
               >
-                <CameraIcon size={22} />
+                <MeasureIcon size={22} />
               </div>
               <div style={{ flex: 1 }}>
                 <div
@@ -6469,7 +6577,7 @@ function OnboardingScreen({ onComplete }) {
                   <span
                     style={{ fontSize: 15, fontWeight: 600, color: C.accent }}
                   >
-                    AI Body Scan
+                    Enter measurements
                   </span>
                   <span
                     style={{
@@ -6494,8 +6602,8 @@ function OnboardingScreen({ onComplete }) {
                     margin: 0,
                   }}
                 >
-                  Phone camera capture · MediaPipe locks 33 body landmarks in
-                  under 60 seconds. Frames stay on your device.
+                  Quick sliders for tape measure or clothing label values. The
+                  fastest way to build your fit profile on the web.
                 </p>
               </div>
             </div>
@@ -6503,7 +6611,7 @@ function OnboardingScreen({ onComplete }) {
 
           <GlassCard
             hover
-            onClick={() => setStep("manual")}
+            onClick={() => setScanning(true)}
             style={{ padding: 20 }}
           >
             <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -6520,7 +6628,7 @@ function OnboardingScreen({ onComplete }) {
                   flexShrink: 0,
                 }}
               >
-                <MeasureIcon size={20} />
+                <CameraIcon size={20} />
               </div>
               <div style={{ flex: 1 }}>
                 <span
@@ -6532,7 +6640,7 @@ function OnboardingScreen({ onComplete }) {
                     marginBottom: 4,
                   }}
                 >
-                  Enter Manually
+                  AI Body Scan
                 </span>
                 <p
                   style={{
@@ -6542,8 +6650,8 @@ function OnboardingScreen({ onComplete }) {
                     margin: 0,
                   }}
                 >
-                  Enter measurements from a tape measure or clothing label for a
-                  direct, controlled setup.
+                  Phone camera capture — MediaPipe locks 33 landmarks. Best on a
+                  mobile device with camera access; falls back to manual entry.
                 </p>
               </div>
             </div>
@@ -6587,7 +6695,7 @@ function OnboardingScreen({ onComplete }) {
           display: "flex",
           flexDirection: "column",
           background: C.bg,
-          overflow: "auto",
+          overflow: "hidden",
         }}
       >
         <div
@@ -6621,7 +6729,7 @@ function OnboardingScreen({ onComplete }) {
 
         <div
           className="tb-screen__body tb-onboarding-manual__body"
-          style={{ flex: 1, padding: "16px 18px 100px", overflow: "auto" }}
+          style={{ flex: 1, padding: "16px 18px 24px", overflow: "auto", minHeight: 0 }}
         >
           <div
             style={{
@@ -6800,21 +6908,21 @@ function OnboardingScreen({ onComplete }) {
         <div
           className="tb-sticky-cta"
           style={{
-            position: "sticky",
-            bottom: 0,
-            padding: "14px 18px 22px",
-            background: `linear-gradient(180deg, rgba(242,243,238,0.0) 0%, ${C.bg} 30%, ${C.bg} 100%)`,
+            flexShrink: 0,
+            padding: "12px 18px 18px",
+            background: `linear-gradient(180deg, rgba(242,243,238,0.0) 0%, ${C.bg} 22%, ${C.bg} 100%)`,
             borderTop: `1px solid ${C.border}`,
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 6,
+            boxShadow: "0 -14px 28px rgba(45,55,42,0.06)",
           }}
         >
           <button
             onClick={() => onComplete(body)}
             style={{
               width: "100%",
-              padding: "16px 0",
+              padding: "15px 0",
               borderRadius: 14,
               border: "none",
               background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
@@ -8135,8 +8243,11 @@ function FitMapOverlay({ width, height, regions, mode }) {
     sleeve: 0.46,
     hem: 0.62,
   };
-  // Hide overlays in "tailored" mode — everything is in tolerance after alterations.
-  const showAll = mode === "before";
+  const isTailored = mode === "tailored";
+  // In "tailored" mode we still draw overlay markers but cleaner: show the
+  // garment edge tightening with green improved-fit guides and ghost lines
+  // representing the original/before silhouette so the delta is perceptible.
+  const showAll = !isTailored;
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
@@ -8163,7 +8274,82 @@ function FitMapOverlay({ width, height, regions, mode }) {
           <stop offset="0" stopColor="#6B8E5A" stopOpacity="0.22" />
           <stop offset="1" stopColor="#6B8E5A" stopOpacity="0" />
         </radialGradient>
+        <radialGradient id="fs-zone-improved" cx="0.5" cy="0.5" r="0.55">
+          <stop offset="0" stopColor="#6B8E5A" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#6B8E5A" stopOpacity="0" />
+        </radialGradient>
       </defs>
+      {/* Tailored-mode delta visualization — green improved fit zones + ghost
+          line of the original (before) silhouette so the user sees the change. */}
+      {isTailored && (() => {
+        const cx = width / 2;
+        const ghost = (yFrac, rxFrac, label) => {
+          const y = yFrac * height;
+          const rx = rxFrac * width;
+          return (
+            <g key={`ghost-${label}`}>
+              {/* original loose silhouette — dashed taupe ghost line */}
+              <ellipse cx={cx} cy={y} rx={rx * 1.18} ry={6} fill="none"
+                stroke={C.warmGray} strokeOpacity="0.55" strokeWidth="1"
+                strokeDasharray="3 3" />
+              {/* tailored tightened silhouette — solid sage */}
+              <ellipse cx={cx} cy={y} rx={rx * 0.96} ry={4} fill="none"
+                stroke={C.forest} strokeOpacity="0.85" strokeWidth="1.6" />
+              {/* improved-fit halo glow */}
+              <ellipse cx={cx} cy={y} rx={rx * 1.3} ry={14}
+                fill="url(#fs-zone-improved)" />
+              {/* delta arrows pulling in */}
+              <path d={`M ${cx - rx * 1.18},${y} L ${cx - rx * 0.96},${y}`}
+                stroke={C.forest} strokeWidth="1.4" strokeOpacity="0.9"
+                markerEnd="url(#fs-arrow)" />
+              <path d={`M ${cx + rx * 1.18},${y} L ${cx + rx * 0.96},${y}`}
+                stroke={C.forest} strokeWidth="1.4" strokeOpacity="0.9"
+                markerEnd="url(#fs-arrow)" />
+            </g>
+          );
+        };
+        return (
+          <g>
+            <defs>
+              <marker id="fs-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill={C.forest} fillOpacity="0.9" />
+              </marker>
+            </defs>
+            {/* Pull in at waist (always visible) */}
+            {ghost(0.40, 0.18, "waist")}
+            {/* Pull in at sleeve / arm taper */}
+            {ghost(0.55, 0.12, "sleeve")}
+            {/* Hem raised cue at bottom */}
+            <g>
+              <line x1={cx - width * 0.18} y1={height * 0.78}
+                x2={cx + width * 0.18} y2={height * 0.78}
+                stroke={C.warmGray} strokeOpacity="0.45" strokeWidth="1"
+                strokeDasharray="3 3" />
+              <line x1={cx - width * 0.18} y1={height * 0.74}
+                x2={cx + width * 0.18} y2={height * 0.74}
+                stroke={C.forest} strokeOpacity="0.85" strokeWidth="1.6" />
+              <text x={cx + width * 0.18 + 4} y={height * 0.74 + 3}
+                fontSize="9" fontWeight="800" fill={C.forest}
+                fontFamily="Manrope, sans-serif"
+                style={{ textTransform: "uppercase", letterSpacing: 0.6 }}>
+                Hem raised
+              </text>
+            </g>
+            {/* Improved fit badge */}
+            <g transform={`translate(${width - 116}, 14)`}>
+              <rect x="0" y="0" width="104" height="22" rx="11"
+                fill="rgba(107,142,90,0.14)" stroke={C.forest} strokeWidth="1" />
+              <circle cx="11" cy="11" r="3" fill={C.forest} />
+              <text x="20" y="14.5" fontSize="9.5" fontWeight="800"
+                fill={C.forest} fontFamily="Manrope, sans-serif"
+                style={{ textTransform: "uppercase", letterSpacing: 0.7 }}>
+                Tailored fit · 96%
+              </text>
+            </g>
+          </g>
+        );
+      })()}
       {regions.map((r, i) => {
         const yFrac = yMap[r.key] ?? 0.5;
         const y = yFrac * height;
@@ -8228,9 +8414,10 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
         ? "Rigid · structured"
         : "Light stretch";
 
-  // Viewer sizing — large body, responsive width capped for the modal column.
-  const viewerW = 360;
-  const viewerH = 520;
+  // Viewer sizing — compact so it fits next to the source product card and
+  // the tabs without forcing a major scroll. Side-by-side on wider screens.
+  const viewerW = 300;
+  const viewerH = 420;
 
   return (
     <div
@@ -8274,7 +8461,7 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
           </button>
           <div>
             <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
-              Fit Studio · Prototype preview
+              Fit Studio · Try on your body
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: C.accent, lineHeight: 1.2, fontFamily: font.serif }}>
               {item.name}
@@ -8336,20 +8523,85 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
 
       {/* Body */}
       <div
+        className="tb-fs-body"
         style={{
           flex: 1,
-          overflow: "auto",
-          padding: "12px 16px 24px",
+          minHeight: 0,
+          overflow: "hidden",
+          padding: "12px 16px 16px",
           display: "grid",
           gridTemplateColumns: "1fr",
+          gridTemplateRows: "auto 1fr",
           gap: 12,
         }}
       >
+        {/* Left visual column — source product card + body try-on */}
+        <div
+          className="tb-fs-visual"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 10,
+            minHeight: 0,
+          }}
+        >
+        {/* Source product card */}
+        <div
+          className="tb-fs-source"
+          style={{
+            position: "relative",
+            borderRadius: 18,
+            overflow: "hidden",
+            border: `1px solid ${C.border}`,
+            background: C.card,
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: "0 12px 28px rgba(45,55,42,0.08)",
+          }}
+        >
+          <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
+            <ProductImage item={item} style={{ height: "100%", width: "100%" }} />
+            <div style={{
+              position: "absolute", top: 10, left: 10,
+              padding: "4px 10px", borderRadius: 999,
+              background: "rgba(255,255,255,0.92)",
+              border: `1px solid ${C.border}`,
+              fontSize: 8.5, fontWeight: 800,
+              letterSpacing: 1.2, textTransform: "uppercase",
+              color: C.muted,
+            }}>
+              Source · {item.brand}
+            </div>
+            {item.url && (
+              <div style={{
+                position: "absolute", bottom: 10, left: 10, right: 10,
+                padding: "6px 10px", borderRadius: 8,
+                background: "rgba(58,69,55,0.78)",
+                color: C.cream, fontSize: 9.5, fontWeight: 700,
+                letterSpacing: 0.4,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              }} title={item.url}>
+                Imported link
+              </div>
+            )}
+          </div>
+          <div style={{
+            padding: "8px 10px",
+            borderTop: `1px solid ${C.border}`,
+            fontSize: 10.5, color: C.mutedLight, lineHeight: 1.35,
+            display: "flex", justifyContent: "space-between", gap: 6,
+          }}>
+            <span style={{ fontWeight: 700, color: C.accent, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {item.bestSize} · {fabric}
+            </span>
+            <span style={{ color: C.forest, fontWeight: 800 }}>→ Body</span>
+          </div>
+        </div>
         {/* Viewer panel */}
         <div
           style={{
             position: "relative",
-            borderRadius: 22,
+            borderRadius: 18,
             overflow: "hidden",
             background: `radial-gradient(ellipse at 50% 38%, ${C.cream} 0%, ${C.beige} 65%, ${C.oat} 100%)`,
             border: `1px solid ${C.border}`,
@@ -8425,6 +8677,20 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
             </div>
           </div>
         </div>
+        </div>{/* /tb-fs-visual */}
+
+        {/* Right column — controls + tabs (scrolls if needed) */}
+        <div
+          className="tb-fs-right"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            minHeight: 0,
+            overflow: "auto",
+            paddingRight: 2,
+          }}
+        >
 
         {/* Quick controls: size + color */}
         <div
@@ -8590,7 +8856,7 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
                 lineHeight: 1.5,
               }}
             >
-              Estimated drape from your scan + the retailer size chart. Prototype preview — tailor review required before any cut.
+              Estimated drape from your scan + the retailer size chart. Tailor review required before any cut.
             </div>
           </div>
         )}
@@ -8714,6 +8980,7 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
             )}
           </div>
         )}
+        </div>{/* /tb-fs-right */}
       </div>
 
       {/* Sticky CTA */}
@@ -8908,7 +9175,7 @@ function ItemDetailScreen({
             >
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <SparkleIcon size={12} />
-                Fit Studio · prototype preview on your body
+                Fit Studio · Try on your body
               </span>
               <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Drape · Risk · Brief →</span>
             </button>
@@ -9547,6 +9814,55 @@ function StyleAIScreen({
         className="tb-screen__body"
         style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}
       >
+        {/* Empty state — no active garment routed to Fit Studio */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            padding: "12px 14px",
+            marginBottom: 14,
+            borderRadius: 14,
+            background: C.goldBg,
+            border: `1px solid ${C.goldBorder}`,
+          }}
+        >
+          <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: C.card, border: `1px solid ${C.border}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <SparkleIcon size={14} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.accent, letterSpacing: 0.2 }}>
+                Fit Studio is per garment
+              </div>
+              <div style={{ fontSize: 10.5, color: C.mutedLight, lineHeight: 1.4 }}>
+                Paste a product link to import a piece, then open it to try on your body.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => onNav && onNav("home")}
+            style={{
+              flexShrink: 0,
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+              color: C.cream,
+              fontSize: 11, fontWeight: 800, letterSpacing: 0.4,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Paste link
+          </button>
+        </div>
         <GlassCard
           className="tb-style-hero"
           style={{ padding: 20, marginBottom: 16 }}
@@ -11303,6 +11619,31 @@ export default function TailoredApp() {
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes tbPulseRing { 0% { transform: scale(0.9); opacity: 0.55; } 70% { transform: scale(1.4); opacity: 0; } 100% { opacity: 0; } }
         @keyframes tbDrift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        /* Fit Studio responsive layout */
+        @media (min-width: 880px) {
+          .tb-fs-body {
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr) !important;
+            grid-template-rows: 1fr !important;
+            align-items: stretch;
+          }
+          .tb-fs-visual {
+            grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr) !important;
+            height: 100%;
+          }
+        }
+        @media (max-width: 879px) {
+          .tb-fs-visual {
+            grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr) !important;
+          }
+        }
+        @media (max-width: 560px) {
+          .tb-fs-visual {
+            grid-template-columns: 1fr !important;
+          }
+          .tb-fs-source {
+            max-height: 220px;
+          }
+        }
         .tb-app {
           position: relative;
           overflow: hidden;
@@ -11468,11 +11809,28 @@ export default function TailoredApp() {
           gap: 10px;
           margin-bottom: 16px;
         }
+        .tb-sidebar-stats--snapshot {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          column-gap: 14px;
+        }
+        .tb-sidebar-stats--snapshot .tb-sidebar-stat {
+          min-width: 0;
+        }
         .tb-sidebar-stat__value {
           display: block;
           color: ${C.accent};
           font-size: 22px;
           font-weight: 800;
+        }
+        .tb-sidebar-stat__value--text {
+          font-size: 16px;
+          line-height: 1.15;
+          letter-spacing: 0.01em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: block;
+          max-width: 100%;
         }
         .tb-sidebar-stat__label {
           display: block;
