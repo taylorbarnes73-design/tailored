@@ -313,38 +313,38 @@ const NAV_ITEMS = [
   {
     id: "home",
     icon: <HomeIcon />,
-    label: "Shop",
-    eyebrow: "Client edit",
-    title: "Measurement-led wardrobe planning",
+    label: "Import",
+    eyebrow: "Tailor concierge",
+    title: "Paste a product link. We tailor it.",
     blurb:
-      "Shop across retailers with fit scoring, sizing logic, and alteration planning built into every recommendation.",
+      "Drop in a link from any retailer. We pull garment specs, fit them to your body, and route the piece through our in-house tailors.",
   },
   {
     id: "trending",
     icon: <FireIcon />,
-    label: "Signals",
-    eyebrow: "Market view",
-    title: "Demand worth acting on",
+    label: "Library",
+    eyebrow: "Imported pieces",
+    title: "Your imported garments",
     blurb:
-      "Trend movement filtered through your measurements, return risk, and brand-specific sizing patterns.",
+      "Every product link you have submitted, with extracted specs, fit scores, and the tailor brief that ships with each piece.",
   },
   {
     id: "brands",
     icon: <TagIcon />,
-    label: "Brands",
-    eyebrow: "Brand map",
-    title: "Where your fit works best",
+    label: "Sources",
+    eyebrow: "Retailer map",
+    title: "Where your fit pulls cleanly",
     blurb:
-      "See which labels consistently match your proportions before you even open the product page.",
+      "Retailers we have parsed before — sizing logic, return windows, and alteration cost notes per source.",
   },
   {
     id: "style",
     icon: <SparkleIcon />,
-    label: "Styling",
-    eyebrow: "Stylist notes",
-    title: "Body-led styling intelligence",
+    label: "Studio",
+    eyebrow: "Fit studio",
+    title: "Body-led tailor studio",
     blurb:
-      "Shape analysis, fit logic, and practical outfit direction for building a sharper wardrobe.",
+      "Shape analysis and alteration playbooks our tailors apply to every imported garment before it ships to you.",
   },
   {
     id: "profile",
@@ -353,7 +353,7 @@ const NAV_ITEMS = [
     eyebrow: "Fit passport",
     title: "Your fit record",
     blurb:
-      "The living record of what fits, what you saved, and which alteration briefs are ready to use.",
+      "Measurements, saved imports, in-progress alterations, and shipped tailor orders — your living concierge file.",
   },
 ];
 const TREND_SECTION_META = {
@@ -662,22 +662,38 @@ function createBodyMesh(body) {
     const sx = 0.48 * nS * sign;
     return buildSmoothMesh(
       [
-        { y: 2.56, rx: 0.11, rz: 0.1, ox: sx * 0.92 },
-        { y: 2.46, rx: 0.1, rz: 0.088, ox: sx + sign * 0.01 },
-        { y: 2.28, rx: 0.082, rz: 0.072, ox: sx + sign * 0.05 },
-        { y: 2.1, rx: 0.075, rz: 0.065, ox: sx + sign * 0.07 },
-        { y: 1.9, rx: 0.068, rz: 0.062, ox: sx + sign * 0.09 },
-        { y: 1.55, rx: 0.058, rz: 0.054, ox: sx + sign * 0.11 },
-        { y: 1.15, rx: 0.045, rz: 0.042, ox: sx + sign * 0.13 },
-        { y: 0.82, rx: 0.035, rz: 0.032, ox: sx + sign * 0.14 },
-        { y: 0.62, rx: 0.035, rz: 0.018, ox: sx + sign * 0.14 },
+        { y: 2.56, rx: 0.12, rz: 0.115, ox: sx * 0.92 },
+        { y: 2.46, rx: 0.115, rz: 0.105, ox: sx + sign * 0.01 },
+        { y: 2.28, rx: 0.098, rz: 0.088, ox: sx + sign * 0.05 },
+        { y: 2.1, rx: 0.088, rz: 0.078, ox: sx + sign * 0.07 },
+        { y: 1.9, rx: 0.082, rz: 0.075, ox: sx + sign * 0.09 },
+        { y: 1.55, rx: 0.072, rz: 0.068, ox: sx + sign * 0.11 },
+        { y: 1.15, rx: 0.062, rz: 0.058, ox: sx + sign * 0.13 },
+        { y: 0.82, rx: 0.052, rz: 0.048, ox: sx + sign * 0.14 },
+        { y: 0.62, rx: 0.054, rz: 0.034, ox: sx + sign * 0.14 },
       ],
       24,
       skinMat
     );
+    // hand bulb
   };
   group.add(buildArm(-1));
   group.add(buildArm(1));
+  // Hands
+  [-1, 1].forEach(sign => {
+    const sx = 0.48 * nS * sign + sign * 0.14;
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.058, 24, 18), skinMat);
+    hand.position.set(sx, 0.55, 0);
+    hand.scale.set(0.9, 1.25, 0.7);
+    group.add(hand);
+  });
+  // Feet
+  [-1, 1].forEach(sign => {
+    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.085, 24, 18), skinMat);
+    foot.position.set(sign * 0.17, -legLen - 0.02, 0.06);
+    foot.scale.set(0.85, 0.55, 1.55);
+    group.add(foot);
+  });
   return group;
 }
 function createGarmentMesh(body, item) {
@@ -1756,59 +1772,71 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
         gap: 14,
       }}
     >
-      {(phase === "front" || phase === "side" || phase === "turning") && (
-        <div style={{ display: "flex", gap: 8, width: "100%", maxWidth: 320 }}>
-          {["FRONT", "SIDE"].map((label, i) => {
-            const done = i === 0 && (phase === "side" || phase === "turning"),
-              active =
-                (i === 0 && phase === "front") || (i === 1 && phase === "side");
-            return (
+      {(phase === "ready" || phase === "front" || phase === "side" || phase === "turning" || phase === "processing" || phase === "done") && (
+        <div style={{ width: "100%", maxWidth: 320 }}>
+          <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 700, letterSpacing: 1.6, textTransform: "uppercase", marginBottom: 6, textAlign: "center" }}>
+            Guided multi-angle scan
+          </div>
+          <div style={{ display: "flex", gap: 4, width: "100%" }}>
+            {[
+              { id: "calibrate", label: "Calibrate", done: phase !== "ready", active: phase === "ready" },
+              { id: "front", label: "Front", done: ["side", "turning", "processing", "done"].includes(phase), active: phase === "front" },
+              { id: "turn", label: "Turn", done: ["side", "processing", "done"].includes(phase), active: phase === "turning" },
+              { id: "side", label: "Side", done: ["processing", "done"].includes(phase), active: phase === "side" },
+              { id: "land", label: "Landmarks", done: phase === "done", active: phase === "processing" },
+            ].map((s, i) => (
               <div
-                key={label}
+                key={s.id}
                 style={{
                   flex: 1,
-                  padding: "6px 10px",
+                  padding: "5px 4px",
                   borderRadius: 8,
-                  background: active
+                  background: s.active
                     ? C.goldBg
-                    : done
-                      ? "rgba(74,222,128,0.1)"
+                    : s.done
+                      ? "rgba(74,140,94,0.10)"
                       : C.card,
-                  border: `1px solid ${active ? C.goldBorder : done ? C.successBorder : C.border}`,
+                  border: `1px solid ${s.active ? C.goldBorder : s.done ? C.successBorder : C.border}`,
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
+                  justifyContent: "center",
+                  gap: 4,
+                  minWidth: 0,
                 }}
               >
                 <div
                   style={{
-                    width: 16,
-                    height: 16,
+                    width: 14,
+                    height: 14,
                     borderRadius: "50%",
-                    background: active ? C.gold : done ? C.success : C.border,
+                    background: s.active ? C.forest : s.done ? C.success : C.border,
+                    color: "#fff",
+                    fontSize: 8,
+                    fontWeight: 800,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 9,
-                    color: "#fff",
-                    fontWeight: 700,
+                    flexShrink: 0,
                   }}
                 >
-                  {done ? "✓" : i + 1}
+                  {s.done ? "✓" : i + 1}
                 </div>
                 <span
                   style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: active ? C.gold : done ? C.success : C.muted,
-                    letterSpacing: 1,
+                    fontSize: 9,
+                    fontWeight: 700,
+                    color: s.active ? C.forest : s.done ? C.success : C.muted,
+                    letterSpacing: 0.4,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
-                  {label}
+                  {s.label}
                 </span>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       )}
       <div
@@ -6135,10 +6163,10 @@ function SplashScreen({ onContinue }) {
               letterSpacing: -1.2,
             }}
           >
-            Fashion that fits
+            Paste any link.
             <br />
             <span style={{ color: C.clay, fontStyle: "italic", fontWeight: 600 }}>
-              every body.
+              We tailor it.
             </span>
           </h1>
         </div>
@@ -6154,11 +6182,11 @@ function SplashScreen({ onContinue }) {
               fontSize: 15,
               color: C.muted,
               lineHeight: 1.55,
-              maxWidth: 320,
+              maxWidth: 340,
               margin: 0,
             }}
           >
-            Scan once. Shop anywhere. We map every brand to your measurements.
+            Drop in a product link. We pull the specs, fit them to your body, and our in-house tailors alter and ship the piece.
           </p>
         </div>
       </div>
@@ -6219,7 +6247,7 @@ function SplashScreen({ onContinue }) {
             marginBottom: 0,
           }}
         >
-          Private on-device profile · No account required
+          Concierge tailoring · Works with any retailer link
         </p>
       </div>
     </div>
@@ -6962,7 +6990,40 @@ function OnboardingScreen({ onComplete }) {
   return null;
 }
 
-// ─── Home Screen ───────────────────────────────────────────
+// ─── Home / Import Screen ──────────────────────────────────
+const SUPPORTED_RETAILERS = [
+  "Zara",
+  "Reformation",
+  "SKIMS",
+  "Aritzia",
+  "Mango",
+  "COS",
+  "Everlane",
+  "H&M",
+  "Nike",
+  "Abercrombie",
+];
+const IMPORT_STAGES = [
+  { id: "fetch", label: "Fetching product page" },
+  { id: "specs", label: "Parsing brand size chart" },
+  { id: "fabric", label: "Reading fabric & stretch notes" },
+  { id: "fit", label: "Mapping garment to your body" },
+  { id: "brief", label: "Drafting tailor brief" },
+];
+function pickRetailerFromUrl(url = "") {
+  const u = url.toLowerCase();
+  if (u.includes("zara")) return "Zara";
+  if (u.includes("reformation") || u.includes("thereformation")) return "Reformation";
+  if (u.includes("skims")) return "SKIMS";
+  if (u.includes("aritzia")) return "Aritzia";
+  if (u.includes("mango")) return "Mango";
+  if (u.includes("cos.com") || /\bcos\b/.test(u)) return "COS";
+  if (u.includes("everlane")) return "Everlane";
+  if (u.includes("hm.com") || u.includes("h&m")) return "H&M";
+  if (u.includes("nike")) return "Nike";
+  if (u.includes("abercrombie") || u.includes("af.com")) return "Abercrombie";
+  return null;
+}
 function HomeScreen({
   catalog,
   onItemClick,
@@ -6971,40 +7032,78 @@ function HomeScreen({
   onNav,
   userBody,
 }) {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("fit");
-  const categories = ["All", "Tops", "Bottoms", "Dresses", "Outerwear"];
+  const [linkInput, setLinkInput] = useState("");
+  const [importPhase, setImportPhase] = useState("idle"); // idle | parsing | ready | error
+  const [stageIndex, setStageIndex] = useState(-1);
+  const [importedItem, setImportedItem] = useState(null);
+  const [importError, setImportError] = useState("");
+  const timersRef = useRef([]);
 
-  const filtered = useMemo(() => {
-    let items = catalog;
-    if (search)
-      items = items.filter(
-        i =>
-          i.name.toLowerCase().includes(search.toLowerCase()) ||
-          i.brand.toLowerCase().includes(search.toLowerCase())
-      );
-    if (category !== "All") items = items.filter(i => i.category === category);
-    if (sortBy === "fit") items = [...items].sort((a, b) => b.fit - a.fit);
-    else if (sortBy === "price_asc")
-      items = [...items].sort((a, b) => a.price - b.price);
-    else if (sortBy === "price_desc")
-      items = [...items].sort((a, b) => b.price - a.price);
-    return items;
-  }, [catalog, search, category, sortBy]);
+  useEffect(() => () => timersRef.current.forEach(t => clearTimeout(t)), []);
 
-  const topPicks = useMemo(
-    () =>
-      catalog
-        .filter(i => i.fit >= 90)
-        .sort((a, b) => b.fit - a.fit)
-        .slice(0, 5),
+  const recentImports = useMemo(
+    () => [...catalog].sort((a, b) => b.fit - a.fit).slice(0, 6),
     [catalog]
   );
   const avgFit = Math.round(
-    catalog.reduce((s, i) => s + i.fit, 0) / catalog.length
+    catalog.reduce((s, i) => s + i.fit, 0) / Math.max(1, catalog.length)
   );
-  const perfectFits = catalog.filter(i => i.fit >= 90).length;
+
+  const startImport = (rawUrl) => {
+    const url = (rawUrl || "").trim();
+    if (!url) {
+      setImportError("Paste a product link from a supported retailer to begin.");
+      setImportPhase("error");
+      return;
+    }
+    const retailer = pickRetailerFromUrl(url);
+    if (!retailer) {
+      setImportError(
+        "We don't recognize that retailer yet. Try a link from Zara, Reformation, SKIMS, Aritzia, Mango, COS, Everlane, H&M, Nike, or Abercrombie."
+      );
+      setImportPhase("error");
+      return;
+    }
+    setImportError("");
+    setImportPhase("parsing");
+    setStageIndex(0);
+    setImportedItem(null);
+    timersRef.current.forEach(t => clearTimeout(t));
+    timersRef.current = [];
+    IMPORT_STAGES.forEach((_, i) => {
+      const t = setTimeout(() => {
+        setStageIndex(i);
+        if (i === IMPORT_STAGES.length - 1) {
+          const match = catalog.find(it => it.brand === retailer) || catalog[0];
+          const synth = {
+            ...match,
+            id: `imp-${Date.now()}`,
+            sourceUrl: url,
+            imported: true,
+            importDate: new Date().toLocaleDateString(),
+          };
+          const tFinish = setTimeout(() => {
+            setImportedItem(synth);
+            setImportPhase("ready");
+          }, 520);
+          timersRef.current.push(tFinish);
+        }
+      }, 480 * (i + 1));
+      timersRef.current.push(t);
+    });
+  };
+  const resetImport = () => {
+    timersRef.current.forEach(t => clearTimeout(t));
+    timersRef.current = [];
+    setImportPhase("idle");
+    setStageIndex(-1);
+    setImportedItem(null);
+    setImportError("");
+    setLinkInput("");
+  };
+
+  const parsing = importPhase === "parsing";
+  const ready = importPhase === "ready" && importedItem;
 
   return (
     <div
@@ -7030,14 +7129,13 @@ function HomeScreen({
               <span style={{ color: C.cream, fontSize: 17, fontWeight: 700, fontFamily: font.serif, fontStyle: "italic" }}>t</span>
             </div>
             <div>
-              <div style={{ fontSize: 9.5, color: C.muted, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 700 }}>The Tailored Co.</div>
-              <div style={{ fontSize: 12, color: C.accent, fontWeight: 700, marginTop: 1 }}>Your edit · ranked by fit</div>
+              <div style={{ fontSize: 9.5, color: C.muted, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 700 }}>Tailor Concierge</div>
+              <div style={{ fontSize: 12, color: C.accent, fontWeight: 700, marginTop: 1 }}>Import · Fit · Alter · Ship</div>
             </div>
           </div>
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            aria-label="Sort items"
+          <button
+            onClick={() => onNav("profile")}
+            aria-label="Profile"
             style={{
               background: C.card,
               border: `1px solid ${C.border}`,
@@ -7046,305 +7144,300 @@ function HomeScreen({
               fontSize: 11,
               padding: "7px 10px",
               cursor: "pointer",
-              outline: "none",
               fontWeight: 600,
             }}
           >
-            <option value="fit">Best fit</option>
-            <option value="price_asc">Price ↑</option>
-            <option value="price_desc">Price ↓</option>
-          </select>
+            My measurements
+          </button>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 30, fontWeight: 400, color: C.accent, margin: "0 0 4px", fontFamily: font.serif, lineHeight: 1.02, letterSpacing: -0.6 }}>
-            For your body, <span style={{ fontStyle: "italic", color: C.forest, fontWeight: 500 }}>tonight</span>.
+        <div style={{ marginBottom: 14 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 400, color: C.accent, margin: "0 0 4px", fontFamily: font.serif, lineHeight: 1.04, letterSpacing: -0.6 }}>
+            Paste a product link. <span style={{ fontStyle: "italic", color: C.forest, fontWeight: 500 }}>We tailor it.</span>
           </h2>
-          <p style={{ fontSize: 12, color: C.muted, margin: 0, letterSpacing: 0.2 }}>
-            <span style={{ color: C.forest, fontWeight: 700 }}>{perfectFits}</span> ready-to-order · avg <span style={{ color: C.forest, fontWeight: 700 }}>{avgFit}%</span> match across {catalog.length} pieces
+          <p style={{ fontSize: 12, color: C.muted, margin: 0, letterSpacing: 0.2, lineHeight: 1.5 }}>
+            Drop in a URL from any retailer. We pull the garment specs, fit them to your body, then our in-house tailors alter and ship the piece.
           </p>
-        </div>
-
-        {/* Search */}
-        <div style={{ position: "relative", marginBottom: 14 }}>
-          <div
-            style={{
-              position: "absolute",
-              left: 12,
-              top: "50%",
-              transform: "translateY(-50%)",
-            }}
-          >
-            <SearchIcon size={15} />
-          </div>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search brands, pieces, or categories..."
-            style={{
-              width: "100%",
-              background: C.card,
-              border: `1px solid ${C.border}`,
-              borderRadius: 12,
-              padding: "10px 12px 10px 36px",
-              color: C.accent,
-              fontSize: 13,
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-        </div>
-
-        {/* Category pills */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            overflowX: "auto",
-            paddingBottom: 12,
-            scrollbarWidth: "none",
-          }}
-        >
-          {categories.map(c => (
-            <Pill
-              key={c}
-              label={c}
-              active={category === c}
-              onClick={() => setCategory(c)}
-            />
-          ))}
         </div>
       </div>
 
       <div
         className="tb-screen__body"
-        style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}
+        style={{ flex: 1, overflow: "auto", padding: "4px 18px 100px" }}
       >
-        {/* Top Picks Hero */}
-        {!search && category === "All" && (
-          <div style={{ marginBottom: 24 }}>
-            <div
+        {/* Link import card */}
+        <div
+          style={{
+            background: C.card,
+            border: `1px solid ${C.border}`,
+            borderRadius: 18,
+            padding: 16,
+            marginBottom: 16,
+            boxShadow: "0 8px 22px rgba(45,55,42,0.06)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: C.goldBg, color: C.forest, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${C.goldBorder}` }}>
+              <ScissorsIcon size={16} />
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, letterSpacing: 0.4 }}>
+              Import a garment
+            </div>
+            {ready && (
+              <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: C.success, letterSpacing: 0.6, textTransform: "uppercase" }}>Brief ready</span>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+            <input
+              value={linkInput}
+              onChange={e => setLinkInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === "Enter") startImport(linkInput);
+              }}
+              disabled={parsing}
+              placeholder="https://www.zara.com/…   or   https://reformation.com/…"
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 12,
+                flex: 1,
+                minWidth: 0,
+                background: parsing ? C.bgElevated : C.bgElevated,
+                border: `1px solid ${C.border}`,
+                borderRadius: 12,
+                padding: "11px 12px",
+                color: C.accent,
+                fontSize: 13,
+                outline: "none",
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              }}
+            />
+            <button
+              onClick={() => startImport(linkInput)}
+              disabled={parsing}
+              style={{
+                padding: "0 16px",
+                borderRadius: 12,
+                border: "none",
+                background: parsing
+                  ? PALETTE.warmGray
+                  : `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+                color: C.cream,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: 0.4,
+                cursor: parsing ? "default" : "pointer",
+                whiteSpace: "nowrap",
+                boxShadow: parsing ? "none" : "0 10px 22px rgba(107,142,90,0.30)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <TargetIcon size={14} />
-                <span
-                  style={{ fontSize: 13, fontWeight: 600, color: C.accent }}
-                >
-                  Most Ready to Order
-                </span>
-              </div>
-              <button
-                onClick={() => setSortBy("fit")}
+              {parsing ? "Parsing…" : "Extract specs"}
+            </button>
+          </div>
+
+          {/* Retailer chips */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
+            <span style={{ fontSize: 9.5, color: C.muted, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginRight: 4, alignSelf: "center" }}>
+              Supported
+            </span>
+            {SUPPORTED_RETAILERS.map(r => (
+              <span
+                key={r}
                 style={{
-                  background: "none",
-                  border: "none",
-                  color: C.gold,
-                  fontSize: 11,
-                  cursor: "pointer",
-                  fontWeight: 500,
+                  fontSize: 10.5,
+                  padding: "4px 9px",
+                  borderRadius: 999,
+                  color: C.mutedLight,
+                  background: PALETTE.cream,
+                  border: `1px solid ${C.border}`,
+                  fontWeight: 600,
                 }}
               >
-                See all →
-              </button>
-            </div>
-            <div
-              className="tb-top-picks-row"
-              style={{
-                display: "flex",
-                gap: 12,
-                overflowX: "auto",
-                scrollbarWidth: "none",
-                paddingBottom: 4,
-              }}
-            >
-              {topPicks.map(item => (
-                <div
-                  key={item.id}
-                  onClick={() => onItemClick(item)}
-                  style={{ flexShrink: 0, width: 150, cursor: "pointer" }}
-                >
-                  <GlassCard hover style={{ overflow: "hidden" }}>
-                    <ProductImage item={item} style={{ height: 160 }}>
-                      <div style={{ position: "absolute", top: 8, left: 8 }}>
-                        <FitBadge fit={item.fit} />
-                      </div>
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          toggleFav(item.id);
-                        }}
-                        style={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          background: "rgba(0,0,0,0.5)",
-                          border: "none",
-                          borderRadius: "50%",
-                          width: 28,
-                          height: 28,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <HeartIcon filled={favorites.has(item.id)} />
-                      </button>
-                    </ProductImage>
-                    <div style={{ padding: "8px 10px 10px" }}>
-                      <div
-                        style={{
-                          fontSize: 8,
-                          color: C.muted,
-                          textTransform: "uppercase",
-                          letterSpacing: 1,
-                        }}
-                      >
-                        {item.brand}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: C.accent,
-                          marginTop: 2,
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {item.name}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: C.accent,
-                          marginTop: 4,
-                        }}
-                      >
-                        ${item.price}
-                      </div>
-                    </div>
-                  </GlassCard>
-                </div>
-              ))}
-            </div>
+                {r}
+              </span>
+            ))}
           </div>
-        )}
 
-        {/* Fit confidence summary */}
-        {!search && category === "All" && (
+          {/* Stage progress / error */}
+          {parsing && (
+            <div style={{ marginTop: 14, borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+              {IMPORT_STAGES.map((s, i) => {
+                const done = i < stageIndex;
+                const active = i === stageIndex;
+                return (
+                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0" }}>
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        border: `1.5px solid ${done ? C.forest : active ? C.forest : C.border}`,
+                        background: done ? C.forest : "transparent",
+                        color: C.cream,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {done ? (
+                        <span style={{ fontSize: 10, fontWeight: 800 }}>✓</span>
+                      ) : active ? (
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.forest, animation: "pulse 1.4s ease-in-out infinite" }} />
+                      ) : null}
+                    </div>
+                    <span style={{ fontSize: 11.5, color: active ? C.accent : done ? C.mutedLight : C.muted, fontWeight: active ? 700 : 500 }}>
+                      {s.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {importPhase === "error" && (
+            <div style={{ marginTop: 12, padding: 10, borderRadius: 12, background: "rgba(207,108,108,0.10)", border: "1px solid rgba(207,108,108,0.35)", color: "#8a3a3a", fontSize: 11.5, lineHeight: 1.5 }}>
+              {importError}
+            </div>
+          )}
+        </div>
+
+        {/* Imported garment fit brief */}
+        {ready && (
           <div
-            className="tb-home-summary"
             style={{
-              padding: "14px 16px",
-              background: C.goldBg,
+              background: `linear-gradient(180deg, ${PALETTE.cream} 0%, #FFFFFF 100%)`,
               border: `1px solid ${C.goldBorder}`,
-              borderRadius: 14,
-              marginBottom: 20,
-              display: "flex",
-              gap: 16,
-              alignItems: "center",
+              borderRadius: 18,
+              padding: 14,
+              marginBottom: 16,
+              boxShadow: "0 10px 28px rgba(45,55,42,0.10)",
             }}
           >
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: C.goldLight,
-                  marginBottom: 4,
-                  fontWeight: 500,
-                }}
-              >
-                Your Fit Profile
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flexShrink: 0, width: 96, height: 122, borderRadius: 14, overflow: "hidden", border: `1px solid ${C.border}` }}>
+                <ProductImage item={importedItem} style={{ width: "100%", height: "100%" }} />
               </div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: C.gold }}>
-                {avgFit}%
-              </div>
-              <div style={{ fontSize: 10, color: C.muted }}>
-                average match across {catalog.length} items
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 9.5, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700 }}>
+                  {importedItem.brand} · imported {importedItem.importDate}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.accent, margin: "3px 0 6px", lineHeight: 1.25 }}>
+                  {importedItem.name}
+                </div>
+                <div
+                  title={importedItem.sourceUrl}
+                  style={{
+                    fontSize: 10.5,
+                    color: C.mutedLight,
+                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    marginBottom: 8,
+                  }}
+                >
+                  {importedItem.sourceUrl}
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <FitBadge fit={importedItem.fit} />
+                  <span style={{ fontSize: 10, color: C.mutedLight, padding: "3px 8px", borderRadius: 999, background: PALETTE.cream, border: `1px solid ${C.border}`, fontWeight: 600 }}>
+                    Best size · {importedItem.bestSize}
+                  </span>
+                  <span style={{ fontSize: 10, color: C.mutedLight, padding: "3px 8px", borderRadius: 999, background: PALETTE.cream, border: `1px solid ${C.border}`, fontWeight: 600 }}>
+                    ${importedItem.price}
+                  </span>
+                </div>
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button
+                onClick={() => onItemClick(importedItem)}
+                style={{
+                  flex: 1,
+                  padding: "11px 0",
+                  borderRadius: 12,
+                  border: "none",
+                  background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+                  color: C.cream,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  letterSpacing: 0.4,
+                }}
+              >
+                Open fit brief
+              </button>
+              <button
+                onClick={resetImport}
+                style={{
+                  padding: "11px 14px",
+                  borderRadius: 12,
+                  border: `1px solid ${C.border}`,
+                  background: "transparent",
+                  color: C.mutedLight,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Import another
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* How it works (only if idle) */}
+        {!parsing && !ready && (
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10.5, color: C.muted, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 10 }}>
+              How concierge tailoring works
+            </div>
+            <div style={{ display: "grid", gap: 8 }}>
               {[
-                ["Perfect (90%+)", perfectFits, C.success],
-                [
-                  "Good (75–89%)",
-                  catalog.filter(i => i.fit >= 75 && i.fit < 90).length,
-                  C.warning,
-                ],
-                [
-                  "Fair (<75%)",
-                  catalog.filter(i => i.fit < 75).length,
-                  C.danger,
-                ],
-              ].map(([label, count, color]) => (
-                <div
-                  key={label}
-                  style={{ display: "flex", alignItems: "center", gap: 6 }}
-                >
-                  <div
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: color,
-                    }}
-                  />
-                  <span style={{ fontSize: 10, color: C.muted }}>{label}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color }}>
-                    {count}
-                  </span>
+                ["1", "You paste a product link", "Any retailer page — we parse the specs, fabric, and size chart."],
+                ["2", "We map it to your body", "Garment dimensions are draped onto your scanned measurements with fit confidence."],
+                ["3", "In-house tailors order & alter", "Our team orders the piece and tailors it to your exact proportions before shipping."],
+              ].map(([num, head, body]) => (
+                <div key={num} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 12, borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, background: C.goldBg, border: `1px solid ${C.goldBorder}`, color: C.forest, fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {num}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: C.accent, marginBottom: 2 }}>{head}</div>
+                    <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>{body}</div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Grid */}
-        <div
-          className="tb-catalog-grid"
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
-        >
-          {filtered.map(item => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onClick={() => onItemClick(item)}
-              isFav={favorites.has(item.id)}
-              toggleFav={toggleFav}
-            />
-          ))}
-        </div>
-        {filtered.length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: "50%",
-                border: `1px solid ${C.border}`,
-                background: C.card,
-                color: C.gold,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 12,
-              }}
-            >
-              <SearchIcon size={20} />
+        {/* Recent imports */}
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 10.5, color: C.muted, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase" }}>
+              Recent imports
             </div>
-            <p style={{ fontSize: 14, color: C.muted }}>
-              No items found for "{search}"
-            </p>
+            <button onClick={() => onNav("trending")} style={{ background: "none", border: "none", color: C.forest, fontSize: 11, cursor: "pointer", fontWeight: 700 }}>
+              Library →
+            </button>
           </div>
-        )}
+          <div
+            className="tb-catalog-grid"
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
+            {recentImports.map(item => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onClick={() => onItemClick(item)}
+                isFav={favorites.has(item.id)}
+                toggleFav={toggleFav}
+              />
+            ))}
+          </div>
+          <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 12, background: PALETTE.cream, border: `1px solid ${C.border}`, color: C.muted, fontSize: 10.5, lineHeight: 1.5 }}>
+            Avg fit across your imports: <strong style={{ color: C.forest }}>{avgFit}%</strong>. Every imported garment ships through our in-house tailor before delivery.
+          </div>
+        </div>
       </div>
       <NavBar active="home" onNav={onNav} />
     </div>
@@ -8069,74 +8162,81 @@ function ItemDetailScreen({
                     position: "relative",
                   }}
                 >
-                  <Body3DViewer
-                    body={userBody}
-                    width={300}
-                    height={400}
-                    garment={{ ...item, color: tryOnColor }}
-                    autoRotate
-                  />
-                  {showFitMap && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 16,
-                        left: 16,
-                        right: 16,
-                        pointerEvents: "none",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 4,
-                          justifyContent: "center",
-                        }}
+                  <div style={{ position: "relative", width: 300, height: 400 }}>
+                    <Body3DViewer
+                      body={userBody}
+                      width={300}
+                      height={400}
+                      garment={{ ...item, color: tryOnColor }}
+                      autoRotate
+                    />
+                    {showFitMap && (
+                      <svg
+                        viewBox="0 0 300 400"
+                        width={300}
+                        height={400}
+                        style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+                        aria-hidden="true"
                       >
-                        {fitRegions.map(r => (
-                          <div
-                            key={r.label}
-                            style={{
-                              padding: "3px 8px",
-                              borderRadius: 6,
-                              background:
-                                r.score >= 90
-                                  ? "rgba(74,222,128,0.3)"
-                                  : r.score >= 75
-                                    ? "rgba(91,143,138,0.3)"
-                                    : "rgba(248,113,113,0.3)",
-                              border: `1px solid ${r.score >= 90 ? C.successBorder : r.score >= 75 ? C.warningBorder : "rgba(248,113,113,0.3)"}`,
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontSize: 8,
-                                color: C.muted,
-                                textAlign: "center",
-                              }}
-                            >
-                              {r.label}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color:
-                                  r.score >= 90
-                                    ? C.success
-                                    : r.score >= 75
-                                      ? C.warning
-                                      : C.danger,
-                                textAlign: "center",
-                              }}
-                            >
-                              {r.score}%
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        <defs>
+                          <linearGradient id="seamLine" x1="0" x2="1">
+                            <stop offset="0" stopColor="#6B8E5A" stopOpacity="0" />
+                            <stop offset="0.5" stopColor="#6B8E5A" stopOpacity="0.95" />
+                            <stop offset="1" stopColor="#6B8E5A" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        {[
+                          { y: 132, label: "Bust seam", off: fitRegions[0].score, side: "L" },
+                          { y: 180, label: "Waist", off: fitRegions[1].score, side: "R" },
+                          { y: 224, label: "Hip", off: fitRegions[2].score, side: "L" },
+                          { y: 280, label: "Hem", off: fitRegions[2].score - 4, side: "R" },
+                        ].map((s, i) => {
+                          const danger = s.off < 75;
+                          const warn = s.off >= 75 && s.off < 90;
+                          const ok = s.off >= 90;
+                          const color = ok ? "#4A8C5E" : warn ? "#8A8E36" : "#A04D3A";
+                          const left = s.side === "L";
+                          const xStart = left ? 60 : 240;
+                          const xEnd = left ? 18 : 282;
+                          const tagX = left ? 4 : 222;
+                          return (
+                            <g key={i} opacity="0.96">
+                              <line
+                                x1={xStart}
+                                y1={s.y}
+                                x2={xEnd}
+                                y2={s.y}
+                                stroke="url(#seamLine)"
+                                strokeWidth="1.5"
+                                strokeDasharray="3 3"
+                              />
+                              <circle cx={xStart} cy={s.y} r="3.5" fill={color} stroke="#F2F3EE" strokeWidth="1.5" />
+                              <rect
+                                x={tagX}
+                                y={s.y - 11}
+                                width="74"
+                                height="22"
+                                rx="11"
+                                fill="rgba(255,255,255,0.94)"
+                                stroke={color}
+                                strokeWidth="1"
+                              />
+                              <text
+                                x={tagX + 8}
+                                y={s.y + 4}
+                                fontSize="9.5"
+                                fontWeight="700"
+                                fill={color}
+                                fontFamily="Manrope, sans-serif"
+                              >
+                                {s.label} · {Math.max(0, 100 - s.off)}%
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    )}
+                  </div>
                   {colors.length > 1 && (
                     <div
                       style={{
@@ -8296,7 +8396,7 @@ function ItemDetailScreen({
                     margin: 0,
                   }}
                 >
-                  Sourced from {item.brand}
+                  Imported from {item.brand}
                 </p>
                 {item.url && (
                   <button
@@ -8372,9 +8472,9 @@ function ItemDetailScreen({
               }}
             >
               {[
-                ["fit", "Fit Intelligence"],
+                ["fit", "Fit Map"],
+                ["alter", "Alteration Plan"],
                 ["size", "Size Chart"],
-                ["reviews", "Reviews"],
               ].map(([id, label]) => {
                 const isActive = activeTab === id;
                 return (
@@ -8606,131 +8706,62 @@ function ItemDetailScreen({
               </GlassCard>
             )}
 
-            {activeTab === "reviews" && (
+            {activeTab === "alter" && (
               <GlassCard style={{ padding: 18, marginBottom: 16 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 14,
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: C.accent,
-                      margin: 0,
-                    }}
-                  >
-                    Community Reviews
-                  </p>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 4 }}
-                  >
-                    <span
-                      style={{ fontSize: 14, fontWeight: 700, color: C.gold }}
-                    >
-                      {(
-                        (reviews.filter(r => r.kept).length / reviews.length) *
-                        5
-                      ).toFixed(1)}
-                    </span>
-                    <span style={{ fontSize: 10, color: C.muted }}>/ 5</span>
-                  </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <ScissorsIcon size={16} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: C.accent }}>
+                    Tailor brief · {item.bestSize}
+                  </span>
                 </div>
-                {reviews.map((r, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      padding: "12px 0",
-                      borderBottom:
-                        i < reviews.length - 1
-                          ? `1px solid ${C.border}`
-                          : "none",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 6,
-                      }}
-                    >
+                <p style={{ fontSize: 11.5, color: C.mutedLight, lineHeight: 1.55, margin: "0 0 14px" }}>
+                  Our in-house tailors receive the piece in size {item.bestSize}, then perform the alterations below before shipping to you. Estimates are based on your scanned measurements and the brand's published size chart.
+                </p>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {fitRegions.map(r => {
+                    const off = 100 - r.score;
+                    const needsWork = off > 5;
+                    const action = needsWork
+                      ? r.score < 75
+                        ? "Take in / let out"
+                        : "Light nip"
+                      : "No alteration";
+                    return (
                       <div
+                        key={r.label}
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 8,
+                          justifyContent: "space-between",
+                          padding: "10px 12px",
+                          borderRadius: 12,
+                          background: needsWork ? C.goldBg : C.bgElevated,
+                          border: `1px solid ${needsWork ? C.goldBorder : C.border}`,
                         }}
                       >
-                        <div
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: "50%",
-                            background: C.goldBg,
-                            border: `1px solid ${C.goldBorder}`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: 9,
-                              fontWeight: 700,
-                              color: C.gold,
-                            }}
-                          >
-                            {r.initials}
-                          </span>
-                        </div>
                         <div>
-                          <div
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: C.accent,
-                            }}
-                          >
-                            {r.initials}
+                          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.accent }}>
+                            {r.label}
                           </div>
-                          <div style={{ fontSize: 9, color: C.muted }}>
-                            {r.meas}
+                          <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
+                            {needsWork ? `${off}% off your measurement` : "Within tolerance"}
                           </div>
                         </div>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: needsWork ? C.forest : C.success, letterSpacing: 0.4 }}>
+                          {action}
+                        </span>
                       </div>
-                      <div
-                        style={{
-                          padding: "2px 8px",
-                          borderRadius: 6,
-                          background: r.kept
-                            ? C.successBg
-                            : "rgba(248,113,113,0.1)",
-                          border: `1px solid ${r.kept ? C.successBorder : "rgba(248,113,113,0.2)"}`,
-                          fontSize: 9,
-                          fontWeight: 600,
-                          color: r.kept ? C.success : C.danger,
-                        }}
-                      >
-                        {r.kept ? "Kept" : "Returned"}
-                      </div>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: 11,
-                        color: C.mutedLight,
-                        lineHeight: 1.5,
-                        margin: 0,
-                      }}
-                    >
-                      {r.note}
-                    </p>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 12, background: C.tailorBg, border: `1px solid ${C.tailorBorder}` }}>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: C.tailor, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 4 }}>
+                    Pipeline
                   </div>
-                ))}
+                  <div style={{ fontSize: 11, color: C.mutedLight, lineHeight: 1.55 }}>
+                    Order placed by The Tailored Company → received at our studio → alterations above → quality check → shipped to you. Typical turnaround 9–14 days.
+                  </div>
+                </div>
               </GlassCard>
             )}
 
@@ -8738,46 +8769,48 @@ function ItemDetailScreen({
               className="tb-item-detail__actions"
               style={{ display: "flex", gap: 10 }}
             >
-              <button
-                onClick={() => onSendToTailor(item)}
-                style={{
-                  flex: 1,
-                  padding: "14px 0",
-                  borderRadius: 12,
-                  border: `1px solid ${C.tailorBorder}`,
-                  background: C.tailorBg,
-                  color: C.tailor,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
-              >
-                <ScissorsIcon size={14} /> Build Alteration Brief
-              </button>
-              {item.url && (
+              {(item.url || item.sourceUrl) && (
                 <button
                   onClick={() =>
-                    window.open(item.url, "_blank", "noopener,noreferrer")
+                    window.open(item.sourceUrl || item.url, "_blank", "noopener,noreferrer")
                   }
                   style={{
-                    flex: 2,
+                    flex: 1,
                     padding: "14px 0",
                     borderRadius: 12,
-                    border: "none",
-                    background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
-                    color: "#fff",
-                    fontSize: 13,
+                    border: `1px solid ${C.border}`,
+                    background: "transparent",
+                    color: C.mutedLight,
+                    fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
                   }}
                 >
-                  Shop at {item.brand} →
+                  View source
                 </button>
               )}
+              <button
+                onClick={() => onSendToTailor(item)}
+                style={{
+                  flex: 2,
+                  padding: "14px 0",
+                  borderRadius: 12,
+                  border: "none",
+                  background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+                  color: C.cream,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  boxShadow: "0 12px 24px rgba(107,142,90,0.30)",
+                }}
+              >
+                <ScissorsIcon size={14} /> Submit for tailoring
+              </button>
             </div>
           </div>
         </div>
