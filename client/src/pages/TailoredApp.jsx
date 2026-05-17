@@ -575,19 +575,20 @@ function createBodyMesh(body) {
     nI = n(inseam, 30);
   const group = new THREE.Group(),
     segs = 64;
-  // Premium ceramic/marble finish in warm cream + sage cast. Reads as a
-  // sculpted figurine, not a literal mannequin — distinctive and on-brand.
+  // Realistic skin material — soft neutral beige (cool earthy, never warm
+  // orange) so the figure reads as an AI-rendered person rather than a
+  // ceramic dress form. Subtle sub-surface scattering style sheen.
   const skinMat = new THREE.MeshPhysicalMaterial({
-    color: 0xeadfc8, // warm cream
-    roughness: 0.42,
+    color: 0xd6c5a8, // neutral skin beige
+    roughness: 0.55,
     metalness: 0.0,
-    clearcoat: 0.18,
-    clearcoatRoughness: 0.6,
-    sheen: 0.6,
-    sheenRoughness: 0.4,
-    sheenColor: new THREE.Color(0x9cae88), // sage sheen — earthy luxe cast
+    clearcoat: 0.08,
+    clearcoatRoughness: 0.7,
+    sheen: 0.4,
+    sheenRoughness: 0.6,
+    sheenColor: new THREE.Color(0xb5a589), // muted taupe sheen
     side: THREE.FrontSide,
-    envMapIntensity: 0.85,
+    envMapIntensity: 0.7,
   });
   group.add(
     buildSmoothMesh(
@@ -627,6 +628,45 @@ function createBodyMesh(body) {
   headMesh.scale.set(1, 1.15, 1.05);
   headMesh.position.set(0, 3.33, 0.01);
   group.add(headMesh);
+
+  // Soft hair cap — sits over the top/back of the skull so the figure reads
+  // as a person, not a featureless dummy.
+  const hairMat = new THREE.MeshPhysicalMaterial({
+    color: 0x3a4537, // espresso forest (brand-safe brown-green, never orange)
+    roughness: 0.85,
+    metalness: 0.0,
+    sheen: 0.6,
+    sheenColor: new THREE.Color(0x4f6b43),
+    side: THREE.FrontSide,
+  });
+  const hairGeo = new THREE.SphereGeometry(
+    0.225,
+    48,
+    32,
+    0,
+    Math.PI * 2,
+    0,
+    Math.PI * 0.62
+  );
+  const hairMesh = new THREE.Mesh(hairGeo, hairMat);
+  hairMesh.scale.set(1.05, 1.18, 1.1);
+  hairMesh.position.set(0, 3.34, 0);
+  group.add(hairMesh);
+  // Subtle hair fringe on the front-top of the head
+  const fringeGeo = new THREE.SphereGeometry(
+    0.13,
+    24,
+    18,
+    0,
+    Math.PI * 2,
+    0,
+    Math.PI * 0.5
+  );
+  const fringeMesh = new THREE.Mesh(fringeGeo, hairMat);
+  fringeMesh.scale.set(1.6, 0.55, 0.7);
+  fringeMesh.position.set(0, 3.42, 0.16);
+  fringeMesh.rotation.x = -0.25;
+  group.add(fringeMesh);
   group.add(
     buildSmoothMesh(
       [
@@ -930,6 +970,449 @@ function createGarmentMesh(body, item) {
     addSeamRing(0.2, 0.48 * nH + gap, 0.3 * nH + gap);
   }
   return group;
+}
+
+// ─── Realistic Avatar (2D person-like SVG) ──────────────────
+// A measurement-driven, AI-style human figure used as the primary fit-preview
+// visual. Reads as a stylised person — head/hair/neck/shoulders/arms/torso/
+// hips/legs/feet — with soft gradient shading and brand-safe neutral skin
+// tones (cool earthy beige, never warm orange). Garment is drawn as a layered
+// overlay with collar, sleeves, hem, seams, belt and lapel cues depending on
+// category, so it visibly sits on a body and not a dress form.
+function RealisticAvatar({
+  body,
+  width = 300,
+  height = 420,
+  garment = null,
+  mode = "before", // "before" | "tailored" — affects garment fit cues
+  showFace = true,
+}) {
+  const bust = body?.bust ?? 34;
+  const waist = body?.waist ?? 26;
+  const hips = body?.hips ?? 36;
+  const shoulder = body?.shoulder ?? 15;
+  const inseam = body?.inseam ?? 30;
+
+  const clamp = (v, mn, mx) => Math.max(mn, Math.min(mx, v));
+  const sf = clamp(shoulder / 15, 0.86, 1.18);  // shoulder factor
+  const bf = clamp(bust / 36, 0.82, 1.20);
+  const wf = clamp(waist / 28, 0.82, 1.22);
+  const hf = clamp(hips / 38, 0.84, 1.22);
+  const inseamF = clamp(inseam / 30, 0.92, 1.10);
+
+  // Canvas: 500 wide × 720 tall design space, scaled to width/height.
+  const VW = 500;
+  const VH = 720;
+
+  const cx = VW / 2;
+  // Vertical anchors in design coords
+  const headTop = 38;
+  const headBot = 148;       // chin
+  const headR = 48;          // head radius
+  const neckBot = 178;
+  const shoulderY = 198;
+  const bustY = 268;
+  const waistY = 360;
+  const hipY = 442;
+  const crotchY = 472;
+  const kneeY = 588 - (1 - inseamF) * 8;
+  const ankleY = 700;
+
+  // Horizontal anchors
+  const shoulderHalf = 96 * sf;
+  const bustHalf = 78 * bf;
+  const waistHalf = 56 * wf;
+  const hipHalf = 92 * hf;
+  const thighHalf = 42 * hf;
+  const calfHalf = 28;
+  const ankleHalf = 22;
+
+  // Body outline (head + neck + torso + legs as a single closed path so the
+  // shaded fill reads as a connected human silhouette).
+  const bodyPath = `
+    M ${cx - 10},${neckBot - 6}
+    C ${cx - 16},${neckBot - 22} ${cx - 18},${headBot - 4} ${cx - 22},${headBot - 14}
+    C ${cx - 46},${headBot - 30} ${cx - headR},${110} ${cx - headR + 6},${78}
+    C ${cx - headR + 18},${50} ${cx - 18},${headTop} ${cx},${headTop}
+    C ${cx + 18},${headTop} ${cx + headR - 18},${50} ${cx + headR - 6},${78}
+    C ${cx + headR},${110} ${cx + 46},${headBot - 30} ${cx + 22},${headBot - 14}
+    C ${cx + 18},${headBot - 4} ${cx + 16},${neckBot - 22} ${cx + 10},${neckBot - 6}
+    L ${cx + 14},${neckBot}
+    C ${cx + 40},${neckBot + 10} ${cx + shoulderHalf - 14},${shoulderY - 6} ${cx + shoulderHalf},${shoulderY + 8}
+    C ${cx + shoulderHalf - 6},${bustY - 30} ${cx + bustHalf + 6},${bustY - 10} ${cx + bustHalf},${bustY + 10}
+    C ${cx + bustHalf - 8},${bustY + 36} ${cx + waistHalf + 16},${waistY - 24} ${cx + waistHalf},${waistY}
+    C ${cx + waistHalf + 8},${waistY + 22} ${cx + hipHalf - 12},${hipY - 18} ${cx + hipHalf},${hipY + 8}
+    C ${cx + hipHalf - 4},${crotchY + 14} ${cx + thighHalf + 30},${crotchY - 4} ${cx + thighHalf + 6},${kneeY - 80}
+    C ${cx + thighHalf - 4},${kneeY - 30} ${cx + thighHalf - 14},${kneeY} ${cx + calfHalf + 10},${kneeY + 10}
+    C ${cx + calfHalf + 4},${kneeY + 60} ${cx + calfHalf - 2},${ankleY - 60} ${cx + ankleHalf},${ankleY}
+    L ${cx + 6},${ankleY}
+    C ${cx + 4},${ankleY - 70} ${cx + 8},${kneeY + 40} ${cx + 6},${kneeY + 8}
+    C ${cx + 12},${crotchY + 22} ${cx + 8},${crotchY + 6} ${cx + 2},${crotchY + 2}
+    L ${cx - 2},${crotchY + 2}
+    C ${cx - 8},${crotchY + 6} ${cx - 12},${crotchY + 22} ${cx - 6},${kneeY + 8}
+    C ${cx - 8},${kneeY + 40} ${cx - 4},${ankleY - 70} ${cx - 6},${ankleY}
+    L ${cx - ankleHalf},${ankleY}
+    C ${cx - calfHalf + 2},${ankleY - 60} ${cx - calfHalf - 4},${kneeY + 60} ${cx - calfHalf - 10},${kneeY + 10}
+    C ${cx - thighHalf + 14},${kneeY} ${cx - thighHalf + 4},${kneeY - 30} ${cx - thighHalf - 6},${kneeY - 80}
+    C ${cx - thighHalf - 30},${crotchY - 4} ${cx - hipHalf + 4},${crotchY + 14} ${cx - hipHalf},${hipY + 8}
+    C ${cx - hipHalf + 12},${hipY - 18} ${cx - waistHalf - 8},${waistY + 22} ${cx - waistHalf},${waistY}
+    C ${cx - waistHalf - 16},${waistY - 24} ${cx - bustHalf + 8},${bustY + 36} ${cx - bustHalf},${bustY + 10}
+    C ${cx - bustHalf - 6},${bustY - 10} ${cx - shoulderHalf + 6},${bustY - 30} ${cx - shoulderHalf},${shoulderY + 8}
+    C ${cx - shoulderHalf + 14},${shoulderY - 6} ${cx - 40},${neckBot + 10} ${cx - 14},${neckBot}
+    Z
+  `;
+
+  // Hair silhouette — soft, gender-neutral medium length so the figure
+  // doesn't read as a faceless dress form. Sits behind the head.
+  const hairPath = `
+    M ${cx - headR},${112}
+    C ${cx - headR - 4},${78} ${cx - headR + 6},${headTop + 2} ${cx - 14},${headTop - 4}
+    C ${cx + 14},${headTop - 4} ${cx + headR - 6},${headTop + 2} ${cx + headR + 4},${78}
+    C ${cx + headR + 12},${108} ${cx + headR + 4},${headBot - 14} ${cx + headR - 8},${headBot + 6}
+    C ${cx + headR - 12},${headBot + 28} ${cx + headR - 24},${headBot + 20} ${cx + headR - 30},${headBot + 4}
+    C ${cx + headR - 28},${headBot - 10} ${cx + headR - 22},${headBot - 18} ${cx + headR - 18},${headBot - 28}
+    C ${cx + 18},${headBot - 38} ${cx - 18},${headBot - 38} ${cx - headR + 18},${headBot - 28}
+    C ${cx - headR + 22},${headBot - 18} ${cx - headR + 28},${headBot - 10} ${cx - headR + 30},${headBot + 4}
+    C ${cx - headR + 24},${headBot + 20} ${cx - headR + 12},${headBot + 28} ${cx - headR + 8},${headBot + 6}
+    C ${cx - headR - 4},${headBot - 14} ${cx - headR - 12},${108} ${cx - headR},${112}
+    Z
+  `;
+
+  // Arms — drawn as two soft tubes hanging slightly out from the torso so the
+  // figure reads as a person, not a torso bust. They sit below the body fill
+  // so cuffs and sleeves can occlude them naturally.
+  const armOffsetX = shoulderHalf - 8;
+  const armPath = (sign) => {
+    const sx = cx + sign * armOffsetX;
+    const elbowX = sx + sign * 8;
+    const wristX = sx + sign * 2;
+    return `
+      M ${sx - sign * 14},${shoulderY + 12}
+      C ${sx + sign * 4},${shoulderY + 30} ${elbowX + sign * 6},${bustY + 20} ${elbowX},${waistY + 6}
+      C ${elbowX - sign * 2},${waistY + 40} ${wristX + sign * 4},${hipY + 4} ${wristX + sign * 2},${hipY + 24}
+      C ${wristX + sign * 14},${hipY + 36} ${wristX + sign * 8},${hipY + 56} ${wristX - sign * 6},${hipY + 56}
+      C ${wristX - sign * 14},${hipY + 48} ${wristX - sign * 18},${hipY + 28} ${wristX - sign * 12},${hipY + 4}
+      C ${wristX - sign * 6},${waistY + 30} ${elbowX - sign * 12},${waistY} ${elbowX - sign * 18},${bustY + 30}
+      C ${sx - sign * 18},${bustY} ${sx - sign * 22},${shoulderY + 30} ${sx - sign * 14},${shoulderY + 12}
+      Z
+    `;
+  };
+
+  // Garment overlay paths — category-specific
+  const cat = garment?.category;
+  const garmentColor = garment?.color || "#4F6B43";
+  // Brand-safe contrast guard against any leftover warm hex
+  const safeColor = (() => {
+    let h = (garmentColor || "#4F6B43").replace("#", "");
+    if (h.length === 3) h = h.split("").map(c => c + c).join("");
+    h = h.padEnd(6, "0").slice(0, 6);
+    let r = parseInt(h.slice(0, 2), 16) / 255;
+    let g = parseInt(h.slice(2, 4), 16) / 255;
+    let b = parseInt(h.slice(4, 6), 16) / 255;
+    // Cool-shift if luminance too close to skin OR if reading warm-orange.
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    if (lum > 0.62) {
+      const f = 0.46 / lum;
+      r *= f; g = Math.min(1, g * f * 1.04); b *= f;
+    }
+    if (r > g && r > b && r - b > 0.10) {
+      const m = (g + b) / 2;
+      r = Math.min(r, m + 0.03);
+    }
+    const to2 = (v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0");
+    return `#${to2(r)}${to2(g)}${to2(b)}`;
+  })();
+  // Darker tone for seams/shadow
+  const seamColor = (() => {
+    let h = safeColor.replace("#", "");
+    let r = parseInt(h.slice(0, 2), 16);
+    let g = parseInt(h.slice(2, 4), 16);
+    let b = parseInt(h.slice(4, 6), 16);
+    r = Math.round(r * 0.55); g = Math.round(g * 0.55); b = Math.round(b * 0.55);
+    return `rgb(${r},${g},${b})`;
+  })();
+
+  // Tailored mode pulls waist/hem in slightly so the garment reads as fitted.
+  const tail = mode === "tailored" ? 0.94 : 1.0;
+
+  // Top / Outerwear: torso garment with shoulder seam, V-neck or crew, sleeves
+  const topPath = `
+    M ${cx - shoulderHalf - 4},${shoulderY + 6}
+    C ${cx - shoulderHalf - 14},${shoulderY + 30} ${cx - bustHalf - 12},${bustY - 8} ${cx - bustHalf - 6},${bustY + 18}
+    C ${cx - (bustHalf - 4)},${bustY + 42}
+      ${cx - (waistHalf + 18) * tail},${waistY - 16}
+      ${cx - (waistHalf + 8) * tail},${waistY + 14}
+    C ${cx - (waistHalf + 18) * tail},${waistY + 36}
+      ${cx - (hipHalf - 4)},${hipY - 14}
+      ${cx - hipHalf + 6},${hipY + 18}
+    L ${cx + hipHalf - 6},${hipY + 18}
+    C ${cx + (hipHalf - 4)},${hipY - 14}
+      ${cx + (waistHalf + 18) * tail},${waistY + 36}
+      ${cx + (waistHalf + 8) * tail},${waistY + 14}
+    C ${cx + (waistHalf + 18) * tail},${waistY - 16}
+      ${cx + (bustHalf - 4)},${bustY + 42}
+      ${cx + bustHalf + 6},${bustY + 18}
+    C ${cx + bustHalf + 12},${bustY - 8} ${cx + shoulderHalf + 14},${shoulderY + 30} ${cx + shoulderHalf + 4},${shoulderY + 6}
+    C ${cx + shoulderHalf - 4},${shoulderY - 2} ${cx + 14},${neckBot + 2} ${cx + 6},${neckBot + 16}
+    L ${cx},${shoulderY - 2}
+    L ${cx - 6},${neckBot + 16}
+    C ${cx - 14},${neckBot + 2} ${cx - shoulderHalf + 4},${shoulderY - 2} ${cx - shoulderHalf - 4},${shoulderY + 6}
+    Z
+  `;
+  // Sleeves — short cap sleeve, drawn as half-pill on each shoulder
+  const sleeve = (sign) => {
+    const sx = cx + sign * (shoulderHalf - 2);
+    return `
+      M ${sx - sign * 10},${shoulderY + 6}
+      C ${sx + sign * 12},${shoulderY + 18} ${sx + sign * 20},${bustY - 14} ${sx + sign * 4},${bustY + 6}
+      C ${sx - sign * 8},${bustY - 2} ${sx - sign * 18},${shoulderY + 28} ${sx - sign * 10},${shoulderY + 6}
+      Z
+    `;
+  };
+
+  // Bottoms: high-waist trouser
+  const trouserPath = `
+    M ${cx - (waistHalf + 6) * tail},${waistY + 6}
+    C ${cx - hipHalf - 4},${hipY - 8} ${cx - hipHalf - 2},${hipY + 18} ${cx - hipHalf + 4},${hipY + 24}
+    C ${cx - thighHalf - 10},${crotchY + 4} ${cx - thighHalf - 18},${kneeY - 90} ${cx - thighHalf + 2},${kneeY - 70}
+    C ${cx - calfHalf - 6},${kneeY - 20} ${cx - calfHalf - 12},${ankleY - 80} ${cx - ankleHalf - 4},${ankleY - 12}
+    L ${cx - 6},${ankleY - 12}
+    L ${cx - 4},${kneeY - 60}
+    L ${cx},${crotchY + 14}
+    L ${cx + 4},${kneeY - 60}
+    L ${cx + 6},${ankleY - 12}
+    L ${cx + ankleHalf + 4},${ankleY - 12}
+    C ${cx + calfHalf + 12},${ankleY - 80} ${cx + calfHalf + 6},${kneeY - 20} ${cx + thighHalf - 2},${kneeY - 70}
+    C ${cx + thighHalf + 18},${kneeY - 90} ${cx + thighHalf + 10},${crotchY + 4} ${cx + hipHalf - 4},${hipY + 24}
+    C ${cx + hipHalf + 2},${hipY + 18} ${cx + hipHalf + 4},${hipY - 8} ${cx + (waistHalf + 6) * tail},${waistY + 6}
+    Z
+  `;
+
+  // Dress: tank-top top blending into flowing A-line skirt
+  const dressPath = `
+    M ${cx - shoulderHalf + 12},${shoulderY + 16}
+    C ${cx - bustHalf - 8},${bustY - 4} ${cx - bustHalf - 6},${bustY + 22} ${cx - bustHalf + 2},${bustY + 28}
+    C ${cx - (waistHalf + 6) * tail},${waistY - 10} ${cx - (waistHalf + 10) * tail},${waistY + 18} ${cx - (waistHalf + 4) * tail},${waistY + 26}
+    C ${cx - hipHalf - 12},${hipY + 4} ${cx - hipHalf - 30},${kneeY - 70} ${cx - hipHalf - 38},${kneeY + 30}
+    L ${cx + hipHalf + 38},${kneeY + 30}
+    C ${cx + hipHalf + 30},${kneeY - 70} ${cx + hipHalf + 12},${hipY + 4} ${cx + (waistHalf + 4) * tail},${waistY + 26}
+    C ${cx + (waistHalf + 10) * tail},${waistY + 18} ${cx + (waistHalf + 6) * tail},${waistY - 10} ${cx + bustHalf - 2},${bustY + 28}
+    C ${cx + bustHalf + 6},${bustY + 22} ${cx + bustHalf + 8},${bustY - 4} ${cx + shoulderHalf - 12},${shoulderY + 16}
+    C ${cx + 14},${neckBot + 22} ${cx - 14},${neckBot + 22} ${cx - shoulderHalf + 12},${shoulderY + 16}
+    Z
+  `;
+
+  // Pick garment paths
+  const isTop = cat === "Tops";
+  const isOuter = cat === "Outerwear";
+  const isBottom = cat === "Bottoms";
+  const isDress = cat === "Dresses";
+
+  return (
+    <svg
+      viewBox={`0 0 ${VW} ${VH}`}
+      width={width}
+      height={height}
+      preserveAspectRatio="xMidYMid meet"
+      style={{ display: "block" }}
+      role="img"
+      aria-label="Measurement-based body avatar"
+    >
+      <defs>
+        {/* Skin — cool neutral beige with subtle sage cast. Brand-safe, no orange. */}
+        <linearGradient id="ra-skin" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#E8DCC6" />
+          <stop offset="55%" stopColor="#D6C5A8" />
+          <stop offset="100%" stopColor="#B5A589" />
+        </linearGradient>
+        <radialGradient id="ra-skin-hi" cx="0.42" cy="0.32" r="0.55">
+          <stop offset="0%" stopColor="#F4ECDB" stopOpacity="0.9" />
+          <stop offset="60%" stopColor="#F4ECDB" stopOpacity="0" />
+        </radialGradient>
+        {/* Sage rim shadow on skin (rim light reads like AI-rendered subject) */}
+        <linearGradient id="ra-skin-rim" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7C857B" stopOpacity="0.32" />
+          <stop offset="55%" stopColor="#7C857B" stopOpacity="0" />
+        </linearGradient>
+        {/* Hair — soft cocoa with sage cast */}
+        <linearGradient id="ra-hair" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3A4537" />
+          <stop offset="100%" stopColor="#2A3128" />
+        </linearGradient>
+        {/* Garment fill — main color with subtle drape shading */}
+        <linearGradient id="ra-fab" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={safeColor} stopOpacity="0.96" />
+          <stop offset="100%" stopColor={seamColor} stopOpacity="0.94" />
+        </linearGradient>
+        <linearGradient id="ra-fab-side" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(0,0,0,0.18)" />
+          <stop offset="25%" stopColor="rgba(0,0,0,0)" />
+          <stop offset="75%" stopColor="rgba(0,0,0,0)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.22)" />
+        </linearGradient>
+        {/* Ground shadow */}
+        <radialGradient id="ra-ground" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0%" stopColor="rgba(45,55,42,0.35)" />
+          <stop offset="100%" stopColor="rgba(45,55,42,0)" />
+        </radialGradient>
+        {/* Body inner shading — darken sides for 3D read */}
+        <linearGradient id="ra-body-shade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(45,55,42,0.20)" />
+          <stop offset="22%" stopColor="rgba(45,55,42,0)" />
+          <stop offset="78%" stopColor="rgba(45,55,42,0)" />
+          <stop offset="100%" stopColor="rgba(45,55,42,0.22)" />
+        </linearGradient>
+      </defs>
+
+      {/* Ground puck */}
+      <ellipse cx={cx} cy={ankleY + 12} rx={86} ry={14} fill="url(#ra-ground)" />
+
+      {/* Arms — behind body so torso and garment occlude them */}
+      <path d={armPath(-1)} fill="url(#ra-skin)" />
+      <path d={armPath(1)} fill="url(#ra-skin)" />
+      <path d={armPath(-1)} fill="url(#ra-body-shade)" />
+      <path d={armPath(1)} fill="url(#ra-body-shade)" />
+
+      {/* Hair behind head */}
+      <path d={hairPath} fill="url(#ra-hair)" />
+
+      {/* Body fill */}
+      <path d={bodyPath} fill="url(#ra-skin)" />
+      {/* Highlight */}
+      <path d={bodyPath} fill="url(#ra-skin-hi)" opacity="0.7" />
+      {/* Side shading */}
+      <path d={bodyPath} fill="url(#ra-body-shade)" />
+      {/* Sage rim */}
+      <path d={bodyPath} fill="url(#ra-skin-rim)" opacity="0.9" />
+
+      {/* Subtle anatomical contour lines for a more human read */}
+      <g stroke="rgba(58,69,55,0.20)" strokeWidth="0.8" fill="none">
+        {/* Collarbone hint */}
+        <path d={`M ${cx - 30},${shoulderY + 12} Q ${cx},${shoulderY + 6} ${cx + 30},${shoulderY + 12}`} />
+        {/* Sternum line */}
+        <path d={`M ${cx},${shoulderY + 18} L ${cx},${bustY + 18}`} strokeOpacity="0.12" />
+        {/* Belly button hint */}
+        <circle cx={cx} cy={waistY + 22} r="1.4" fill="rgba(58,69,55,0.22)" stroke="none" />
+        {/* Inner thigh seam */}
+        <path d={`M ${cx},${crotchY + 6} L ${cx},${kneeY + 30}`} strokeOpacity="0.18" />
+      </g>
+
+      {/* Hair front fringe (subtle, after body so it sits in front of forehead) */}
+      <path
+        d={`
+          M ${cx - headR + 12},${88}
+          C ${cx - 18},${78} ${cx + 18},${78} ${cx + headR - 12},${88}
+          C ${cx + headR - 20},${110} ${cx + 12},${104} ${cx},${112}
+          C ${cx - 12},${104} ${cx - headR + 20},${110} ${cx - headR + 12},${88}
+          Z
+        `}
+        fill="url(#ra-hair)"
+        opacity="0.92"
+      />
+
+      {/* Optional minimal facial cues — extremely subtle, brand-neutral.
+          Drawn as soft shadows so it reads as a person without identifying
+          features. */}
+      {showFace && (
+        <g>
+          {/* Eye shadow */}
+          <ellipse cx={cx - 16} cy={108} rx={5} ry={1.6} fill="rgba(58,69,55,0.38)" />
+          <ellipse cx={cx + 16} cy={108} rx={5} ry={1.6} fill="rgba(58,69,55,0.38)" />
+          {/* Nose shadow */}
+          <path d={`M ${cx - 2},${120} Q ${cx - 4},${130} ${cx},${134} Q ${cx + 4},${130} ${cx + 2},${120}`}
+            fill="rgba(58,69,55,0.10)" />
+          {/* Lip shadow */}
+          <path d={`M ${cx - 8},${138} Q ${cx},${143} ${cx + 8},${138}`}
+            stroke="rgba(78,92,73,0.35)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          {/* Chin highlight */}
+          <ellipse cx={cx} cy={headBot - 6} rx={9} ry={3} fill="rgba(255,255,255,0.18)" />
+        </g>
+      )}
+
+      {/* Garment overlay */}
+      {garment && (isTop || isOuter) && (
+        <g>
+          <path d={topPath} fill="url(#ra-fab)" />
+          <path d={topPath} fill="url(#ra-fab-side)" />
+          {/* Sleeves */}
+          <path d={sleeve(-1)} fill="url(#ra-fab)" />
+          <path d={sleeve(1)} fill="url(#ra-fab)" />
+          {/* Neckline seam */}
+          <path
+            d={`M ${cx - 18},${neckBot + 6} Q ${cx},${shoulderY + (isOuter ? 30 : 14)} ${cx + 18},${neckBot + 6}`}
+            stroke={seamColor} strokeWidth="1.4" fill="none" strokeOpacity="0.9"
+          />
+          {/* Shoulder seam */}
+          <path d={`M ${cx - shoulderHalf + 6},${shoulderY + 8} L ${cx - 18},${neckBot + 6}`}
+            stroke={seamColor} strokeWidth="1" fill="none" strokeOpacity="0.55" />
+          <path d={`M ${cx + shoulderHalf - 6},${shoulderY + 8} L ${cx + 18},${neckBot + 6}`}
+            stroke={seamColor} strokeWidth="1" fill="none" strokeOpacity="0.55" />
+          {/* Hem line */}
+          <path d={`M ${cx - hipHalf + 6},${hipY + 18} Q ${cx},${hipY + 22} ${cx + hipHalf - 6},${hipY + 18}`}
+            stroke={seamColor} strokeWidth="1.2" fill="none" strokeOpacity="0.55" />
+          {/* Lapel + buttons for outerwear */}
+          {isOuter && (
+            <g>
+              <path d={`M ${cx - 14},${neckBot + 12} L ${cx - 4},${bustY + 20} L ${cx - 22},${bustY + 18} Z`}
+                fill={seamColor} fillOpacity="0.55" />
+              <path d={`M ${cx + 14},${neckBot + 12} L ${cx + 4},${bustY + 20} L ${cx + 22},${bustY + 18} Z`}
+                fill={seamColor} fillOpacity="0.55" />
+              {[0, 1, 2].map(i => (
+                <circle key={i} cx={cx} cy={bustY + 30 + i * 28} r="2.4"
+                  fill={seamColor} fillOpacity="0.85" />
+              ))}
+            </g>
+          )}
+          {isTop && (
+            <g>
+              {[0, 1, 2, 3].map(i => (
+                <circle key={i} cx={cx} cy={shoulderY + 30 + i * 26} r="1.8"
+                  fill={seamColor} fillOpacity="0.6" />
+              ))}
+            </g>
+          )}
+        </g>
+      )}
+
+      {garment && isBottom && (
+        <g>
+          <path d={trouserPath} fill="url(#ra-fab)" />
+          <path d={trouserPath} fill="url(#ra-fab-side)" />
+          {/* Waistband */}
+          <path d={`M ${cx - (waistHalf + 6) * tail},${waistY + 8} Q ${cx},${waistY + 4} ${cx + (waistHalf + 6) * tail},${waistY + 8}`}
+            stroke={seamColor} strokeWidth="1.6" fill="none" strokeOpacity="0.85" />
+          {/* Fly */}
+          <path d={`M ${cx},${waistY + 10} L ${cx},${crotchY + 4}`}
+            stroke={seamColor} strokeWidth="1" fill="none" strokeOpacity="0.55" />
+          {/* Hems */}
+          <path d={`M ${cx - ankleHalf - 4},${ankleY - 12} L ${cx - 6},${ankleY - 12}`}
+            stroke={seamColor} strokeWidth="1.4" strokeOpacity="0.7" />
+          <path d={`M ${cx + 6},${ankleY - 12} L ${cx + ankleHalf + 4},${ankleY - 12}`}
+            stroke={seamColor} strokeWidth="1.4" strokeOpacity="0.7" />
+        </g>
+      )}
+
+      {garment && isDress && (
+        <g>
+          <path d={dressPath} fill="url(#ra-fab)" />
+          <path d={dressPath} fill="url(#ra-fab-side)" />
+          <path d={`M ${cx - shoulderHalf + 12},${shoulderY + 16} Q ${cx},${neckBot + 22} ${cx + shoulderHalf - 12},${shoulderY + 16}`}
+            stroke={seamColor} strokeWidth="1.4" fill="none" strokeOpacity="0.8" />
+          <path d={`M ${cx - (waistHalf + 8) * tail},${waistY + 22} Q ${cx},${waistY + 30} ${cx + (waistHalf + 8) * tail},${waistY + 22}`}
+            stroke={seamColor} strokeWidth="1.2" fill="none" strokeOpacity="0.55" />
+        </g>
+      )}
+
+      {/* Tailored mode subtle improved-fit indicator on waist */}
+      {mode === "tailored" && garment && (
+        <g>
+          <path d={`M ${cx - (waistHalf + 18) * tail},${waistY} Q ${cx},${waistY + 6} ${cx + (waistHalf + 18) * tail},${waistY}`}
+            stroke="#6B8E5A" strokeWidth="1.4" fill="none" strokeOpacity="0.95"
+            strokeDasharray="3 3" />
+        </g>
+      )}
+    </svg>
+  );
 }
 
 // ─── 3D Body Viewer ─────────────────────────────────────────
@@ -8628,15 +9111,39 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
           </svg>
 
           <div style={{ position: "relative", width: viewerW, height: viewerH }}>
-            <Body3DViewer
+            <RealisticAvatar
               body={userBody}
               width={viewerW}
               height={viewerH}
               garment={{ ...item, color: garmentColor }}
-              autoRotate
-              variant="studio"
+              mode={mode}
             />
             <FitMapOverlay width={viewerW} height={viewerH} regions={regions} mode={mode} />
+            {/* Top-left avatar preview label */}
+            <div
+              style={{
+                position: "absolute",
+                left: 10, top: 10,
+                padding: "4px 9px",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.92)",
+                border: `1px solid ${C.border}`,
+                fontSize: 8.5,
+                fontWeight: 800,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+                color: C.muted,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <span style={{
+                width: 5, height: 5, borderRadius: "50%",
+                background: C.forest,
+              }} />
+              Avatar preview · measurement-based
+            </div>
             {/* Mode caption */}
             <div
               style={{
@@ -8661,19 +9168,6 @@ function FitStudio({ item, userBody, onClose, onApprove }) {
                 background: mode === "tailored" ? C.forest : C.warmGray,
               }} />
               {mode === "tailored" ? "After alterations" : "As shipped from retailer"}
-            </div>
-            {/* Drag hint */}
-            <div
-              style={{
-                position: "absolute",
-                right: 12, bottom: 12,
-                fontSize: 9, color: C.muted,
-                background: "rgba(255,255,255,0.7)",
-                padding: "4px 8px", borderRadius: 8,
-                letterSpacing: 0.6,
-              }}
-            >
-              Drag to rotate
             </div>
           </div>
         </div>

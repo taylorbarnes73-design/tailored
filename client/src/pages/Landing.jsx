@@ -108,13 +108,14 @@ function HeroBodyScan() {
     const id = setInterval(() => setPulse(p => (p + 1) % 100), 50);
     return () => clearInterval(id);
   }, []);
-  // y positions for anchor lines (% of 600px viewbox height)
+  // y positions for anchor lines (% of 600px viewbox height) — now aligned
+  // with the realistic full-body figure (head at top, feet at bottom).
   const anchors = [
-    { y: 130, label: "SHOULDER", value: '17.5"', side: "left" },
-    { y: 190, label: "BUST", value: '36.0"', side: "right" },
-    { y: 270, label: "WAIST", value: '28.5"', side: "left" },
-    { y: 340, label: "HIPS", value: '38.5"', side: "right" },
-    { y: 470, label: "INSEAM", value: '31.0"', side: "left" },
+    { y: 178, label: "SHOULDER", value: '17.5"', side: "left" },
+    { y: 232, label: "BUST", value: '36.0"', side: "right" },
+    { y: 304, label: "WAIST", value: '28.5"', side: "left" },
+    { y: 366, label: "HIPS", value: '38.5"', side: "right" },
+    { y: 504, label: "INSEAM", value: '31.0"', side: "left" },
   ];
 
   // sweep position 0..1
@@ -164,10 +165,25 @@ function HeroBodyScan() {
             <pattern id="hero-grid" width="22" height="22" patternUnits="userSpaceOnUse">
               <path d="M 22 0 L 0 0 0 22" fill="none" stroke={P.warmGray} strokeOpacity="0.15" strokeWidth="0.5" />
             </pattern>
+            {/* Realistic skin gradient — cool earthy beige with no warm/orange cast */}
             <linearGradient id="bodyFill" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#DBDEC9" />
-              <stop offset="55%" stopColor={P.oat} />
-              <stop offset="100%" stopColor={P.sageMist} />
+              <stop offset="0%" stopColor="#E8DCC6" />
+              <stop offset="55%" stopColor="#D6C5A8" />
+              <stop offset="100%" stopColor="#B5A589" />
+            </linearGradient>
+            <linearGradient id="bodyShade" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="rgba(45,55,42,0.22)" />
+              <stop offset="25%" stopColor="rgba(45,55,42,0)" />
+              <stop offset="75%" stopColor="rgba(45,55,42,0)" />
+              <stop offset="100%" stopColor="rgba(45,55,42,0.24)" />
+            </linearGradient>
+            <radialGradient id="bodyHi" cx="0.42" cy="0.32" r="0.55">
+              <stop offset="0%" stopColor="#F4ECDB" stopOpacity="0.9" />
+              <stop offset="60%" stopColor="#F4ECDB" stopOpacity="0" />
+            </radialGradient>
+            <linearGradient id="hairFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3A4537" />
+              <stop offset="100%" stopColor="#2A3128" />
             </linearGradient>
             <radialGradient id="haloFill" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor={P.sage} stopOpacity="0.55" />
@@ -177,84 +193,154 @@ function HeroBodyScan() {
           <rect width="500" height="600" fill="url(#hero-grid)" />
 
           {/* Halo */}
-          <ellipse cx="250" cy="550" rx="170" ry="30" fill="url(#haloFill)" />
+          <ellipse cx="250" cy="568" rx="170" ry="26" fill="url(#haloFill)" />
 
-          {/* Body silhouette — front view */}
+          {/* Arms — hanging slightly out from the torso */}
           <path
-            d="M250 70
-               C 270 70, 285 86, 285 108
-               C 285 124, 278 134, 268 138
-               C 290 144, 305 162, 312 196
-               C 320 230, 322 252, 320 274
-               C 318 296, 306 314, 296 328
-               C 318 340, 332 360, 338 386
-               C 344 410, 340 444, 332 472
-               C 326 496, 320 520, 320 548
-               L 290 548
-               C 286 510, 278 472, 268 442
-               L 268 442
-               L 232 442
-               C 222 472, 214 510, 210 548
-               L 180 548
-               C 180 520, 174 496, 168 472
-               C 160 444, 156 410, 162 386
-               C 168 360, 182 340, 204 328
-               C 194 314, 182 296, 180 274
-               C 178 252, 180 230, 188 196
-               C 195 162, 210 144, 232 138
-               C 222 134, 215 124, 215 108
-               C 215 86, 230 70, 250 70 Z"
+            d="M180 196
+               C 168 220, 160 280, 158 326
+               C 156 360, 162 388, 168 410
+               C 162 422, 162 436, 170 440
+               C 178 442, 184 432, 184 422
+               C 184 396, 186 360, 192 326
+               C 198 280, 198 230, 196 200
+               Z"
             fill="url(#bodyFill)"
-            stroke={P.forestDeep}
-            strokeWidth="0.6"
-            strokeOpacity="0.35"
           />
-
-          {/* Inner contour highlight */}
           <path
-            d="M250 80 C 268 80, 282 96, 282 116"
-            fill="none"
-            stroke={P.warmGray}
-            strokeOpacity="0.18"
-            strokeWidth="0.8"
+            d="M320 196
+               C 332 220, 340 280, 342 326
+               C 344 360, 338 388, 332 410
+               C 338 422, 338 436, 330 440
+               C 322 442, 316 432, 316 422
+               C 316 396, 314 360, 308 326
+               C 302 280, 302 230, 304 200
+               Z"
+            fill="url(#bodyFill)"
           />
 
-          {/* Anchor measurement rings */}
-          {anchors.map((a, i) => (
-            <g key={a.label}>
-              <ellipse
-                cx="250"
-                cy={a.y}
-                rx={i === 1 ? 70 : i === 2 ? 60 : i === 3 ? 78 : 50}
-                ry={i === 1 ? 9 : 7}
-                fill="none"
-                stroke={i === 2 ? P.clay : P.forestDeep}
-                strokeOpacity={0.55}
-                strokeWidth="1.1"
-                strokeDasharray="3 4"
-              />
-              <circle
-                cx={a.side === "left" ? 180 : 320}
-                cy={a.y}
-                r="3.5"
-                fill={i === 2 ? P.clay : P.forest}
-              />
-              <line
-                x1={a.side === "left" ? 180 : 320}
-                y1={a.y}
-                x2={a.side === "left" ? 50 : 450}
-                y2={a.y}
-                stroke={i === 2 ? P.clay : P.forest}
-                strokeOpacity="0.55"
-                strokeWidth="1"
-              />
-            </g>
-          ))}
+          {/* Hair — back/top silhouette */}
+          <path
+            d="M204 122
+               C 198 86, 220 64, 250 64
+               C 280 64, 302 86, 296 122
+               C 304 134, 306 156, 296 172
+               C 286 180, 274 172, 268 162
+               C 274 152, 274 138, 268 130
+               C 256 122, 244 122, 232 130
+               C 226 138, 226 152, 232 162
+               C 226 172, 214 180, 204 172
+               C 194 156, 196 134, 204 122 Z"
+            fill="url(#hairFill)"
+          />
+
+          {/* Body — head + neck + torso + legs as one human silhouette */}
+          <path
+            d="M250 86
+               C 272 86, 286 104, 286 126
+               C 286 144, 278 156, 268 162
+               L 264 178
+               C 286 184, 304 200, 312 226
+               C 320 256, 322 280, 320 304
+               C 318 328, 308 350, 296 366
+               C 320 380, 332 404, 336 432
+               C 340 460, 336 492, 328 520
+               C 322 550, 318 568, 318 580
+               L 286 580
+               C 282 552, 274 514, 266 484
+               C 262 468, 258 458, 252 458
+               L 248 458
+               C 242 458, 238 468, 234 484
+               C 226 514, 218 552, 214 580
+               L 182 580
+               C 182 568, 178 550, 172 520
+               C 164 492, 160 460, 164 432
+               C 168 404, 180 380, 204 366
+               C 192 350, 182 328, 180 304
+               C 178 280, 180 256, 188 226
+               C 196 200, 214 184, 236 178
+               L 232 162
+               C 222 156, 214 144, 214 126
+               C 214 104, 228 86, 250 86 Z"
+            fill="url(#bodyFill)"
+          />
+          {/* Highlight */}
+          <path
+            d="M250 86 C 272 86, 286 104, 286 126 C 286 144, 278 156, 268 162 L 264 178 C 286 184, 304 200, 312 226 C 320 256, 322 280, 320 304 C 318 328, 308 350, 296 366 C 320 380, 332 404, 336 432 C 340 460, 336 492, 328 520 C 322 550, 318 568, 318 580 L 286 580 C 282 552, 274 514, 266 484 C 262 468, 258 458, 252 458 L 248 458 C 242 458, 238 468, 234 484 C 226 514, 218 552, 214 580 L 182 580 C 182 568, 178 550, 172 520 C 164 492, 160 460, 164 432 C 168 404, 180 380, 204 366 C 192 350, 182 328, 180 304 C 178 280, 180 256, 188 226 C 196 200, 214 184, 236 178 L 232 162 C 222 156, 214 144, 214 126 C 214 104, 228 86, 250 86 Z"
+            fill="url(#bodyHi)"
+            opacity="0.7"
+          />
+          {/* Side shading */}
+          <path
+            d="M250 86 C 272 86, 286 104, 286 126 C 286 144, 278 156, 268 162 L 264 178 C 286 184, 304 200, 312 226 C 320 256, 322 280, 320 304 C 318 328, 308 350, 296 366 C 320 380, 332 404, 336 432 C 340 460, 336 492, 328 520 C 322 550, 318 568, 318 580 L 286 580 C 282 552, 274 514, 266 484 C 262 468, 258 458, 252 458 L 248 458 C 242 458, 238 468, 234 484 C 226 514, 218 552, 214 580 L 182 580 C 182 568, 178 550, 172 520 C 164 492, 160 460, 164 432 C 168 404, 180 380, 204 366 C 192 350, 182 328, 180 304 C 178 280, 180 256, 188 226 C 196 200, 214 184, 236 178 L 232 162 C 222 156, 214 144, 214 126 C 214 104, 228 86, 250 86 Z"
+            fill="url(#bodyShade)"
+          />
+
+          {/* Hair front fringe — sits over the forehead */}
+          <path
+            d="M212 110
+               C 224 96, 238 92, 250 92
+               C 262 92, 276 96, 288 110
+               C 282 124, 264 122, 250 124
+               C 236 122, 218 124, 212 110 Z"
+            fill="url(#hairFill)"
+            opacity="0.92"
+          />
+
+          {/* Subtle face cues (eye, lip, chin shadows) for a person read */}
+          <ellipse cx="234" cy="128" rx="5" ry="1.6" fill="rgba(58,69,55,0.38)" />
+          <ellipse cx="266" cy="128" rx="5" ry="1.6" fill="rgba(58,69,55,0.38)" />
+          <path d="M242 152 Q 250 156 258 152"
+            stroke="rgba(78,92,73,0.35)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+
+          {/* Collarbone / sternum / inner contour hints */}
+          <path d="M220 192 Q 250 188 280 192"
+            stroke="rgba(58,69,55,0.20)" strokeWidth="0.8" fill="none" />
+          <path d="M250 198 L 250 268"
+            stroke="rgba(58,69,55,0.10)" strokeWidth="0.8" fill="none" />
+          <circle cx="250" cy="332" r="1.6" fill="rgba(58,69,55,0.22)" />
+          <path d="M250 460 L 250 560"
+            stroke="rgba(58,69,55,0.16)" strokeWidth="0.8" fill="none" />
+
+          {/* Anchor measurement rings — sized to the realistic figure */}
+          {anchors.map((a, i) => {
+            const rxByIdx = [70, 64, 58, 76, 28];
+            return (
+              <g key={a.label}>
+                <ellipse
+                  cx="250"
+                  cy={a.y}
+                  rx={rxByIdx[i] || 50}
+                  ry={i === 4 ? 5 : 8}
+                  fill="none"
+                  stroke={i === 2 ? P.clay : P.forestDeep}
+                  strokeOpacity={0.55}
+                  strokeWidth="1.1"
+                  strokeDasharray="3 4"
+                />
+                <circle
+                  cx={a.side === "left" ? 180 : 320}
+                  cy={a.y}
+                  r="3.5"
+                  fill={i === 2 ? P.clay : P.forest}
+                />
+                <line
+                  x1={a.side === "left" ? 180 : 320}
+                  y1={a.y}
+                  x2={a.side === "left" ? 50 : 450}
+                  y2={a.y}
+                  stroke={i === 2 ? P.clay : P.forest}
+                  strokeOpacity="0.55"
+                  strokeWidth="1"
+                />
+              </g>
+            );
+          })}
 
           {/* Sweep scan line */}
           <rect
             x="20"
-            y={70 + sweep * 480}
+            y={60 + sweep * 520}
             width="460"
             height="2"
             fill={P.forest}
@@ -262,7 +348,7 @@ function HeroBodyScan() {
           />
           <rect
             x="20"
-            y={70 + sweep * 480 - 14}
+            y={60 + sweep * 520 - 14}
             width="460"
             height="14"
             fill={`url(#sweepGrad)`}
