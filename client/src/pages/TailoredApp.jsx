@@ -2306,6 +2306,7 @@ const BRANDS = [
   },
 ];
 const SITE_IMAGE_OVERRIDES = {
+  1: "https://static.zara.net/assets/public/1ac9/fcb4/5a544581ae0b/a266a2b72e16/02724337533-000-p/02724337533-000-p.jpg?ts=1775462665757&w=750",
   5: "https://media.thereformation.com/image/upload/f_auto,q_auto,dpr_1.0/w_800,c_scale//PRD-SFCC/1304134/MERCY/1304134.1.MERCY?_s=RAABAB0",
   22: "https://www.everlane.com/cdn/shop/files/f545cb46_d23b.jpg?v=1750093768&width=1200",
   36: "https://images.urbndata.com/is/image/FreePeople/104871306_009_a/?$a15-pdp-detail-shot$&fit=constrain&qlt=80&wid=640",
@@ -2340,7 +2341,7 @@ const CATALOG = [
     category: "Outerwear",
     trending: true,
     badge: "Viral on TikTok",
-    url: "https://www.zara.com/us/en/woman-outerwear-l1989.html",
+    url: "https://www.zara.com/us/en/zw-collection-limited-edition-cropped-trench-coat-p02724337.html",
     image:
       "https://images.unsplash.com/photo-1591047139829-d919b5ca4d3a?w=400&h=520&fit=crop&q=80",
     measurements: {
@@ -4617,6 +4618,8 @@ function enrichCatalog(userBody) {
     const siteImage = SITE_IMAGE_OVERRIDES[item.id] || null;
     return {
       ...item,
+      catalogImage: item.image,
+      siteImage,
       image: siteImage || item.image,
       fit,
       bestSize,
@@ -4919,7 +4922,7 @@ function ProductImage({
   className = "",
   revealBadge = false,
 }) {
-  const [hasRealImageError, setHasRealImageError] = useState(false);
+  const [imageFailureIndex, setImageFailureIndex] = useState(0);
   const imageQuery = trpc.style.resolveProductImage.useQuery(
     { url: item.url, name: item.name, brand: item.brand },
     {
@@ -4934,14 +4937,23 @@ function ProductImage({
     }
   );
 
-  useEffect(() => {
-    setHasRealImageError(false);
-  }, [item?.url, imageQuery.data?.imageUrl]);
+  const imageCandidates = useMemo(() => {
+    const candidates = [imageQuery.data?.imageUrl, item.siteImage, item.catalogImage, item.image]
+      .filter(Boolean)
+      .filter((value, index, all) => all.indexOf(value) === index);
+    return candidates;
+  }, [imageQuery.data?.imageUrl, item.siteImage, item.catalogImage, item.image]);
 
-  const resolvedImage = !hasRealImageError
-    ? imageQuery.data?.imageUrl || item.image
-    : item.image;
+  useEffect(() => {
+    setImageFailureIndex(0);
+  }, [item?.id, item?.url, imageQuery.data?.imageUrl, item.siteImage, item.catalogImage]);
+
+  const resolvedImage = imageCandidates[imageFailureIndex] || null;
   const hasImage = Boolean(resolvedImage);
+  const usingRetailSource = Boolean(
+    resolvedImage &&
+      (resolvedImage === imageQuery.data?.imageUrl || resolvedImage === item.siteImage)
+  );
 
   return (
     <div
@@ -4959,9 +4971,7 @@ function ProductImage({
           alt={alt || item.name}
           loading="lazy"
           onError={() => {
-            if (imageQuery.data?.imageUrl) {
-              setHasRealImageError(true);
-            }
+            setImageFailureIndex(current => current + 1);
           }}
           style={{
             position: "absolute",
@@ -4979,16 +4989,65 @@ function ProductImage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "rgba(255,255,255,0.08)",
-            fontSize: 36,
-            fontFamily: font.serif,
+            padding: 16,
           }}
         >
-          T
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              border: `1px solid ${C.border}`,
+              borderRadius: 20,
+              background:
+                "radial-gradient(circle at top, rgba(255,255,255,0.16), transparent 48%), rgba(10,10,10,0.22)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              padding: 18,
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 11,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  color: C.gold,
+                  marginBottom: 10,
+                }}
+              >
+                {item.brand}
+              </div>
+              <div
+                style={{
+                  fontSize: "clamp(18px, 4vw, 28px)",
+                  lineHeight: 1,
+                  color: "rgba(255,255,255,0.18)",
+                  fontFamily: font.serif,
+                }}
+              >
+                {item.category}
+              </div>
+            </div>
+            <div
+              style={{
+                alignSelf: "flex-start",
+                padding: "10px 14px",
+                borderRadius: 999,
+                border: `1px solid ${C.border}`,
+                background: "rgba(10,10,10,0.22)",
+                color: C.accent,
+                fontSize: 11,
+                fontWeight: 500,
+              }}
+            >
+              Photo unavailable
+            </div>
+          </div>
         </div>
       )}
 
-      {revealBadge && (item?.hasSiteImage || imageQuery.data?.resolved) && (
+      {revealBadge && usingRetailSource && (
         <div
           style={{
             position: "absolute",
