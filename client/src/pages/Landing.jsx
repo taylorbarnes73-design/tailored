@@ -487,27 +487,6 @@ function HeroBodyScan() {
           </div>
         </div>
 
-        {/* Confidence chip bottom right — kept clear of the top status pill */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 36,
-            right: 20,
-            maxWidth: "44%",
-            background: P.clay,
-            color: P.cream,
-            padding: "6px 12px",
-            borderRadius: 999,
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
-            whiteSpace: "nowrap",
-            boxShadow: "0 8px 22px rgba(78,92,73,0.32)",
-          }}
-        >
-          Tailor-verified precision
-        </div>
       </div>
     </div>
   );
