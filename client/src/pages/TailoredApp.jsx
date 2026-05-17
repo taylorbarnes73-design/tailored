@@ -1883,38 +1883,68 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              background: "rgba(0,0,0,0.85)",
-              gap: 12,
+              background: `linear-gradient(180deg, ${PALETTE.cocoa} 0%, ${PALETTE.bark} 100%)`,
+              gap: 14,
             }}
           >
+            {/* Pose silhouette guide */}
+            <svg
+              width={86}
+              height={140}
+              viewBox="0 0 60 100"
+              fill="none"
+              stroke={C.sageMist}
+              strokeWidth={1.4}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ opacity: 0.75 }}
+            >
+              <circle cx="30" cy="14" r="6" />
+              <path d="M30 20 L30 56" />
+              <path d="M30 26 L14 36 M30 26 L46 36" />
+              <path d="M30 56 L22 88 M30 56 L38 88" />
+            </svg>
             <div
               style={{
-                width: 36,
-                height: 36,
-                border: `2px solid ${C.border}`,
-                borderTopColor: C.gold,
+                width: 32,
+                height: 32,
+                border: `2px solid rgba(196,210,182,0.18)`,
+                borderTopColor: C.sageMist,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
               }}
             />
             <p
               style={{
-                fontSize: 12,
-                color: C.muted,
+                fontSize: 13,
+                color: C.cream,
                 margin: 0,
                 textAlign: "center",
                 padding: "0 24px",
+                fontWeight: 500,
               }}
             >
               {feedback}
             </p>
             {loadProgress && (
               <p
-                style={{ fontSize: 10, color: C.gold, margin: 0, opacity: 0.7 }}
+                style={{ fontSize: 11, color: C.sageMist, margin: 0, opacity: 0.85 }}
               >
                 {loadProgress}
               </p>
             )}
+            <p
+              style={{
+                fontSize: 11,
+                color: "rgba(242,243,238,0.6)",
+                margin: "8px 24px 0",
+                textAlign: "center",
+                lineHeight: 1.5,
+                maxWidth: 280,
+              }}
+            >
+              Stand 6–8 ft from your camera so your full body fits inside the guide.
+            </p>
           </div>
         )}
         {phase === "turning" && (
@@ -2373,44 +2403,104 @@ function CameraBodyScanner({ onScanComplete, onCancel, userHeight = 65 }) {
         <div
           style={{
             width: "100%",
-            maxWidth: 320,
+            maxWidth: 360,
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 10,
           }}
         >
+          <div
+            style={{
+              padding: "16px 16px 14px",
+              borderRadius: 14,
+              border: `1px solid ${C.borderLight}`,
+              background: `linear-gradient(160deg, ${C.cream} 0%, ${C.beige} 100%)`,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 10,
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: C.goldBg,
+                border: `1px solid ${C.goldBorder}`,
+                color: C.forest,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <CameraIcon size={22} />
+            </div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.accent,
+                fontFamily: font.serif,
+              }}
+            >
+              Can't reach your camera
+            </div>
+            <p
+              style={{
+                fontSize: 12,
+                color: C.muted,
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
+              {feedback || "We couldn't open the camera. You can still build your fit profile by entering measurements."}
+            </p>
+          </div>
           <button
             onClick={handleRetry}
             style={{
               width: "100%",
-              padding: "14px 0",
+              padding: "13px 0",
               borderRadius: 12,
               border: "none",
-              background: `linear-gradient(135deg,${C.gold},${C.goldDark})`,
+              background: `linear-gradient(135deg,${C.forest},${C.forestDeep})`,
               color: "#fff",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
             }}
           >
-            Retry Scanner
+            Try camera again
           </button>
           <button
             onClick={onCancel}
             style={{
               width: "100%",
-              padding: "11px 0",
+              padding: "12px 0",
               borderRadius: 12,
-              border: `1px solid ${C.border}`,
-              background: "transparent",
-              color: C.muted,
-              fontSize: 12,
-              fontWeight: 500,
+              border: `1px solid ${C.borderLight}`,
+              background: C.card,
+              color: C.accent,
+              fontSize: 13,
+              fontWeight: 600,
               cursor: "pointer",
             }}
           >
-            Enter Manually Instead
+            Use manual measurements
           </button>
+          <p
+            style={{
+              fontSize: 10,
+              color: C.muted,
+              textAlign: "center",
+              margin: 0,
+              lineHeight: 1.5,
+            }}
+          >
+            Tip: open this on your phone for the smoothest scan experience.
+          </p>
         </div>
       )}
       {(phase === "ready" || isActive) && (
@@ -5182,22 +5272,29 @@ function BackButton({ onClick, label }) {
     <button
       onClick={onClick}
       style={{
-        background: "rgba(255,255,255,0.05)",
-        border: `1px solid ${C.border}`,
+        background: C.card,
+        border: `1px solid ${C.borderLight}`,
         borderRadius: 12,
-        height: 36,
+        height: 38,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
         color: C.accent,
         transition: "all 0.2s",
-        gap: 4,
-        padding: label ? "0 12px 0 8px" : "0 10px",
+        gap: 6,
+        padding: label ? "0 14px 0 10px" : "0 10px",
+        boxShadow: "0 1px 0 rgba(255,255,255,0.6) inset",
       }}
     >
       <ChevronLeft size={18} />
-      {label && <span style={{ fontSize: 12, fontWeight: 500 }}>{label}</span>}
+      {label && (
+        <span
+          style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.2 }}
+        >
+          {label}
+        </span>
+      )}
     </button>
   );
 }
@@ -5242,13 +5339,77 @@ function ProductImage({
       (resolvedImage === imageQuery.data?.imageUrl || resolvedImage === item.siteImage)
   );
 
+  // Brand-native fallback panel — designed, not gray.
+  // Uses category-specific palette + SVG monogram so empty product tiles look intentional.
+  const fallbackTheme = useMemo(() => {
+    const cat = (item.category || "").toLowerCase();
+    if (cat.includes("outer")) {
+      return { from: PALETTE.forestDeep, to: PALETTE.forest, ink: "#F2F3EE", initial: "O" };
+    }
+    if (cat.includes("dress")) {
+      return { from: PALETTE.clay, to: PALETTE.cocoa, ink: "#EDEEE8", initial: "D" };
+    }
+    if (cat.includes("bottom")) {
+      return { from: PALETTE.olive, to: PALETTE.forestDeep, ink: "#F2F3EE", initial: "B" };
+    }
+    if (cat.includes("top")) {
+      return { from: PALETTE.sage, to: PALETTE.forest, ink: "#1F2620", initial: "T" };
+    }
+    return { from: PALETTE.tan, to: PALETTE.sageDeep, ink: "#1F2620", initial: (item.brand || "T")[0] };
+  }, [item.category, item.brand]);
+
+  const CategoryGlyph = ({ size = 56, color = "#fff" }) => {
+    const cat = (item.category || "").toLowerCase();
+    const sw = 1.4;
+    if (cat.includes("outer")) {
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M7 4l-3 3v13h16V7l-3-3" />
+          <path d="M7 4l5 5 5-5" />
+          <path d="M12 9v11" />
+        </svg>
+      );
+    }
+    if (cat.includes("dress")) {
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 3h6l-1 4 5 14H5l5-14-1-4z" />
+          <path d="M9 7h6" />
+        </svg>
+      );
+    }
+    if (cat.includes("bottom")) {
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 3h12l-1 18h-4l-1-12-1 12H7L6 3z" />
+        </svg>
+      );
+    }
+    if (cat.includes("top")) {
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 6l4-3h6l4 3-3 3v11H8V9L5 6z" />
+        </svg>
+      );
+    }
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 8l8-5 8 5-8 5-8-5z" />
+        <path d="M4 16l8 5 8-5" />
+        <path d="M4 12l8 5 8-5" />
+      </svg>
+    );
+  };
+
   return (
     <div
       className={className}
       style={{
         position: "relative",
         overflow: "hidden",
-        background: `linear-gradient(145deg, ${item.color} 0%, ${item.color}88 100%)`,
+        background: hasImage
+          ? `linear-gradient(145deg, ${item.color} 0%, ${item.color}88 100%)`
+          : `linear-gradient(150deg, ${fallbackTheme.from} 0%, ${fallbackTheme.to} 100%)`,
         ...style,
       }}
     >
@@ -5270,65 +5431,96 @@ function ProductImage({
         />
       ) : (
         <div
+          aria-label={`${item.brand} ${item.category}`}
           style={{
             position: "absolute",
             inset: 0,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            flexDirection: "column",
+            justifyContent: "space-between",
             padding: 16,
+            color: fallbackTheme.ink,
           }}
         >
+          {/* Subtle decorative monogram */}
           <div
             style={{
-              width: "100%",
-              height: "100%",
-              border: `1px solid ${C.border}`,
-              borderRadius: 20,
-              background:
-                "radial-gradient(circle at top, rgba(255,255,255,0.16), transparent 48%), rgba(10,10,10,0.22)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              padding: 18,
+              position: "absolute",
+              right: -22,
+              bottom: -34,
+              fontSize: 220,
+              lineHeight: 1,
+              fontFamily: font.serif,
+              fontWeight: 500,
+              color: fallbackTheme.ink,
+              opacity: 0.10,
+              userSelect: "none",
+              pointerEvents: "none",
             }}
           >
-            <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  color: C.gold,
-                  marginBottom: 10,
-                }}
-              >
-                {item.brand}
-              </div>
-              <div
-                style={{
-                  fontSize: "clamp(18px, 4vw, 28px)",
-                  lineHeight: 1,
-                  color: "rgba(255,255,255,0.18)",
-                  fontFamily: font.serif,
-                }}
-              >
-                {item.category}
-              </div>
+            {fallbackTheme.initial}
+          </div>
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <div
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: fallbackTheme.ink,
+                opacity: 0.85,
+                fontWeight: 600,
+                marginBottom: 6,
+              }}
+            >
+              {item.brand}
             </div>
             <div
               style={{
-                alignSelf: "flex-start",
-                padding: "10px 14px",
-                borderRadius: 999,
-                border: `1px solid ${C.border}`,
-                background: "rgba(10,10,10,0.22)",
-                color: C.accent,
-                fontSize: 11,
+                fontSize: "clamp(15px, 3.2vw, 20px)",
+                lineHeight: 1.15,
+                color: fallbackTheme.ink,
+                fontFamily: font.serif,
                 fontWeight: 500,
+                maxWidth: "90%",
+                textShadow: "0 1px 2px rgba(0,0,0,0.08)",
               }}
             >
-              Photo unavailable
+              {item.name}
+            </div>
+          </div>
+
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "5px 10px",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.18)",
+                border: "1px solid rgba(255,255,255,0.28)",
+                color: fallbackTheme.ink,
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              {item.category}
+            </div>
+            <div style={{ opacity: 0.85 }}>
+              <CategoryGlyph size={36} color={fallbackTheme.ink} />
             </div>
           </div>
         </div>
@@ -5360,8 +5552,9 @@ function ProductImage({
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+              "linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.14), rgba(255,255,255,0.04))",
             animation: "pulse 1.4s ease-in-out infinite",
+            pointerEvents: "none",
           }}
         />
       )}
@@ -5492,30 +5685,35 @@ function ItemCard({ item, onClick, isFav, toggleFav }) {
 function Pill({ label, active, onClick, gold = false }) {
   const bg = active
     ? gold
-      ? C.goldBg
-      : "rgba(255,255,255,0.1)"
-    : "transparent";
+      ? C.forest
+      : C.accent
+    : C.card;
   const border = active
     ? gold
-      ? C.goldBorder
-      : "rgba(255,255,255,0.15)"
-    : C.border;
-  const color = active ? (gold ? C.gold : C.accent) : C.muted;
+      ? C.forest
+      : C.accent
+    : C.borderLight;
+  const color = active ? C.cream : C.muted;
   return (
     <button
       onClick={onClick}
       style={{
-        padding: "6px 16px",
+        padding: "7px 16px",
         borderRadius: 20,
         border: `1px solid ${border}`,
         background: bg,
         color,
         fontSize: 11,
-        fontWeight: active ? 600 : 400,
+        fontWeight: active ? 700 : 500,
         cursor: "pointer",
         whiteSpace: "nowrap",
         transition: "all 0.2s",
         letterSpacing: 0.3,
+        boxShadow: active
+          ? gold
+            ? "0 4px 12px rgba(107,142,90,0.28)"
+            : "0 3px 10px rgba(45,55,42,0.18)"
+          : "none",
       }}
     >
       {label}
@@ -5542,12 +5740,8 @@ function DesktopNavRail({
       <div className="tb-brand-lockup">
         <div className="tb-brand-lockup__mark">T</div>
         <div>
-          <p className="tb-sidebar-eyebrow">Fit Intelligence</p>
-          <h1 className="tb-brand-lockup__title">The Tailored Company</h1>
-          <p className="tb-sidebar-copy">
-            Fashion that fits every body. Body-scanned measurements, fit-scored
-            across 20 brands, and a circular wardrobe with fewer returns.
-          </p>
+          <p className="tb-sidebar-eyebrow">The Tailored Company</p>
+          <h1 className="tb-brand-lockup__title">Fit Intelligence</h1>
         </div>
       </div>
 
@@ -5933,12 +6127,12 @@ function SplashScreen({ onContinue }) {
           <h1
             style={{
               fontFamily: font.serif,
-              fontSize: 48,
+              fontSize: "clamp(36px, 6.4vw, 52px)",
               fontWeight: 500,
               color: C.accent,
-              lineHeight: 1.05,
+              lineHeight: 1.02,
               margin: 0,
-              letterSpacing: -1.5,
+              letterSpacing: -1.2,
             }}
           >
             Fashion that fits
@@ -5959,68 +6153,13 @@ function SplashScreen({ onContinue }) {
             style={{
               fontSize: 15,
               color: C.muted,
-              lineHeight: 1.7,
-              maxWidth: 280,
+              lineHeight: 1.55,
+              maxWidth: 320,
               margin: 0,
             }}
           >
-            Shop any retailer with MediaPipe-powered body scanning, real-time
-            fit scoring across 20 brands, professional tailoring, and a
-            measurement-matched circular wardrobe.
+            Scan once. Shop anywhere. We map every brand to your measurements.
           </p>
-        </div>
-
-        <div
-          className="tb-splash__features"
-          style={{
-            opacity: phase >= 3 ? 1 : 0,
-            transition: "opacity 0.7s 0.5s",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            width: "100%",
-            maxWidth: 280,
-            marginTop: 8,
-          }}
-        >
-          {[
-            { Icon: CameraIcon, text: "33 pose landmarks · under 60 seconds" },
-            { Icon: TargetIcon, text: "Real-time fit scoring · 85 pieces, 20 brands" },
-            { Icon: ScissorsIcon, text: "Professional tailoring · circular resale" },
-          ].map(({ Icon, text }) => (
-            <div
-              key={text}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 16px",
-                background: "rgba(255,255,255,0.7)",
-                backdropFilter: "blur(8px)",
-                border: `1px solid ${C.border}`,
-                borderRadius: 14,
-                boxShadow: "0 4px 14px rgba(45,55,42,0.06)",
-              }}
-            >
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  background: C.goldBg,
-                  border: `1px solid ${C.goldBorder}`,
-                  color: C.forest,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon size={16} />
-              </div>
-              <span style={{ fontSize: 13, color: C.accent, fontWeight: 500 }}>{text}</span>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -6028,39 +6167,59 @@ function SplashScreen({ onContinue }) {
         className="tb-splash__cta"
         style={{
           width: "100%",
-          maxWidth: 320,
+          maxWidth: 340,
           opacity: phase >= 3 ? 1 : 0,
           transform: phase >= 3 ? "translateY(0)" : "translateY(12px)",
-          transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s",
+          transition: "all 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s",
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
         }}
       >
         <button
           onClick={onContinue}
           style={{
             width: "100%",
-            padding: "18px 0",
-            borderRadius: 16,
+            padding: "16px 0",
+            borderRadius: 14,
             border: "none",
             background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
             color: C.cream,
             fontSize: 15,
             fontWeight: 700,
-            letterSpacing: 0.6,
+            letterSpacing: 0.5,
             cursor: "pointer",
-            boxShadow: `0 12px 32px rgba(107,142,90,0.38)`,
+            boxShadow: `0 12px 28px rgba(107,142,90,0.32)`,
           }}
         >
-          Build Your Fit Profile
+          Get started
+        </button>
+        <button
+          onClick={onContinue}
+          style={{
+            width: "100%",
+            padding: "12px 0",
+            borderRadius: 14,
+            border: `1px solid ${C.border}`,
+            background: "transparent",
+            color: C.accent,
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          Continue to app
         </button>
         <p
           style={{
             textAlign: "center",
             fontSize: 11,
             color: C.muted,
-            marginTop: 14,
+            marginTop: 4,
+            marginBottom: 0,
           }}
         >
-          Private on-device profile · Works across retailers
+          Private on-device profile · No account required
         </p>
       </div>
     </div>
@@ -6088,18 +6247,26 @@ function OnboardingScreen({ onComplete }) {
   };
 
   const SliderRow = ({ label, key2, min, max, unit = '"', step2 = 0.5 }) => (
-    <div style={{ marginBottom: 18 }}>
+    <div style={{ marginBottom: 20 }}>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "baseline",
           marginBottom: 8,
         }}
       >
-        <span style={{ fontSize: 13, color: C.accent, fontWeight: 500 }}>
+        <span style={{ fontSize: 14, color: C.accent, fontWeight: 600 }}>
           {label}
         </span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>
+        <span
+          style={{
+            fontSize: 16,
+            fontWeight: 700,
+            color: C.forest,
+            fontFamily: font.serif,
+          }}
+        >
           {body[key2]}
           {unit}
         </span>
@@ -6113,7 +6280,7 @@ function OnboardingScreen({ onComplete }) {
         onChange={e =>
           setBody(b => ({ ...b, [key2]: parseFloat(e.target.value) }))
         }
-        style={{ width: "100%", accentColor: C.gold, cursor: "pointer" }}
+        style={{ width: "100%", accentColor: C.forest, cursor: "pointer" }}
       />
       <div
         style={{
@@ -6122,11 +6289,11 @@ function OnboardingScreen({ onComplete }) {
           marginTop: 4,
         }}
       >
-        <span style={{ fontSize: 9, color: C.muted }}>
+        <span style={{ fontSize: 11, color: C.muted, fontWeight: 500 }}>
           {min}
           {unit}
         </span>
-        <span style={{ fontSize: 9, color: C.muted }}>
+        <span style={{ fontSize: 11, color: C.muted, fontWeight: 500 }}>
           {max}
           {unit}
         </span>
@@ -6186,7 +6353,10 @@ function OnboardingScreen({ onComplete }) {
         >
           <CameraBodyScanner
             onScanComplete={handleScanComplete}
-            onCancel={() => setScanning(false)}
+            onCancel={() => {
+              setScanning(false);
+              setStep("manual");
+            }}
             userHeight={heightInches}
           />
         </div>
@@ -6572,11 +6742,12 @@ function OnboardingScreen({ onComplete }) {
           >
             Body Measurements
           </p>
+          {/* Ordered head-to-toe: Shoulder → Bust → Waist → Hips → Inseam */}
+          <SliderRow label="Shoulder Width" key2="shoulder" min={12} max={20} />
           <SliderRow label="Bust / Chest" key2="bust" min={28} max={52} />
           <SliderRow label="Waist" key2="waist" min={20} max={44} />
           <SliderRow label="Hips" key2="hips" min={30} max={56} />
           <SliderRow label="Inseam" key2="inseam" min={22} max={36} />
-          <SliderRow label="Shoulder Width" key2="shoulder" min={12} max={20} />
 
           <div
             className="tb-onboarding-preview"
@@ -6589,8 +6760,8 @@ function OnboardingScreen({ onComplete }) {
           >
             <Body3DViewer
               body={body}
-              width={200}
-              height={280}
+              width={240}
+              height={320}
               autoRotate
               annotated
               variant="studio"
@@ -6603,29 +6774,42 @@ function OnboardingScreen({ onComplete }) {
           style={{
             position: "sticky",
             bottom: 0,
-            padding: "12px 18px 28px",
-            background: "rgba(10,10,10,0.95)",
-            backdropFilter: "blur(16px)",
+            padding: "14px 18px 22px",
+            background: `linear-gradient(180deg, rgba(242,243,238,0.0) 0%, ${C.bg} 30%, ${C.bg} 100%)`,
             borderTop: `1px solid ${C.border}`,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
           }}
         >
           <button
             onClick={() => onComplete(body)}
             style={{
               width: "100%",
-              padding: "15px 0",
-              borderRadius: 12,
+              padding: "16px 0",
+              borderRadius: 14,
               border: "none",
-              background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
+              background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
               color: "#fff",
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: 1,
+              fontSize: 14,
+              fontWeight: 700,
+              letterSpacing: 0.6,
               cursor: "pointer",
+              boxShadow: `0 10px 22px rgba(107,142,90,0.32)`,
             }}
           >
-            Save & Start Shopping
+            Save measurements & continue
           </button>
+          <p
+            style={{
+              fontSize: 10,
+              color: C.muted,
+              textAlign: "center",
+              margin: 0,
+            }}
+          >
+            You can update measurements anytime from your profile
+          </p>
         </div>
       </div>
     );
@@ -7169,6 +7353,7 @@ function HomeScreen({
 
 // ─── Trending Screen ───────────────────────────────────────
 function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
+  const [activeTab, setActiveTab] = useState("demand");
   const trendingItems = useMemo(
     () => catalog.filter(i => i.trending).sort((a, b) => b.fit - a.fit),
     [catalog]
@@ -7185,6 +7370,19 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
   const seasonalSignals = trendingItems.filter(
     i => i.badgeMeta?.group === "seasonal"
   );
+  const favoritesList = useMemo(
+    () => catalog.filter(i => favorites.has(i.id)).sort((a, b) => b.fit - a.fit),
+    [catalog, favorites]
+  );
+
+  const TABS = [
+    { key: "demand", label: "Demand", items: demandSignals },
+    { key: "editorial", label: "Editorial", items: editorialPicks },
+    { key: "seasonal", label: "Seasonal", items: seasonalSignals },
+    { key: "favorites", label: "Favorites", items: favoritesList },
+  ];
+  const currentTab = TABS.find(t => t.key === activeTab) || TABS[0];
+  const currentItems = currentTab.items;
 
   const Section = ({ title, IconComp, items, color = C.accent }) => (
     <div style={{ marginBottom: 28 }}>
@@ -7335,53 +7533,62 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
           </p>
         </div>
 
-        {/* Trend stats banner */}
+        {/* Tabs */}
         <div
+          role="tablist"
           style={{
             display: "flex",
-            gap: 10,
-            marginBottom: 16,
+            gap: 6,
+            marginBottom: 14,
             overflowX: "auto",
             scrollbarWidth: "none",
+            paddingBottom: 2,
           }}
         >
-          {[
-            { key: "demand", count: demandSignals.length },
-            { key: "editorial", count: editorialPicks.length },
-            { key: "staple", count: clientFavorites.length },
-            { key: "seasonal", count: seasonalSignals.length },
-          ].map(({ key, count }) => {
-            const { statLabel, color, Icon } = TREND_SECTION_META[key];
+          {TABS.map(({ key, label, items }) => {
+            const isActive = activeTab === key;
             return (
-              <div
+              <button
                 key={key}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setActiveTab(key)}
                 style={{
                   flexShrink: 0,
-                  padding: "10px 14px",
-                  background: C.card,
-                  border: `1px solid ${C.border}`,
-                  borderRadius: 12,
-                  display: "flex",
+                  padding: "8px 14px",
+                  borderRadius: 999,
+                  border: `1px solid ${isActive ? C.forest : C.borderLight}`,
+                  background: isActive ? C.forest : C.card,
+                  color: isActive ? C.cream : C.accent,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
+                  transition: "all 0.18s",
+                  boxShadow: isActive ? "0 6px 14px rgba(107,142,90,0.24)" : "none",
                 }}
               >
-                <div style={{ color, display: "flex" }}>
-                  <Icon size={16} />
-                </div>
-                <div>
-                  <div
-                    style={{ fontSize: 14, fontWeight: 700, color: C.accent }}
-                  >
-                    {count}
-                  </div>
-                  <div
-                    style={{ fontSize: 9, color: C.muted, letterSpacing: 0.5 }}
-                  >
-                    {statLabel}
-                  </div>
-                </div>
-              </div>
+                <span>{label}</span>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 22,
+                    height: 18,
+                    padding: "0 6px",
+                    borderRadius: 999,
+                    background: isActive ? "rgba(255,255,255,0.18)" : C.beige,
+                    color: isActive ? C.cream : C.muted,
+                    fontSize: 10,
+                    fontWeight: 700,
+                  }}
+                >
+                  {items.length}
+                </span>
+              </button>
             );
           })}
         </div>
@@ -7390,44 +7597,63 @@ function TrendingScreen({ catalog, onItemClick, favorites, toggleFav, onNav }) {
       <div
         className="tb-screen__body"
         style={{ flex: 1, overflow: "auto", padding: "0 18px 90px" }}
+        role="tabpanel"
       >
-        {!!demandSignals.length && (
-          <Section
-            title={TREND_SECTION_META.demand.title}
-            IconComp={TREND_SECTION_META.demand.Icon}
-            items={demandSignals}
-            color={TREND_SECTION_META.demand.color}
-          />
+        {currentItems.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "48px 20px",
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              borderRadius: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: C.goldBg,
+                border: `1px solid ${C.goldBorder}`,
+                color: C.forest,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 10,
+              }}
+            >
+              <TrendingUpIcon size={20} />
+            </div>
+            <p style={{ fontSize: 13, color: C.accent, fontWeight: 600, margin: 0 }}>
+              No {currentTab.label.toLowerCase()} signals yet
+            </p>
+            <p style={{ fontSize: 11, color: C.muted, margin: "6px 0 0" }}>
+              {activeTab === "favorites"
+                ? "Save pieces from the catalog to see them here."
+                : "Check back after the next signal refresh."}
+            </p>
+          </div>
+        ) : (
+          <div
+            className="tb-catalog-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+            }}
+          >
+            {currentItems.map(item => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onClick={() => onItemClick(item)}
+                isFav={favorites.has(item.id)}
+                toggleFav={toggleFav}
+              />
+            ))}
+          </div>
         )}
-        {!!editorialPicks.length && (
-          <Section
-            title={TREND_SECTION_META.editorial.title}
-            IconComp={TREND_SECTION_META.editorial.Icon}
-            items={editorialPicks}
-            color={TREND_SECTION_META.editorial.color}
-          />
-        )}
-        {!!clientFavorites.length && (
-          <Section
-            title={TREND_SECTION_META.staple.title}
-            IconComp={TREND_SECTION_META.staple.Icon}
-            items={clientFavorites}
-            color={TREND_SECTION_META.staple.color}
-          />
-        )}
-        {!!seasonalSignals.length && (
-          <Section
-            title={TREND_SECTION_META.seasonal.title}
-            IconComp={TREND_SECTION_META.seasonal.Icon}
-            items={seasonalSignals}
-            color={TREND_SECTION_META.seasonal.color}
-          />
-        )}
-        <Section
-          title="All Active Signals"
-          IconComp={TrendingUpIcon}
-          items={trendingItems}
-        />
       </div>
       <NavBar active="trending" onNav={onNav} />
     </div>
@@ -7475,9 +7701,10 @@ function BrandsScreen({ catalog, onBrandClick, onNav }) {
             const avgFit = items.length
               ? Math.round(items.reduce((s, i) => s + i.fit, 0) / items.length)
               : 0;
-            const topFit = items.length
-              ? Math.max(...items.map(i => i.fit))
-              : 0;
+            return { b, items, avgFit };
+          }).map(({ b, items, avgFit }, _idx, arr) => {
+            const maxAvg = Math.max(...arr.map(x => x.avgFit));
+            const isTop = avgFit === maxAvg && avgFit > 0;
             return (
               <GlassCard
                 key={b.id}
@@ -7488,24 +7715,54 @@ function BrandsScreen({ catalog, onBrandClick, onNav }) {
                   display: "flex",
                   flexDirection: "column",
                   gap: 10,
+                  position: "relative",
+                  border: isTop ? `1px solid ${C.goldBorder}` : undefined,
+                  boxShadow: isTop ? "0 8px 20px rgba(107,142,90,0.18)" : undefined,
                 }}
               >
+                {isTop && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      padding: "3px 8px",
+                      borderRadius: 999,
+                      background: C.forest,
+                      color: C.cream,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: 0.6,
+                      textTransform: "uppercase",
+                      boxShadow: "0 3px 8px rgba(107,142,90,0.28)",
+                    }}
+                  >
+                    Top fit
+                  </div>
+                )}
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div
                     style={{
                       width: 44,
                       height: 44,
                       borderRadius: 12,
-                      background: b.color || "#1a1a1a",
+                      background: `linear-gradient(135deg, ${b.color || PALETTE.forest}, ${PALETTE.forestDeep})`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: `1px solid rgba(255,255,255,0.1)`,
+                      border: `1px solid ${C.borderLight}`,
                       flexShrink: 0,
+                      boxShadow: "0 4px 10px rgba(45,55,42,0.18)",
                     }}
                   >
                     <span
-                      style={{ color: "#fff", fontSize: 12, fontWeight: 700 }}
+                      style={{
+                        color: C.cream,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        fontFamily: font.serif,
+                        letterSpacing: 0.5,
+                      }}
                     >
                       {b.logo}
                     </span>
@@ -7514,17 +7771,20 @@ function BrandsScreen({ catalog, onBrandClick, onNav }) {
                     <div
                       style={{
                         fontSize: 13,
-                        fontWeight: 600,
+                        fontWeight: 700,
                         color: C.accent,
-                        whiteSpace: "nowrap",
+                        lineHeight: 1.2,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
                         overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        wordBreak: "break-word",
                       }}
                     >
                       {b.name}
                     </div>
-                    <div style={{ fontSize: 9, color: C.muted, marginTop: 1 }}>
-                      {items.length} items
+                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2, fontWeight: 500 }}>
+                      {items.length} item{items.length === 1 ? "" : "s"}
                     </div>
                   </div>
                 </div>
@@ -7753,27 +8013,30 @@ function ItemDetailScreen({
           position: "sticky",
           top: 0,
           zIndex: 10,
-          padding: "14px 18px",
+          padding: "12px 18px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          background: "rgba(10,10,10,0.9)",
+          background: `${C.bg}EE`,
           backdropFilter: "blur(16px)",
+          borderBottom: `1px solid ${C.border}`,
         }}
       >
-        <BackButton onClick={onBack} />
+        <BackButton onClick={onBack} label="Back to results" />
         <button
           onClick={() => toggleFav(item.id)}
+          aria-label={isFav ? "Remove from shortlist" : "Save to shortlist"}
           style={{
-            background: "rgba(255,255,255,0.05)",
-            border: `1px solid ${C.border}`,
+            background: isFav ? C.goldBg : C.card,
+            border: `1px solid ${isFav ? C.goldBorder : C.borderLight}`,
             borderRadius: 12,
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
+            transition: "all 0.18s",
           }}
         >
           <HeartIcon filled={isFav} />
@@ -8112,26 +8375,31 @@ function ItemDetailScreen({
                 ["fit", "Fit Intelligence"],
                 ["size", "Size Chart"],
                 ["reviews", "Reviews"],
-              ].map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  style={{
-                    flex: 1,
-                    padding: "8px 0",
-                    borderRadius: 9,
-                    border: "none",
-                    background: activeTab === id ? C.bgElevated : "transparent",
-                    color: activeTab === id ? C.accent : C.muted,
-                    fontSize: 11,
-                    fontWeight: activeTab === id ? 600 : 400,
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
+              ].map(([id, label]) => {
+                const isActive = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: 9,
+                      border: "none",
+                      background: isActive ? C.forest : "transparent",
+                      color: isActive ? C.cream : C.muted,
+                      fontSize: 12,
+                      fontWeight: isActive ? 700 : 500,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      letterSpacing: 0.2,
+                      boxShadow: isActive ? "0 4px 12px rgba(107,142,90,0.28)" : "none",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
 
             {activeTab === "fit" && (
@@ -8226,8 +8494,8 @@ function ItemDetailScreen({
                   </div>
                   <p
                     style={{
-                      fontSize: 11,
-                      color: "rgba(250,250,249,0.75)",
+                      fontSize: 12,
+                      color: C.mutedLight,
                       lineHeight: 1.6,
                       fontStyle: "italic",
                       margin: 0,
@@ -8247,16 +8515,17 @@ function ItemDetailScreen({
                 >
                   <p
                     style={{
-                      fontSize: 11,
-                      color: C.goldLight,
+                      fontSize: 12,
+                      color: C.forestDeep,
                       lineHeight: 1.5,
                       margin: 0,
+                      fontWeight: 500,
                     }}
                   >
                     {item.sizingNote}
                   </p>
                 </div>
-                <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>
+                <p style={{ fontSize: 12, color: C.mutedLight, margin: 0, fontWeight: 500 }}>
                   {item.fabric}
                 </p>
               </GlassCard>
@@ -8814,6 +9083,60 @@ function StyleAIScreen({
           </div>
         </GlassCard>
 
+        {/* Hoisted recommendations — results visible without scrolling */}
+        {recommendedItems.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 10,
+              }}
+            >
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: C.accent,
+                  margin: 0,
+                  fontFamily: font.serif,
+                }}
+              >
+                Top recommendations
+              </p>
+              <span
+                style={{
+                  fontSize: 10,
+                  color: C.muted,
+                  textTransform: "uppercase",
+                  letterSpacing: 1.2,
+                  fontWeight: 600,
+                }}
+              >
+                {recommendedItems.length} picks
+              </span>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+              }}
+            >
+              {recommendedItems.slice(0, 4).map(item => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onClick={() => onItemClick(item)}
+                  isFav={favorites.has(item.id)}
+                  toggleFav={toggleFav}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         <GlassCard style={{ padding: 18, marginBottom: 16 }}>
           <div
             style={{
@@ -8942,15 +9265,60 @@ function StyleAIScreen({
                 >
                   Palette
                 </div>
-                <div style={{ display: "grid", gap: 8 }}>
-                  {STYLE_PALETTES.map(option => (
-                    <Pill
-                      key={option}
-                      label={option}
-                      active={palette === option}
-                      onClick={() => setPalette(option)}
-                    />
-                  ))}
+                <div style={{ display: "grid", gap: 6 }}>
+                  {STYLE_PALETTES.map(option => {
+                    const swatches = ({
+                      "Warm neutrals": [PALETTE.beige, PALETTE.tan, PALETTE.cocoa],
+                      "Soft tonal": [PALETTE.sageMist, PALETTE.sage, PALETTE.forest],
+                      "Dark luxe": [PALETTE.ink, PALETTE.clay, PALETTE.cocoa],
+                      "Bold accent": [PALETTE.forest, PALETTE.olive, PALETTE.bark],
+                    })[option] || [PALETTE.sage, PALETTE.forest, PALETTE.cocoa];
+                    const isActive = palette === option;
+                    return (
+                      <button
+                        key={option}
+                        onClick={() => setPalette(option)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "7px 10px",
+                          borderRadius: 10,
+                          border: `1px solid ${isActive ? C.forest : C.borderLight}`,
+                          background: isActive ? C.goldBg : C.card,
+                          color: isActive ? C.forest : C.accent,
+                          fontSize: 11,
+                          fontWeight: isActive ? 700 : 500,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.18s",
+                          boxShadow: isActive ? "0 4px 12px rgba(107,142,90,0.20)" : "none",
+                        }}
+                      >
+                        <div style={{ display: "flex", gap: 2 }}>
+                          {swatches.map((c, i) => (
+                            <span
+                              key={i}
+                              style={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: 4,
+                                background: c,
+                                border: "1px solid rgba(45,55,42,0.16)",
+                                display: "inline-block",
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <span style={{ flex: 1 }}>{option}</span>
+                        {isActive && (
+                          <span style={{ color: C.forest, display: "flex" }}>
+                            <CheckIcon />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div>
@@ -9903,20 +10271,20 @@ function ProfileScreen({
           <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
             <Body3DViewer
               body={userBody}
-              width={140}
-              height={200}
+              width={150}
+              height={210}
               autoRotate
-              variant="scan"
+              variant="studio"
             />
             <div style={{ flex: 1 }}>
               <div
                 style={{
                   fontSize: 11,
-                  color: C.gold,
+                  color: C.forest,
                   textTransform: "uppercase",
                   letterSpacing: 1.5,
-                  fontWeight: 600,
-                  marginBottom: 8,
+                  fontWeight: 700,
+                  marginBottom: 10,
                 }}
               >
                 Your Measurements
@@ -9925,30 +10293,38 @@ function ProfileScreen({
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
-                  gap: 6,
+                  gap: 8,
                 }}
               >
                 {Object.entries(userBody).map(([k, v]) => (
                   <div
                     key={k}
                     style={{
-                      padding: "6px 8px",
+                      padding: "8px 10px",
                       background: C.bgElevated,
-                      borderRadius: 8,
+                      borderRadius: 10,
                       border: `1px solid ${C.border}`,
                     }}
                   >
                     <div
                       style={{
-                        fontSize: 8,
+                        fontSize: 10,
                         color: C.muted,
                         textTransform: "capitalize",
+                        fontWeight: 600,
+                        letterSpacing: 0.4,
                       }}
                     >
                       {k}
                     </div>
                     <div
-                      style={{ fontSize: 13, fontWeight: 700, color: C.gold }}
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 700,
+                        color: C.accent,
+                        fontFamily: font.serif,
+                        marginTop: 2,
+                      }}
                     >
                       {v}"
                     </div>
@@ -9980,10 +10356,10 @@ function ProfileScreen({
             }}
           >
             {[
-              { label: "Avg Fit", value: `${avgFit}%`, color: C.gold },
-              { label: "Perfect Fits", value: perfectFits, color: C.success },
-              { label: "Shortlist", value: favorites.size, color: C.tailor },
-            ].map(({ label, value, color }) => (
+              { label: "Avg Fit", value: `${avgFit}%`, color: C.forest, isZero: false },
+              { label: "Perfect Fits", value: perfectFits, color: C.success, isZero: perfectFits === 0 },
+              { label: "Shortlist", value: favorites.size, color: C.tailor, isZero: favorites.size === 0 },
+            ].map(({ label, value, color, isZero }) => (
               <div
                 key={label}
                 style={{
@@ -9992,12 +10368,13 @@ function ProfileScreen({
                   background: C.bgElevated,
                   borderRadius: 12,
                   border: `1px solid ${C.border}`,
+                  opacity: isZero ? 0.6 : 1,
                 }}
               >
-                <div style={{ fontSize: 20, fontWeight: 700, color }}>
-                  {value}
+                <div style={{ fontSize: 20, fontWeight: 700, color: isZero ? C.muted : color }}>
+                  {isZero ? "—" : value}
                 </div>
-                <div style={{ fontSize: 9, color: C.muted, marginTop: 3 }}>
+                <div style={{ fontSize: 10, color: C.muted, marginTop: 4, fontWeight: 500 }}>
                   {label}
                 </div>
               </div>
@@ -10145,31 +10522,88 @@ function ProfileScreen({
         {favItems.length === 0 && (
           <div
             style={{
+              padding: "26px 22px",
+              borderRadius: 18,
+              border: `1px solid ${C.borderLight}`,
+              background: `linear-gradient(160deg, ${C.cream} 0%, ${C.beige} 100%)`,
+              boxShadow: "0 12px 24px rgba(45,55,42,0.08)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
               textAlign: "center",
-              padding: "40px 20px",
-              color: C.muted,
+              gap: 12,
+              position: "relative",
+              overflow: "hidden",
             }}
           >
             <div
+              aria-hidden="true"
               style={{
-                width: 56,
-                height: 56,
+                position: "absolute",
+                right: -30,
+                bottom: -40,
+                width: 160,
+                height: 160,
                 borderRadius: "50%",
-                border: `1px solid ${C.border}`,
-                background: C.card,
-                color: C.gold,
+                background:
+                  "radial-gradient(circle, rgba(156,175,136,0.30) 0%, transparent 70%)",
+                pointerEvents: "none",
+              }}
+            />
+            <div
+              style={{
+                width: 54,
+                height: 54,
+                borderRadius: 16,
+                background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+                color: C.cream,
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                marginBottom: 12,
+                boxShadow: "0 8px 20px rgba(107,142,90,0.32)",
               }}
             >
-              <HeartIcon />
+              <HeartIcon filled color={C.cream} />
             </div>
-            <p style={{ fontSize: 13 }}>
-              No pieces saved yet. Use the heart on any item to build a
-              shortlist here.
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                color: C.accent,
+                fontFamily: font.serif,
+              }}
+            >
+              Start your shortlist
+            </div>
+            <p
+              style={{
+                fontSize: 12,
+                color: C.muted,
+                lineHeight: 1.55,
+                margin: 0,
+                maxWidth: 260,
+              }}
+            >
+              Tap the heart on any piece to save it here. Your shortlist powers fit-aware recommendations across brands.
             </p>
+            <button
+              onClick={() => onNav("home")}
+              style={{
+                padding: "10px 22px",
+                borderRadius: 999,
+                border: "none",
+                background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+                color: C.cream,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                cursor: "pointer",
+                boxShadow: "0 6px 16px rgba(107,142,90,0.28)",
+                marginTop: 2,
+              }}
+            >
+              Browse the catalog
+            </button>
           </div>
         )}
       </div>
