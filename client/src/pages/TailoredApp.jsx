@@ -4923,27 +4923,20 @@ function enrichCatalog(userBody) {
     };
   });
 }
+let __userDataMemory = null;
 function loadUserData() {
-  try {
-    const r = localStorage.getItem(STORAGE_KEY);
-    if (!r) return null;
-    const d = JSON.parse(r);
-    if (d.favorites) d.favorites = new Set(d.favorites);
-    if (d.styles) d.styles = new Set(d.styles);
-    return d;
-  } catch {
-    return null;
-  }
+  if (!__userDataMemory) return null;
+  const d = { ...__userDataMemory };
+  if (d.favorites) d.favorites = new Set(d.favorites);
+  if (d.styles) d.styles = new Set(d.styles);
+  return d;
 }
 function saveUserData(data) {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      ...data,
-      favorites: data.favorites ? [...data.favorites] : [],
-      styles: data.styles ? [...data.styles] : [],
-    })
-  );
+  __userDataMemory = {
+    ...data,
+    favorites: data.favorites ? [...data.favorites] : [],
+    styles: data.styles ? [...data.styles] : [],
+  };
 }
 function formatOrderDate(timestamp) {
   if (!timestamp) return "Saved just now";
