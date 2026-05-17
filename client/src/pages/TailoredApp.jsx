@@ -8032,6 +8032,744 @@ function BrandDetailScreen({
   );
 }
 
+// ─── Fit Studio (Virtual Try-On replacement) ────────────────
+// Premium try-on modal: large body model, garment drape, fit risk zones,
+// before/tailored toggle, alteration callouts, garment specs, sticky CTA.
+function buildFitRegions(item, userBody) {
+  const base = Math.max(55, Math.min(99, item.fit || 85));
+  const cat = item.category || "Tops";
+  const measStr = item.measurements?.[item.bestSize] || "";
+  const meas = parseMeasurements(measStr);
+  const dim = (key, fallback) => meas[key]?.mid || fallback;
+  const delta = (uv, gv) => (gv > 0 ? +(gv - uv).toFixed(1) : 0);
+
+  if (cat === "Bottoms") {
+    const waistG = dim("waist", userBody.waist);
+    const hipG = dim("hip", userBody.hips);
+    const inseamG = dim("inseam", userBody.inseam);
+    return [
+      { key: "waist", label: "Waist", score: base - 4, you: userBody.waist, garment: waistG, unit: '"',
+        risk: delta(userBody.waist, waistG), zone: "snug" },
+      { key: "hips", label: "Hips / Seat", score: base - 1, you: userBody.hips, garment: hipG, unit: '"',
+        risk: delta(userBody.hips, hipG), zone: "ease" },
+      { key: "leg", label: "Leg taper", score: base - 6, you: 0, garment: 0, unit: '',
+        risk: 0, zone: "drape" },
+      { key: "inseam", label: "Hem / Inseam", score: base - 10, you: userBody.inseam, garment: inseamG, unit: '"',
+        risk: delta(userBody.inseam, inseamG), zone: "length" },
+    ];
+  }
+  if (cat === "Dresses") {
+    const bustG = dim("bust", userBody.bust);
+    const waistG = dim("waist", userBody.waist);
+    const hipG = dim("hip", userBody.hips);
+    return [
+      { key: "shoulder", label: "Shoulder", score: base - 1, you: userBody.shoulder, garment: userBody.shoulder, unit: '"', risk: 0, zone: "align" },
+      { key: "bust", label: "Bust", score: base - 2, you: userBody.bust, garment: bustG, unit: '"', risk: delta(userBody.bust, bustG), zone: "ease" },
+      { key: "waist", label: "Waist", score: base - 5, you: userBody.waist, garment: waistG, unit: '"', risk: delta(userBody.waist, waistG), zone: "snug" },
+      { key: "hips", label: "Hip / Skirt", score: base - 3, you: userBody.hips, garment: hipG, unit: '"', risk: delta(userBody.hips, hipG), zone: "drape" },
+      { key: "hem", label: "Hem length", score: base - 8, you: 0, garment: 0, unit: '', risk: 0, zone: "length" },
+    ];
+  }
+  // Tops / Outerwear
+  const bustG = dim("bust", userBody.bust) || dim("chest", userBody.bust);
+  const waistG = dim("waist", userBody.waist);
+  const shoulderG = dim("shoulder", userBody.shoulder);
+  return [
+    { key: "shoulder", label: "Shoulder seam", score: base - 2, you: userBody.shoulder, garment: shoulderG, unit: '"', risk: delta(userBody.shoulder, shoulderG), zone: "align" },
+    { key: "bust", label: "Bust / Chest", score: base - 1, you: userBody.bust, garment: bustG, unit: '"', risk: delta(userBody.bust, bustG), zone: "ease" },
+    { key: "waist", label: "Waist", score: base - 6, you: userBody.waist, garment: waistG, unit: '"', risk: delta(userBody.waist, waistG), zone: "snug" },
+    { key: "sleeve", label: "Sleeve taper", score: base - 5, you: 0, garment: 0, unit: '', risk: 0, zone: "drape" },
+    { key: "hem", label: "Hem", score: base - 4, you: 0, garment: 0, unit: '', risk: 0, zone: "length" },
+  ];
+}
+
+function buildAlterations(regions, item) {
+  return regions
+    .map(r => {
+      const off = Math.max(0, 100 - r.score);
+      if (off < 6) return null;
+      const big = off > 18;
+      let action;
+      let detail;
+      if (r.zone === "snug") {
+        action = big ? `Take in ${r.label.toLowerCase()}` : `Light nip at ${r.label.toLowerCase()}`;
+        detail = r.risk > 0
+          ? `+${r.risk}" ease — pull in to your ${r.you}" measurement`
+          : `Side seams trimmed for clean line at your waist`;
+      } else if (r.zone === "length") {
+        action = big ? `Shorten ${r.label.toLowerCase()}` : `Hem to length`;
+        detail = `Cut and rebind to your ${r.you || item.bestSize} length, original stitch retained`;
+      } else if (r.zone === "drape") {
+        action = `Taper ${r.label.toLowerCase()}`;
+        detail = `Recut inseam/sleeve line for cleaner taper`;
+      } else if (r.zone === "align") {
+        action = `Adjust ${r.label.toLowerCase()}`;
+        detail = r.risk !== 0
+          ? `${r.risk > 0 ? "Bring in" : "Let out"} shoulder by ${Math.abs(r.risk)}"`
+          : `Re-set shoulder seam to your frame`;
+      } else {
+        action = `Refine ${r.label.toLowerCase()}`;
+        detail = `Recontour for ease through ${r.label.toLowerCase()}`;
+      }
+      return { region: r.label, action, detail, off };
+    })
+    .filter(Boolean);
+}
+
+function zoneColor(score) {
+  if (score >= 90) return C.success;
+  if (score >= 78) return C.warning;
+  return C.danger;
+}
+
+function FitMapOverlay({ width, height, regions, mode }) {
+  // Anchor y-positions inside the viewer (top=0, bottom=height) keyed by region.key.
+  const yMap = {
+    shoulder: 0.10,
+    bust: 0.22,
+    waist: 0.40,
+    hips: 0.50,
+    hip: 0.50,
+    leg: 0.68,
+    inseam: 0.86,
+    sleeve: 0.46,
+    hem: 0.62,
+  };
+  // Hide overlays in "tailored" mode — everything is in tolerance after alterations.
+  const showAll = mode === "before";
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width={width}
+      height={height}
+      style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="fs-seam" x1="0" x2="1">
+          <stop offset="0" stopColor={C.forest} stopOpacity="0" />
+          <stop offset="0.5" stopColor={C.forest} stopOpacity="0.9" />
+          <stop offset="1" stopColor={C.forest} stopOpacity="0" />
+        </linearGradient>
+        <radialGradient id="fs-zone-snug" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#8E5B5B" stopOpacity="0.32" />
+          <stop offset="1" stopColor="#8E5B5B" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="fs-zone-warn" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#5B8F8A" stopOpacity="0.28" />
+          <stop offset="1" stopColor="#5B8F8A" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="fs-zone-ok" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#6B8E5A" stopOpacity="0.22" />
+          <stop offset="1" stopColor="#6B8E5A" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {regions.map((r, i) => {
+        const yFrac = yMap[r.key] ?? 0.5;
+        const y = yFrac * height;
+        const left = i % 2 === 0;
+        const tagX = left ? 10 : width - 110;
+        const lineX1 = width / 2 + (left ? -10 : 10);
+        const lineX2 = left ? tagX + 100 : tagX;
+        const color = zoneColor(r.score);
+        const heatId = r.score >= 90 ? "fs-zone-ok" : r.score >= 78 ? "fs-zone-warn" : "fs-zone-snug";
+        return (
+          <g key={r.key} opacity={showAll ? 1 : 0.35}>
+            {/* heat blob */}
+            <ellipse cx={width / 2} cy={y} rx={width * 0.28} ry={height * 0.055} fill={`url(#${heatId})`} />
+            {/* leader line */}
+            <line x1={lineX1} y1={y} x2={lineX2} y2={y} stroke="url(#fs-seam)" strokeWidth="1.2" strokeDasharray="3 3" />
+            <circle cx={lineX1} cy={y} r="3" fill={color} stroke={C.cream} strokeWidth="1.4" />
+            {/* tag */}
+            <rect x={tagX} y={y - 13} width="100" height="26" rx="13" fill="rgba(255,255,255,0.96)" stroke={color} strokeWidth="1" />
+            <text x={tagX + 10} y={y + 1} fontSize="9.5" fontWeight="800" fill={C.muted} fontFamily="Manrope, sans-serif" style={{ textTransform: "uppercase", letterSpacing: 0.6 }}>
+              {r.label}
+            </text>
+            <text x={tagX + 10} y={y + 12} fontSize="9.5" fontWeight="700" fill={color} fontFamily="Manrope, sans-serif">
+              {r.score}% fit{r.risk !== 0 && r.unit ? ` · ${r.risk > 0 ? "+" : ""}${r.risk}${r.unit}` : ""}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function FitStudio({ item, userBody, onClose, onApprove }) {
+  const [mode, setMode] = useState("before"); // "before" | "tailored"
+  const [activeTab, setActiveTab] = useState("map"); // "map" | "alter" | "specs"
+  const [garmentSize, setGarmentSize] = useState(item.bestSize);
+  const [garmentColor, setGarmentColor] = useState(item.color);
+  const colors = item.colors || [item.color];
+  const sizes = Object.keys(item.measurements || {});
+
+  const baseRegions = useMemo(() => buildFitRegions(item, userBody), [item, userBody]);
+  // In "tailored" mode, every region is in tolerance (score ≥ 95).
+  const regions = useMemo(
+    () => (mode === "tailored"
+      ? baseRegions.map(r => ({ ...r, score: Math.max(r.score, 95) }))
+      : baseRegions),
+    [baseRegions, mode]
+  );
+  const alterations = useMemo(() => buildAlterations(baseRegions, item), [baseRegions, item]);
+
+  // Confidence rolled up from worst region score, modulated by data completeness.
+  const worst = Math.min(...baseRegions.map(r => r.score));
+  const avg = Math.round(baseRegions.reduce((s, r) => s + r.score, 0) / baseRegions.length);
+  const confidence = Math.max(60, Math.min(98, Math.round((worst + avg) / 2)));
+
+  const fabric = item.fabric || "Mixed fabric";
+  const lower = fabric.toLowerCase();
+  const stretch = /stretch|elastane|spandex|lycra|jersey|knit|modal/.test(lower)
+    ? "4-way stretch"
+    : /silk|satin|crepe|chiffon/.test(lower)
+      ? "Drape · low stretch"
+      : /denim|gabardine|twill|wool|leather|canvas/.test(lower)
+        ? "Rigid · structured"
+        : "Light stretch";
+
+  // Viewer sizing — large body, responsive width capped for the modal column.
+  const viewerW = 360;
+  const viewerH = 520;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Fit Studio"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bgElevated} 100%)`,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      {/* Top bar */}
+      <div
+        style={{
+          padding: "12px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: `1px solid ${C.border}`,
+          background: `${C.bg}EE`,
+          backdropFilter: "blur(14px)",
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={onClose}
+            aria-label="Close Fit Studio"
+            style={{
+              width: 34, height: 34, borderRadius: 10,
+              border: `1px solid ${C.border}`, background: C.card,
+              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+            }}
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <div>
+            <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
+              Fit Studio · Prototype preview
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.accent, lineHeight: 1.2, fontFamily: font.serif }}>
+              {item.name}
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 9.5, color: C.muted, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>
+            Tailor confidence
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: zoneColor(confidence), fontFamily: font.sans }}>
+            {confidence}%
+          </div>
+        </div>
+      </div>
+
+      {/* Before / Tailored toggle */}
+      <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            background: C.card,
+            borderRadius: 12,
+            padding: 4,
+            border: `1px solid ${C.border}`,
+            gap: 0,
+          }}
+        >
+          {[
+            ["before", "Retailer fit"],
+            ["tailored", "After tailoring"],
+          ].map(([id, label]) => {
+            const active = mode === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setMode(id)}
+                style={{
+                  flex: 1,
+                  padding: "9px 0",
+                  borderRadius: 9,
+                  border: "none",
+                  background: active ? C.forest : "transparent",
+                  color: active ? C.cream : C.muted,
+                  fontSize: 11.5,
+                  fontWeight: active ? 700 : 600,
+                  cursor: "pointer",
+                  letterSpacing: 0.3,
+                  boxShadow: active ? "0 4px 14px rgba(107,142,90,0.28)" : "none",
+                  transition: "all 0.18s",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div
+        style={{
+          flex: 1,
+          overflow: "auto",
+          padding: "12px 16px 24px",
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: 12,
+        }}
+      >
+        {/* Viewer panel */}
+        <div
+          style={{
+            position: "relative",
+            borderRadius: 22,
+            overflow: "hidden",
+            background: `radial-gradient(ellipse at 50% 38%, ${C.cream} 0%, ${C.beige} 65%, ${C.oat} 100%)`,
+            border: `1px solid ${C.border}`,
+            boxShadow: "0 18px 40px rgba(45,55,42,0.10)",
+            minHeight: viewerH,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {/* Scan-plate ambient grid */}
+          <svg
+            width="100%"
+            height="100%"
+            style={{ position: "absolute", inset: 0, opacity: 0.35, pointerEvents: "none" }}
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern id="fs-grid" width="26" height="26" patternUnits="userSpaceOnUse">
+                <path d="M 26 0 L 0 0 0 26" fill="none" stroke={C.warmGray} strokeOpacity="0.18" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#fs-grid)" />
+          </svg>
+
+          <div style={{ position: "relative", width: viewerW, height: viewerH }}>
+            <Body3DViewer
+              body={userBody}
+              width={viewerW}
+              height={viewerH}
+              garment={{ ...item, color: garmentColor }}
+              autoRotate
+              variant="studio"
+            />
+            <FitMapOverlay width={viewerW} height={viewerH} regions={regions} mode={mode} />
+            {/* Mode caption */}
+            <div
+              style={{
+                position: "absolute",
+                left: 12, bottom: 12,
+                padding: "6px 10px",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.85)",
+                border: `1px solid ${C.border}`,
+                fontSize: 9.5,
+                fontWeight: 800,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+                color: mode === "tailored" ? C.forest : C.muted,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: mode === "tailored" ? C.forest : C.warmGray,
+              }} />
+              {mode === "tailored" ? "After alterations" : "As shipped from retailer"}
+            </div>
+            {/* Drag hint */}
+            <div
+              style={{
+                position: "absolute",
+                right: 12, bottom: 12,
+                fontSize: 9, color: C.muted,
+                background: "rgba(255,255,255,0.7)",
+                padding: "4px 8px", borderRadius: 8,
+                letterSpacing: 0.6,
+              }}
+            >
+              Drag to rotate
+            </div>
+          </div>
+        </div>
+
+        {/* Quick controls: size + color */}
+        <div
+          style={{
+            background: C.card,
+            border: `1px solid ${C.border}`,
+            borderRadius: 16,
+            padding: "12px 14px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 10, color: C.muted, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+              Base size · {garmentSize}
+            </div>
+            <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.4 }}>
+              {item.brand}'s recommendation: <strong style={{ color: C.forest }}>{item.bestSize}</strong>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {sizes.map(sz => {
+              const active = garmentSize === sz;
+              return (
+                <button
+                  key={sz}
+                  onClick={() => setGarmentSize(sz)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 8,
+                    border: `1px solid ${active ? C.goldBorder : C.border}`,
+                    background: active ? C.goldBg : "transparent",
+                    color: active ? C.forest : C.muted,
+                    fontSize: 11,
+                    fontWeight: active ? 800 : 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {sz}
+                </button>
+              );
+            })}
+          </div>
+          {colors.length > 1 && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.4 }}>Colour</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {colors.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setGarmentColor(c)}
+                    aria-label={`Colour ${c}`}
+                    style={{
+                      width: 22, height: 22, borderRadius: "50%",
+                      background: c,
+                      border: `2px solid ${garmentColor === c ? C.forest : "transparent"}`,
+                      outline: garmentColor === c ? `1px solid ${C.forest}` : "1px solid rgba(0,0,0,0.08)",
+                      cursor: "pointer",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tab bar */}
+        <div
+          style={{
+            display: "flex",
+            background: C.card,
+            borderRadius: 12,
+            padding: 4,
+            border: `1px solid ${C.border}`,
+          }}
+        >
+          {[
+            ["map", "Fit risk"],
+            ["alter", "Alterations"],
+            ["specs", "Garment specs"],
+          ].map(([id, label]) => {
+            const active = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  borderRadius: 9,
+                  border: "none",
+                  background: active ? C.forest : "transparent",
+                  color: active ? C.cream : C.muted,
+                  fontSize: 11.5,
+                  fontWeight: active ? 700 : 600,
+                  cursor: "pointer",
+                  letterSpacing: 0.3,
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {activeTab === "map" && (
+          <div
+            style={{
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              borderRadius: 16,
+              padding: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <div style={{ fontSize: 10.5, color: C.muted, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+              Per-zone tension
+            </div>
+            {regions.map(r => {
+              const col = zoneColor(r.score);
+              const off = Math.max(0, 100 - r.score);
+              return (
+                <div key={r.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.accent }}>{r.label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: col }}>
+                      {r.score}% · {off < 6 ? "in tolerance" : off < 18 ? "snug" : "needs work"}
+                    </span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 999, background: C.bgElevated, border: `1px solid ${C.border}`, overflow: "hidden" }}>
+                    <div style={{
+                      width: `${r.score}%`,
+                      height: "100%",
+                      background: `linear-gradient(90deg, ${col}, ${col}AA)`,
+                      transition: "width 0.4s ease",
+                    }} />
+                  </div>
+                  {r.unit && (
+                    <div style={{ fontSize: 10, color: C.muted }}>
+                      You {r.you}{r.unit} · Garment {r.garment}{r.unit}
+                      {r.risk !== 0 && (
+                        <span style={{ color: col, fontWeight: 700 }}>
+                          {` · ${r.risk > 0 ? "+" : ""}${r.risk}${r.unit} ease`}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div
+              style={{
+                marginTop: 6,
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: C.tailorBg,
+                border: `1px solid ${C.tailorBorder}`,
+                fontSize: 11,
+                color: C.mutedLight,
+                lineHeight: 1.5,
+              }}
+            >
+              Estimated drape from your scan + the retailer size chart. Prototype preview — tailor review required before any cut.
+            </div>
+          </div>
+        )}
+
+        {activeTab === "alter" && (
+          <div
+            style={{
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              borderRadius: 16,
+              padding: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+              <ScissorsIcon size={14} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: C.accent }}>
+                Tailor brief · {alterations.length} adjustment{alterations.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            {alterations.length === 0 ? (
+              <div style={{ fontSize: 11.5, color: C.muted, padding: "8px 0" }}>
+                Every zone is within tolerance — this piece fits as shipped. Our tailor will still quality-check seams before delivery.
+              </div>
+            ) : (
+              alterations.map((a, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: `1px solid ${C.goldBorder}`,
+                    background: C.goldBg,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 3,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: C.forestDeep, letterSpacing: 0.2 }}>
+                      {a.action}
+                    </span>
+                    <span style={{ fontSize: 10, color: C.muted, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>
+                      {a.region}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>
+                    {a.detail}
+                  </div>
+                </div>
+              ))
+            )}
+            <div
+              style={{
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: C.bgElevated,
+                border: `1px solid ${C.border}`,
+                fontSize: 10.5,
+                color: C.muted,
+                lineHeight: 1.5,
+              }}
+            >
+              Turnaround 9–14 days · Original stitching preserved where possible · Free re-fit within 30 days
+            </div>
+          </div>
+        )}
+
+        {activeTab === "specs" && (
+          <div
+            style={{
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              borderRadius: 16,
+              padding: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            <div style={{ fontSize: 10.5, color: C.muted, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+              Garment specs · imported from {item.brand}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {[
+                ["Category", item.category],
+                ["Recommended size", item.bestSize],
+                ["Behaviour", stretch],
+                ["Fabric", fabric],
+                ["Size chart match", `${avg}% avg`],
+                ["Tailor confidence", `${confidence}%`],
+              ].map(([k, v]) => (
+                <div key={k} style={{
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  background: C.bgElevated,
+                  border: `1px solid ${C.border}`,
+                }}>
+                  <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" }}>{k}</div>
+                  <div style={{ fontSize: 12, color: C.accent, fontWeight: 700, marginTop: 2 }}>{v}</div>
+                </div>
+              ))}
+            </div>
+            {item.sizingNote && (
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  background: C.goldBg,
+                  border: `1px solid ${C.goldBorder}`,
+                  fontSize: 11.5,
+                  color: C.forestDeep,
+                  lineHeight: 1.5,
+                  fontWeight: 500,
+                }}
+              >
+                {item.sizingNote}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Sticky CTA */}
+      <div
+        style={{
+          padding: "12px 16px 16px",
+          borderTop: `1px solid ${C.border}`,
+          background: `linear-gradient(180deg, ${C.bgElevated} 0%, ${C.bg} 100%)`,
+          display: "flex",
+          gap: 10,
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            padding: "13px 16px",
+            borderRadius: 12,
+            border: `1px solid ${C.border}`,
+            background: C.card,
+            color: C.muted,
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            letterSpacing: 0.3,
+          }}
+        >
+          Back
+        </button>
+        <button
+          onClick={() => onApprove(item)}
+          style={{
+            flex: 1,
+            padding: "13px 16px",
+            borderRadius: 12,
+            border: "none",
+            background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+            color: C.cream,
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: "pointer",
+            letterSpacing: 0.4,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            boxShadow: "0 14px 28px rgba(107,142,90,0.30)",
+          }}
+        >
+          <ScissorsIcon size={14} /> Approve alteration brief
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Item Detail Screen ─────────────────────────────────────
 function ItemDetailScreen({
   item,
@@ -8042,38 +8780,8 @@ function ItemDetailScreen({
   userBody,
 }) {
   const [showTryOn, setShowTryOn] = useState(false);
-  const [tryOnSize, setTryOnSize] = useState(item.bestSize);
-  const [tryOnColor, setTryOnColor] = useState(item.color);
-  const [showFitMap, setShowFitMap] = useState(false);
   const [activeTab, setActiveTab] = useState("fit");
   const sizes = Object.entries(item.measurements);
-  const colors = item.colors || [item.color];
-  const reviews = [
-    {
-      initials: "A.M.",
-      meas: "34-26-36, 5'6\"",
-      kept: true,
-      note:
-        item.fit >= 94
-          ? "Fit perfectly, kept it"
-          : "Slight fit issue but kept it",
-    },
-    {
-      initials: "J.R.",
-      meas: "33-25-35, 5'5\"",
-      kept: item.fit >= 90,
-      note:
-        item.fit >= 90
-          ? "Ordered usual size, fits great"
-          : "Runs small — size up",
-    },
-    {
-      initials: "C.L.",
-      meas: "35-27-37, 5'7\"",
-      kept: true,
-      note: item.sizingNote,
-    },
-  ];
   const fitRegions = [
     {
       label: "Bust",
@@ -8146,234 +8854,64 @@ function ItemDetailScreen({
               style={{
                 borderRadius: 20,
                 overflow: "hidden",
-                marginBottom: 14,
-                border: `1px solid ${showTryOn ? C.goldBorder : C.border}`,
-                transition: "border-color 0.3s",
+                marginBottom: 12,
+                border: `1px solid ${C.border}`,
+                position: "relative",
               }}
             >
-              {showTryOn ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: "16px 0 12px",
-                    background: C.bgElevated,
-                    position: "relative",
-                  }}
-                >
-                  <div style={{ position: "relative", width: 300, height: 400 }}>
-                    <Body3DViewer
-                      body={userBody}
-                      width={300}
-                      height={400}
-                      garment={{ ...item, color: tryOnColor }}
-                      autoRotate
-                    />
-                    {showFitMap && (
-                      <svg
-                        viewBox="0 0 300 400"
-                        width={300}
-                        height={400}
-                        style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
-                        aria-hidden="true"
-                      >
-                        <defs>
-                          <linearGradient id="seamLine" x1="0" x2="1">
-                            <stop offset="0" stopColor="#6B8E5A" stopOpacity="0" />
-                            <stop offset="0.5" stopColor="#6B8E5A" stopOpacity="0.95" />
-                            <stop offset="1" stopColor="#6B8E5A" stopOpacity="0" />
-                          </linearGradient>
-                        </defs>
-                        {[
-                          { y: 132, label: "Bust seam", off: fitRegions[0].score, side: "L" },
-                          { y: 180, label: "Waist", off: fitRegions[1].score, side: "R" },
-                          { y: 224, label: "Hip", off: fitRegions[2].score, side: "L" },
-                          { y: 280, label: "Hem", off: fitRegions[2].score - 4, side: "R" },
-                        ].map((s, i) => {
-                          const danger = s.off < 75;
-                          const warn = s.off >= 75 && s.off < 90;
-                          const ok = s.off >= 90;
-                          const color = ok ? "#4A8C5E" : warn ? "#8A8E36" : "#A04D3A";
-                          const left = s.side === "L";
-                          const xStart = left ? 60 : 240;
-                          const xEnd = left ? 18 : 282;
-                          const tagX = left ? 4 : 222;
-                          return (
-                            <g key={i} opacity="0.96">
-                              <line
-                                x1={xStart}
-                                y1={s.y}
-                                x2={xEnd}
-                                y2={s.y}
-                                stroke="url(#seamLine)"
-                                strokeWidth="1.5"
-                                strokeDasharray="3 3"
-                              />
-                              <circle cx={xStart} cy={s.y} r="3.5" fill={color} stroke="#F2F3EE" strokeWidth="1.5" />
-                              <rect
-                                x={tagX}
-                                y={s.y - 11}
-                                width="74"
-                                height="22"
-                                rx="11"
-                                fill="rgba(255,255,255,0.94)"
-                                stroke={color}
-                                strokeWidth="1"
-                              />
-                              <text
-                                x={tagX + 8}
-                                y={s.y + 4}
-                                fontSize="9.5"
-                                fontWeight="700"
-                                fill={color}
-                                fontFamily="Manrope, sans-serif"
-                              >
-                                {s.label} · {Math.max(0, 100 - s.off)}%
-                              </text>
-                            </g>
-                          );
-                        })}
-                      </svg>
-                    )}
-                  </div>
-                  {colors.length > 1 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        marginTop: 10,
-                        justifyContent: "center",
-                      }}
-                    >
-                      {colors.map(c => (
-                        <button
-                          key={c}
-                          onClick={() => setTryOnColor(c)}
-                          style={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: "50%",
-                            background: c,
-                            border: `2px solid ${tryOnColor === c ? C.gold : "transparent"}`,
-                            outline:
-                              tryOnColor === c ? `1px solid ${C.gold}` : "none",
-                            cursor: "pointer",
-                            transition: "all 0.2s",
-                            boxShadow: "0 0 0 1px rgba(255,255,255,0.1)",
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 6,
-                      marginTop: 10,
-                      flexWrap: "wrap",
-                      justifyContent: "center",
-                      padding: "0 16px",
-                    }}
-                  >
-                    {sizes.map(([sz]) => (
-                      <button
-                        key={sz}
-                        onClick={() => setTryOnSize(sz)}
-                        style={{
-                          padding: "4px 12px",
-                          borderRadius: 8,
-                          border: `1px solid ${tryOnSize === sz ? C.goldBorder : C.border}`,
-                          background:
-                            tryOnSize === sz ? C.goldBg : "transparent",
-                          color: tryOnSize === sz ? C.gold : C.muted,
-                          fontSize: 10,
-                          fontWeight: tryOnSize === sz ? 700 : 500,
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        {sz}
-                      </button>
-                    ))}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      marginTop: 8,
-                      alignItems: "center",
-                    }}
-                  >
-                    <p
-                      style={{
-                        fontSize: 9,
-                        color: C.muted,
-                        letterSpacing: 0.5,
-                      }}
-                    >
-                      Drag to rotate · Size {tryOnSize}
-                    </p>
-                    <button
-                      onClick={() => setShowFitMap(f => !f)}
-                      style={{
-                        fontSize: 9,
-                        color: showFitMap ? C.gold : C.muted,
-                        background: "none",
-                        border: `1px solid ${showFitMap ? C.goldBorder : C.border}`,
-                        borderRadius: 6,
-                        padding: "2px 8px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Fit Map
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <ProductImage item={item} style={{ height: 340 }} />
-              )}
-            </div>
-
-            <div
-              className="tb-item-detail__toggle"
-              style={{ display: "flex", gap: 8, marginBottom: 18 }}
-            >
-              <button
-                onClick={() => setShowTryOn(false)}
-                style={{
-                  flex: 1,
-                  padding: "10px 0",
-                  borderRadius: 10,
-                  border: `1px solid ${!showTryOn ? C.goldBorder : C.border}`,
-                  background: !showTryOn ? C.goldBg : "transparent",
-                  color: !showTryOn ? C.gold : C.muted,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-              >
-                Photo
-              </button>
+              <ProductImage item={item} style={{ height: 340 }} />
+              {/* Fit Studio entry — overlay CTA pinned to the image */}
               <button
                 onClick={() => setShowTryOn(true)}
                 style={{
-                  flex: 1,
-                  padding: "10px 0",
-                  borderRadius: 10,
-                  border: `1px solid ${showTryOn ? C.goldBorder : C.border}`,
-                  background: showTryOn ? C.goldBg : "transparent",
-                  color: showTryOn ? C.gold : C.muted,
-                  fontSize: 11,
-                  fontWeight: 600,
+                  position: "absolute",
+                  left: 12,
+                  bottom: 12,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "9px 14px",
+                  borderRadius: 999,
+                  border: `1px solid ${C.goldBorder}`,
+                  background: "rgba(255,255,255,0.92)",
+                  color: C.forestDeep,
+                  fontSize: 11.5,
+                  fontWeight: 800,
+                  letterSpacing: 0.4,
                   cursor: "pointer",
-                  transition: "all 0.2s",
+                  boxShadow: "0 8px 22px rgba(45,55,42,0.18)",
+                  backdropFilter: "blur(6px)",
                 }}
               >
-                Virtual Try-On
+                <SparkleIcon size={12} /> Open Fit Studio
               </button>
             </div>
+
+            <button
+              onClick={() => setShowTryOn(true)}
+              style={{
+                width: "100%",
+                marginBottom: 18,
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: `1px solid ${C.goldBorder}`,
+                background: `linear-gradient(180deg, ${C.cream}, #FFFFFF)`,
+                color: C.forestDeep,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                letterSpacing: 0.2,
+              }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <SparkleIcon size={12} />
+                Fit Studio · prototype preview on your body
+              </span>
+              <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Drape · Risk · Brief →</span>
+            </button>
           </div>
 
           <div className="tb-item-detail__details">
@@ -8815,6 +9353,17 @@ function ItemDetailScreen({
           </div>
         </div>
       </div>
+      {showTryOn && (
+        <FitStudio
+          item={item}
+          userBody={userBody}
+          onClose={() => setShowTryOn(false)}
+          onApprove={(it) => {
+            setShowTryOn(false);
+            onSendToTailor(it);
+          }}
+        />
+      )}
     </div>
   );
 }
