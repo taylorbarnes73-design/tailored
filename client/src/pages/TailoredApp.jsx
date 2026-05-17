@@ -13,34 +13,81 @@ import {
 } from "@mediapipe/tasks-vision";
 import { trpc } from "@/lib/trpc";
 
-// ─── Design Tokens ─────────────────────────────────────────
+// ─── Design Tokens · Earthy Luxury Palette ─────────────────
+// Sage, forest, olive, beige, tan, sand, cream, terracotta, warm gray.
+// The original "gold" / "tailor" tokens are remapped to the new palette so the
+// entire app inherits the new identity without thousands of surgical edits.
+const PALETTE = {
+  sage: "#9CAF88",
+  forest: "#6B8E5A",
+  olive: "#8B9556",
+  beige: "#F5F1E8",
+  tan: "#D2B48C",
+  sand: "#C19A6B",
+  cream: "#F7F3E9",
+  terracotta: "#C65D07",
+  warmGray: "#8B8680",
+  // Derived shades
+  forestDeep: "#4F6B43",
+  sageDeep: "#7A9070",
+  sageMist: "#C4D2B6",
+  ink: "#2C3327",
+  inkSoft: "#4A5043",
+  parchment: "#FBF8F1",
+  bark: "#5B4636",
+  oat: "#E8DFCB",
+};
 const C = {
-  bg: "#0c0b0f",
-  bgElevated: "#141218",
-  card: "#17141a",
-  cardHover: "#211d25",
-  accent: "#f8f3ec",
-  muted: "#8f8794",
-  mutedLight: "#c5bcc8",
-  border: "rgba(255,255,255,0.07)",
-  borderLight: "rgba(255,255,255,0.14)",
-  gold: "#d7b06c",
-  goldDark: "#b68945",
-  goldLight: "#efd8b3",
-  goldBg: "rgba(215,176,108,0.1)",
-  goldBorder: "rgba(215,176,108,0.24)",
-  success: "#4ade80",
-  successBg: "rgba(74,222,128,0.1)",
-  successBorder: "rgba(74,222,128,0.2)",
-  warning: "#fbbf24",
-  warningBg: "rgba(251,191,36,0.1)",
-  warningBorder: "rgba(251,191,36,0.2)",
-  danger: "#f87171",
-  tailor: "#7ea188",
-  tailorBg: "rgba(126,161,136,0.1)",
-  tailorBorder: "rgba(126,161,136,0.24)",
-  glass: "rgba(255,255,255,0.03)",
-  glassBorder: "rgba(255,255,255,0.08)",
+  // Surfaces — warm cream / beige rather than near-black
+  bg: PALETTE.parchment,
+  bgElevated: PALETTE.cream,
+  card: "#FFFFFF",
+  cardHover: PALETTE.beige,
+  // Text
+  accent: PALETTE.ink,
+  muted: PALETTE.warmGray,
+  mutedLight: PALETTE.inkSoft,
+  // Borders
+  border: "rgba(75,65,52,0.10)",
+  borderLight: "rgba(75,65,52,0.18)",
+  // Primary CTA / brand (was "gold") → forest green
+  gold: PALETTE.forest,
+  goldDark: PALETTE.forestDeep,
+  goldLight: PALETTE.sage,
+  goldBg: "rgba(107,142,90,0.10)",
+  goldBorder: "rgba(107,142,90,0.28)",
+  // Success — sage
+  success: PALETTE.forest,
+  successBg: "rgba(107,142,90,0.12)",
+  successBorder: "rgba(107,142,90,0.28)",
+  // Warning — sand
+  warning: PALETTE.sand,
+  warningBg: "rgba(193,154,107,0.14)",
+  warningBorder: "rgba(193,154,107,0.32)",
+  // Danger — terracotta
+  danger: PALETTE.terracotta,
+  // Tailor accent — terracotta as the editorial pop
+  tailor: PALETTE.terracotta,
+  tailorBg: "rgba(198,93,7,0.10)",
+  tailorBorder: "rgba(198,93,7,0.28)",
+  // Glass effects
+  glass: "rgba(255,253,247,0.55)",
+  glassBorder: "rgba(75,65,52,0.10)",
+  // Extra palette access for new components
+  sage: PALETTE.sage,
+  forest: PALETTE.forest,
+  forestDeep: PALETTE.forestDeep,
+  olive: PALETTE.olive,
+  beige: PALETTE.beige,
+  tan: PALETTE.tan,
+  sand: PALETTE.sand,
+  cream: PALETTE.cream,
+  terracotta: PALETTE.terracotta,
+  warmGray: PALETTE.warmGray,
+  sageMist: PALETTE.sageMist,
+  oat: PALETTE.oat,
+  bark: PALETTE.bark,
+  ink: PALETTE.ink,
 };
 const font = {
   serif: "'Cormorant Garamond', Georgia, serif",
@@ -525,17 +572,19 @@ function createBodyMesh(body) {
     nI = n(inseam, 30);
   const group = new THREE.Group(),
     segs = 64;
+  // Premium ceramic/marble finish in warm cream + sage cast. Reads as a
+  // sculpted figurine, not a literal mannequin — distinctive and on-brand.
   const skinMat = new THREE.MeshPhysicalMaterial({
-    color: 0xe8c4a0,
-    roughness: 0.5,
+    color: 0xeadfc8, // warm cream
+    roughness: 0.42,
     metalness: 0.0,
-    clearcoat: 0.05,
-    clearcoatRoughness: 0.95,
-    sheen: 0.3,
-    sheenRoughness: 0.5,
-    sheenColor: new THREE.Color(0xffc8a0),
+    clearcoat: 0.18,
+    clearcoatRoughness: 0.6,
+    sheen: 0.6,
+    sheenRoughness: 0.4,
+    sheenColor: new THREE.Color(0x9cae88), // sage sheen — earthy luxe cast
     side: THREE.FrontSide,
-    envMapIntensity: 0.6,
+    envMapIntensity: 0.85,
   });
   group.add(
     buildSmoothMesh(
@@ -759,12 +808,18 @@ function createGarmentMesh(body, item) {
 }
 
 // ─── 3D Body Viewer ─────────────────────────────────────────
+// Premium scanning-style viewer: ceramic/marble figure, sage rim light, soft
+// shadow puck, optional measurement annotations and a scanning sweep line so
+// the viewer reads as fit-tech, not a generic 3D doll.
 function Body3DViewer({
   body,
   width = 300,
   height = 420,
   garment = null,
   autoRotate = false,
+  annotated = false,
+  scanning = false,
+  variant = "default", // "default" | "studio" | "scan"
 }) {
   const mountRef = useRef(null);
   const autoAngle = useRef(0),
@@ -778,23 +833,33 @@ function Body3DViewer({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
+    renderer.setClearColor(0x000000, 0);
     el.appendChild(renderer.domElement);
+
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(0, 1.8, 4.2);
+    const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+    camera.position.set(0, 1.85, 4.4);
     camera.lookAt(0, 1.8, 0);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const key = new THREE.DirectionalLight(0xfff8f0, 1.8);
-    key.position.set(2, 5, 4);
+
+    // Warm cream ambient + sage rim — earthy luxe studio lighting
+    scene.add(new THREE.AmbientLight(0xfdf6e3, 0.55));
+    const key = new THREE.DirectionalLight(0xfff5d6, 1.5);
+    key.position.set(2.5, 5, 4);
+    key.castShadow = true;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xf0f4ff, 0.6);
+    const fill = new THREE.DirectionalLight(0xe8efde, 0.55);
     fill.position.set(-3, 3, 2);
     scene.add(fill);
-    const rim = new THREE.DirectionalLight(0xffe0c0, 0.5);
-    rim.position.set(0, 2, -4);
+    const rim = new THREE.DirectionalLight(0x9cae88, 0.75); // sage rim
+    rim.position.set(-1, 2.5, -4);
     scene.add(rim);
+    const accent = new THREE.PointLight(0xc65d07, 0.35, 8); // terracotta kicker
+    accent.position.set(1.5, 2.2, -2.2);
+    scene.add(accent);
+
     const pivot = new THREE.Group();
     pivot.add(createBodyMesh(body));
     if (garment) {
@@ -802,27 +867,87 @@ function Body3DViewer({
       if (g) pivot.add(g);
     }
     scene.add(pivot);
+
+    // Cream marble puck instead of charcoal disc
     const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(1.2, 48),
-      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9 })
+      new THREE.CircleGeometry(1.3, 64),
+      new THREE.MeshStandardMaterial({
+        color: 0xeadfc8,
+        roughness: 0.85,
+        metalness: 0.0,
+      })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.02;
     scene.add(ground);
+
+    // Sage halo ring underfoot for the "scan plate" reading
+    const halo = new THREE.Mesh(
+      new THREE.RingGeometry(0.85, 1.15, 64),
+      new THREE.MeshBasicMaterial({
+        color: 0x9cae88,
+        transparent: true,
+        opacity: 0.35,
+        side: THREE.DoubleSide,
+      })
+    );
+    halo.rotation.x = -Math.PI / 2;
+    halo.position.y = 0.0;
+    scene.add(halo);
+
+    // Soft shadow puck
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.55, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0x4a5043,
+        transparent: true,
+        opacity: 0.18,
+      })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = -0.018;
+    scene.add(shadow);
+
+    // Optional scanning sweep plane that travels up/down the body
+    let sweep = null;
+    if (scanning) {
+      sweep = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.2, 0.04),
+        new THREE.MeshBasicMaterial({
+          color: 0x6b8e5a,
+          transparent: true,
+          opacity: 0.65,
+          side: THREE.DoubleSide,
+        })
+      );
+      sweep.rotation.x = -Math.PI / 2;
+      sweep.position.y = 0.6;
+      scene.add(sweep);
+    }
+
     const clock = new THREE.Clock();
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
+      const t = clock.elapsedTime;
       if (autoRotate && !isDragging.current) {
-        autoAngle.current += 0.008;
+        autoAngle.current += 0.0065;
         pivot.rotation.y = autoAngle.current;
       } else {
         pivot.rotation.y = rotY.current + autoAngle.current;
       }
-      pivot.position.y = Math.sin(clock.elapsedTime * 1.2) * 0.003;
+      pivot.position.y = Math.sin(t * 1.2) * 0.003;
+      halo.rotation.z = t * 0.4;
+      if (sweep) {
+        // Travel 0.0 → 3.0 over a couple of seconds, then loop
+        const phase = (t % 2.4) / 2.4;
+        sweep.position.y = 0.05 + phase * 3.0;
+        sweep.material.opacity = 0.65 * (1 - Math.abs(phase * 2 - 1));
+      }
       renderer.render(scene, camera);
     };
     animate();
+
     const onDown = e => {
       isDragging.current = true;
       lastX.current = e.clientX || e.touches?.[0]?.clientX || 0;
@@ -851,19 +976,185 @@ function Body3DViewer({
       window.removeEventListener("mouseup", onUp);
       window.removeEventListener("touchend", onUp);
       renderer.dispose();
+      while (el.firstChild) el.removeChild(el.firstChild);
     };
-  }, [body, width, height, garment, autoRotate]);
+  }, [body, width, height, garment, autoRotate, scanning]);
+
+  // Bust / waist / hip annotation lines drawn as SVG overlays. These are
+  // approximate but anchored to the same proportions the 3D model uses so
+  // they read as real fit-tech telemetry rather than decoration.
+  const bust = body?.bust ?? 34;
+  const waist = body?.waist ?? 26;
+  const hips = body?.hips ?? 36;
+  const shoulder = body?.shoulder ?? 15;
+  const inseam = body?.inseam ?? 30;
+
+  // Anchor points in viewer-relative percentages (top=0, bottom=100)
+  const anchors = [
+    { y: 22, label: "Bust", value: `${bust}"`, color: C.forest },
+    { y: 41, label: "Waist", value: `${waist}"`, color: C.terracotta },
+    { y: 55, label: "Hips", value: `${hips}"`, color: C.olive },
+    { y: 10, label: "Shoulder", value: `${shoulder}"`, color: C.sage },
+    { y: 78, label: "Inseam", value: `${inseam}"`, color: C.tan },
+  ];
+
   return (
     <div
-      ref={mountRef}
       style={{
+        position: "relative",
         width,
         height,
-        borderRadius: 16,
+        borderRadius: 22,
         overflow: "hidden",
-        cursor: "grab",
+        background:
+          variant === "scan"
+            ? `radial-gradient(ellipse at 50% 40%, ${C.sageMist} 0%, ${C.beige} 60%, ${C.oat} 100%)`
+            : `radial-gradient(ellipse at 50% 38%, ${C.cream} 0%, ${C.beige} 75%, ${C.oat} 100%)`,
+        border: `1px solid ${C.border}`,
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 20px 40px rgba(75,65,52,0.10)",
       }}
-    />
+    >
+      {/* Subtle measurement grid background */}
+      {variant !== "default" && (
+        <svg
+          width={width}
+          height={height}
+          style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.4 }}
+        >
+          <defs>
+            <pattern id={`grid-${width}-${height}`} width="22" height="22" patternUnits="userSpaceOnUse">
+              <path d="M 22 0 L 0 0 0 22" fill="none" stroke={C.warmGray} strokeOpacity="0.18" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill={`url(#grid-${width}-${height})`} />
+        </svg>
+      )}
+
+      <div
+        ref={mountRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          cursor: "grab",
+        }}
+      />
+
+      {/* Premium annotation overlay */}
+      {annotated && width >= 240 && (
+        <svg
+          width={width}
+          height={height}
+          style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+        >
+          {anchors.map((a, i) => {
+            const yPx = (height * a.y) / 100;
+            const labelOnLeft = i % 2 === 0;
+            const x1 = labelOnLeft ? width * 0.32 : width * 0.68;
+            const x2 = labelOnLeft ? width * 0.10 : width * 0.90;
+            return (
+              <g key={a.label} style={{ animation: `tbFadeIn 0.7s ${i * 0.08}s both` }}>
+                <circle cx={width / 2} cy={yPx} r={3.5} fill={a.color} opacity={0.85} />
+                <circle cx={width / 2} cy={yPx} r={7} fill="none" stroke={a.color} strokeOpacity={0.35} strokeWidth={1} />
+                <line
+                  x1={width / 2}
+                  y1={yPx}
+                  x2={x1}
+                  y2={yPx}
+                  stroke={a.color}
+                  strokeOpacity={0.55}
+                  strokeWidth={1}
+                  strokeDasharray="2 3"
+                />
+                <line
+                  x1={x1}
+                  y1={yPx}
+                  x2={x2}
+                  y2={yPx}
+                  stroke={a.color}
+                  strokeOpacity={0.55}
+                  strokeWidth={1}
+                />
+                <text
+                  x={labelOnLeft ? x2 + 2 : x2 - 2}
+                  y={yPx - 4}
+                  fontSize="9"
+                  fontWeight="800"
+                  letterSpacing="1.5"
+                  fill={C.muted}
+                  textAnchor={labelOnLeft ? "start" : "end"}
+                  style={{ textTransform: "uppercase" }}
+                >
+                  {a.label}
+                </text>
+                <text
+                  x={labelOnLeft ? x2 + 2 : x2 - 2}
+                  y={yPx + 8}
+                  fontSize="12"
+                  fontWeight="700"
+                  fill={a.color}
+                  textAnchor={labelOnLeft ? "start" : "end"}
+                >
+                  {a.value}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      )}
+
+      {/* Corner reticles for scanning variant */}
+      {variant === "scan" && (
+        <>
+          {[
+            { top: 12, left: 12, corner: "tl" },
+            { top: 12, right: 12, corner: "tr" },
+            { bottom: 12, left: 12, corner: "bl" },
+            { bottom: 12, right: 12, corner: "br" },
+          ].map(c => (
+            <div
+              key={c.corner}
+              style={{
+                position: "absolute",
+                width: 18,
+                height: 18,
+                borderTop: c.corner.startsWith("t") ? `2px solid ${C.forest}` : "none",
+                borderBottom: c.corner.startsWith("b") ? `2px solid ${C.forest}` : "none",
+                borderLeft: c.corner.endsWith("l") ? `2px solid ${C.forest}` : "none",
+                borderRight: c.corner.endsWith("r") ? `2px solid ${C.forest}` : "none",
+                borderTopLeftRadius: c.corner === "tl" ? 6 : 0,
+                borderTopRightRadius: c.corner === "tr" ? 6 : 0,
+                borderBottomLeftRadius: c.corner === "bl" ? 6 : 0,
+                borderBottomRightRadius: c.corner === "br" ? 6 : 0,
+                top: c.top,
+                bottom: c.bottom,
+                left: c.left,
+                right: c.right,
+                opacity: 0.7,
+              }}
+            />
+          ))}
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontSize: 9,
+              fontWeight: 800,
+              letterSpacing: 2,
+              color: C.forest,
+              textTransform: "uppercase",
+              background: "rgba(255,253,247,0.85)",
+              padding: "4px 10px",
+              borderRadius: 999,
+              border: `1px solid ${C.goldBorder}`,
+            }}
+          >
+            ● Live Scan · 32 anchor points
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -5546,7 +5837,7 @@ function SplashScreen({ onContinue }) {
         flexDirection: "column",
         justifyContent: "space-between",
         alignItems: "center",
-        background: C.bg,
+        background: `linear-gradient(180deg, ${C.cream} 0%, ${C.beige} 100%)`,
         padding: "52px 32px 44px",
         position: "relative",
         overflow: "hidden",
@@ -5561,7 +5852,7 @@ function SplashScreen({ onContinue }) {
           height: 380,
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%)",
+            "radial-gradient(circle, rgba(156,175,136,0.35) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -5574,7 +5865,7 @@ function SplashScreen({ onContinue }) {
           height: 320,
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(126,161,136,0.08) 0%, transparent 70%)",
+            "radial-gradient(circle, rgba(210,180,140,0.40) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -5592,15 +5883,16 @@ function SplashScreen({ onContinue }) {
               width: 36,
               height: 36,
               borderRadius: 10,
-              background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
+              background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              boxShadow: "0 6px 16px rgba(107,142,90,0.32)",
             }}
           >
             <span
               style={{
-                color: "#fff",
+                color: C.cream,
                 fontSize: 16,
                 fontWeight: 700,
                 fontFamily: font.serif,
@@ -5645,17 +5937,17 @@ function SplashScreen({ onContinue }) {
           <h1
             style={{
               fontFamily: font.serif,
-              fontSize: 44,
-              fontWeight: 400,
+              fontSize: 48,
+              fontWeight: 500,
               color: C.accent,
-              lineHeight: 1.1,
+              lineHeight: 1.05,
               margin: 0,
-              letterSpacing: -1,
+              letterSpacing: -1.5,
             }}
           >
             Fashion that
             <br />
-            <span style={{ color: C.gold, fontStyle: "italic" }}>
+            <span style={{ color: C.terracotta, fontStyle: "italic", fontWeight: 600 }}>
               actually fits.
             </span>
           </h1>
@@ -5705,16 +5997,31 @@ function SplashScreen({ onContinue }) {
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                padding: "10px 14px",
-                background: C.card,
+                padding: "12px 16px",
+                background: "rgba(255,255,255,0.7)",
+                backdropFilter: "blur(8px)",
                 border: `1px solid ${C.border}`,
-                borderRadius: 12,
+                borderRadius: 14,
+                boxShadow: "0 4px 14px rgba(75,65,52,0.06)",
               }}
             >
-              <div style={{ color: C.gold, display: "flex" }}>
-                <Icon size={18} />
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: C.goldBg,
+                  border: `1px solid ${C.goldBorder}`,
+                  color: C.forest,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={16} />
               </div>
-              <span style={{ fontSize: 13, color: C.mutedLight }}>{text}</span>
+              <span style={{ fontSize: 13, color: C.accent, fontWeight: 500 }}>{text}</span>
             </div>
           ))}
         </div>
@@ -5734,16 +6041,16 @@ function SplashScreen({ onContinue }) {
           onClick={onContinue}
           style={{
             width: "100%",
-            padding: "16px 0",
-            borderRadius: 14,
+            padding: "18px 0",
+            borderRadius: 16,
             border: "none",
-            background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
-            color: "#fff",
+            background: `linear-gradient(135deg, ${C.forest}, ${C.forestDeep})`,
+            color: C.cream,
             fontSize: 15,
-            fontWeight: 600,
-            letterSpacing: 0.5,
+            fontWeight: 700,
+            letterSpacing: 0.6,
             cursor: "pointer",
-            boxShadow: `0 8px 32px rgba(201,169,110,0.35)`,
+            boxShadow: `0 12px 32px rgba(107,142,90,0.38)`,
           }}
         >
           Build Your Fit Profile
@@ -6283,7 +6590,14 @@ function OnboardingScreen({ onComplete }) {
               marginBottom: 16,
             }}
           >
-            <Body3DViewer body={body} width={160} height={220} autoRotate />
+            <Body3DViewer
+              body={body}
+              width={200}
+              height={280}
+              autoRotate
+              annotated
+              variant="studio"
+            />
           </div>
         </div>
 
@@ -6371,7 +6685,14 @@ function OnboardingScreen({ onComplete }) {
               marginBottom: 20,
             }}
           >
-            <Body3DViewer body={body} width={200} height={280} autoRotate />
+            <Body3DViewer
+              body={body}
+              width={240}
+              height={340}
+              autoRotate
+              annotated
+              variant="scan"
+            />
           </div>
           <div
             className="tb-review-grid"
@@ -8437,7 +8758,13 @@ function StyleAIScreen({
                 {shapeAdvice[insights.shape]}
               </p>
             </div>
-            <Body3DViewer body={userBody} width={100} height={140} autoRotate />
+            <Body3DViewer
+              body={userBody}
+              width={140}
+              height={200}
+              autoRotate
+              variant="studio"
+            />
           </div>
           <div
             className="tb-style-measurements"
@@ -9445,7 +9772,14 @@ function ProfileScreen({
               marginBottom: 20,
             }}
           >
-            <Body3DViewer body={editBody} width={160} height={220} autoRotate />
+            <Body3DViewer
+              body={editBody}
+              width={220}
+              height={300}
+              autoRotate
+              annotated
+              variant="studio"
+            />
           </div>
           {Object.entries(editBody).map(([key, val]) => {
             const ranges = {
@@ -9567,8 +9901,14 @@ function ProfileScreen({
           className="tb-profile-overview"
           style={{ padding: 20, marginBottom: 16 }}
         >
-          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-            <Body3DViewer body={userBody} width={100} height={140} autoRotate />
+          <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
+            <Body3DViewer
+              body={userBody}
+              width={140}
+              height={200}
+              autoRotate
+              variant="scan"
+            />
             <div style={{ flex: 1 }}>
               <div
                 style={{
@@ -9936,22 +10276,27 @@ export default function TailoredApp() {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { display: none; }
-        input[type=range] { -webkit-appearance: none; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: ${C.gold}; cursor: pointer; box-shadow: 0 2px 8px rgba(215,176,108,0.4); }
+        input[type=range] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(75,65,52,0.12); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: ${C.forest}; cursor: pointer; box-shadow: 0 2px 10px rgba(107,142,90,0.45); border: 2px solid ${PALETTE.cream}; }
         input[type=text], input[type=range], textarea, select { font-family: inherit; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes tbFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes scanLine { 0%, 100% { top: 10%; opacity: 0.5; } 50% { top: 85%; opacity: 1; } }
+        @keyframes scanSweep { 0% { transform: translateY(-100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(100%); opacity: 0; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes tbPulseRing { 0% { transform: scale(0.9); opacity: 0.55; } 70% { transform: scale(1.4); opacity: 0; } 100% { opacity: 0; } }
+        @keyframes tbDrift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         .tb-app {
           position: relative;
           overflow: hidden;
           padding: 24px;
           background:
-            radial-gradient(circle at top left, rgba(215,176,108,0.18), transparent 28%),
-            radial-gradient(circle at bottom right, rgba(126,161,136,0.16), transparent 32%),
-            linear-gradient(180deg, #0f0d12 0%, #07070a 100%);
+            radial-gradient(circle at top left, rgba(156,175,136,0.30), transparent 32%),
+            radial-gradient(circle at bottom right, rgba(210,180,140,0.32), transparent 36%),
+            radial-gradient(circle at 60% 50%, rgba(198,93,7,0.06), transparent 55%),
+            linear-gradient(180deg, ${PALETTE.parchment} 0%, ${PALETTE.beige} 100%);
         }
         .tb-stage {
           width: 100%;
@@ -9975,10 +10320,10 @@ export default function TailoredApp() {
         }
         .tb-shell__sidebar {
           border-radius: 32px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: linear-gradient(180deg, rgba(23,20,26,0.94), rgba(14,13,17,0.9));
+          border: 1px solid ${C.border};
+          background: linear-gradient(180deg, ${PALETTE.cream} 0%, ${PALETTE.beige} 100%);
           backdrop-filter: blur(24px);
-          box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+          box-shadow: 0 24px 60px rgba(75,65,52,0.10), 0 1px 0 rgba(255,255,255,0.6) inset;
           overflow: auto;
           padding: 24px;
         }
@@ -9986,9 +10331,9 @@ export default function TailoredApp() {
           position: relative;
           overflow: hidden;
           border-radius: 34px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: linear-gradient(180deg, rgba(17,15,20,0.98), rgba(11,10,14,0.98));
-          box-shadow: 0 40px 100px rgba(0,0,0,0.45);
+          border: 1px solid ${C.border};
+          background: linear-gradient(180deg, #FFFFFF 0%, ${PALETTE.parchment} 100%);
+          box-shadow: 0 40px 100px rgba(75,65,52,0.18), 0 1px 0 rgba(255,255,255,0.7) inset;
         }
         .tb-stage--immersive .tb-stage__main {
           max-width: 1100px;
@@ -10011,8 +10356,8 @@ export default function TailoredApp() {
           width: 50px;
           height: 50px;
           border-radius: 16px;
-          background: linear-gradient(145deg, ${C.gold}, ${C.goldDark});
-          color: white;
+          background: linear-gradient(145deg, ${C.forest}, ${C.forestDeep});
+          color: ${PALETTE.cream};
           display: flex;
           align-items: center;
           justify-content: center;
@@ -10020,7 +10365,7 @@ export default function TailoredApp() {
           font-size: 26px;
           font-weight: 700;
           flex-shrink: 0;
-          box-shadow: 0 12px 30px rgba(215,176,108,0.28);
+          box-shadow: 0 12px 30px rgba(107,142,90,0.28);
         }
         .tb-brand-lockup__title,
         .tb-sidebar-title {
@@ -10036,12 +10381,14 @@ export default function TailoredApp() {
         .tb-sidebar-card {
           padding: 20px;
           border-radius: 24px;
-          border: 1px solid rgba(255,255,255,0.07);
-          background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+          border: 1px solid ${C.border};
+          background: linear-gradient(180deg, #FFFFFF 0%, ${PALETTE.cream} 100%);
+          box-shadow: 0 6px 18px rgba(75,65,52,0.06);
           margin-bottom: 16px;
         }
         .tb-sidebar-card--hero {
-          background: linear-gradient(180deg, rgba(215,176,108,0.12), rgba(255,255,255,0.02));
+          background: linear-gradient(180deg, ${PALETTE.sageMist}, ${PALETTE.cream});
+          border: 1px solid ${C.goldBorder};
         }
         .tb-sidebar-eyebrow {
           color: ${C.gold};
@@ -10070,7 +10417,7 @@ export default function TailoredApp() {
           width: 100%;
           padding: 14px 16px;
           border-radius: 18px;
-          border: 1px solid rgba(255,255,255,0.06);
+          border: 1px solid transparent;
           background: transparent;
           color: ${C.mutedLight};
           cursor: pointer;
@@ -10082,7 +10429,7 @@ export default function TailoredApp() {
           color: ${C.accent};
           border-color: ${C.goldBorder};
           background: ${C.goldBg};
-          box-shadow: 0 14px 34px rgba(0,0,0,0.18);
+          box-shadow: 0 10px 24px rgba(107,142,90,0.12);
         }
         .tb-desktop-nav__icon {
           display: flex;
@@ -10143,7 +10490,7 @@ export default function TailoredApp() {
         }
         .tb-measurement-list__row {
           padding: 8px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
+          border-bottom: 1px solid ${C.border};
           color: ${C.mutedLight};
           font-size: 12px;
         }
@@ -10179,7 +10526,8 @@ export default function TailoredApp() {
           height: 118px;
           border-radius: 18px;
           flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.08);
+          border: 1px solid ${C.border};
+          background: ${PALETTE.beige};
         }
         .tb-sidebar-product__brand,
         .tb-mini-list__meta {
@@ -10205,15 +10553,15 @@ export default function TailoredApp() {
           font-size: 11px;
         }
         .tb-sidebar-progress__track {
-          height: 4px;
+          height: 5px;
           border-radius: 999px;
-          background: rgba(255,255,255,0.08);
+          background: rgba(75,65,52,0.10);
           overflow: hidden;
         }
         .tb-sidebar-progress__fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, ${C.gold}, ${C.goldLight});
+          background: linear-gradient(90deg, ${C.forest}, ${C.sage});
         }
         .tb-mini-list {
           display: grid;
@@ -10224,7 +10572,8 @@ export default function TailoredApp() {
           height: 68px;
           border-radius: 14px;
           flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.08);
+          border: 1px solid ${C.border};
+          background: ${PALETTE.beige};
         }
         .tb-mini-list__title {
           color: ${C.accent};
@@ -10239,7 +10588,7 @@ export default function TailoredApp() {
           color: ${C.mutedLight};
           font-size: 12px;
           line-height: 1.6;
-          background: rgba(255,255,255,0.03);
+          background: ${PALETTE.cream};
           border: 1px solid ${C.border};
         }
         @media (max-width: 1099px) {
@@ -10280,7 +10629,8 @@ export default function TailoredApp() {
           }
           .tb-sticky-cta {
             padding: 18px 30px 30px !important;
-            background: rgba(12,11,15,0.95) !important;
+            background: rgba(251,248,241,0.95) !important;
+            border-top: 1px solid ${C.border};
           }
           .tb-top-picks-row,
           .tb-trend-rail {
@@ -10324,7 +10674,7 @@ export default function TailoredApp() {
             position: sticky;
             bottom: 0;
             padding-top: 18px;
-            background: linear-gradient(180deg, rgba(12,11,15,0) 0%, rgba(12,11,15,0.92) 28%, rgba(12,11,15,0.96) 100%);
+            background: linear-gradient(180deg, rgba(251,248,241,0) 0%, rgba(251,248,241,0.92) 28%, rgba(251,248,241,0.98) 100%);
           }
           .tb-style-hero > div,
           .tb-profile-overview > div {

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Reset for the Tailored by Taylor app - it uses its own inline styles */
+/* Base reset — Tailored by Taylor uses inline styles throughout. */
 * {
   margin: 0;
   padding: 0;
@@ -9,9 +9,16 @@
 
 html, body, #root {
   width: 100%;
-  height: 100%;
-  background: #0a0a0a;
-  overflow: hidden;
+  min-height: 100%;
+  background: #FBF8F1; /* warm parchment — earthy luxury palette */
+  color: #2C3327;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  overflow-x: hidden;
 }
 
 @keyframes spin {

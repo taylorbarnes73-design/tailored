@@ -6,11 +6,14 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 // @ts-ignore
 import TailoredApp from "./pages/TailoredApp";
+// @ts-ignore
+import Landing from "./pages/Landing";
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={TailoredApp} />
+      <Route path={"/"} component={Landing} />
+      <Route path={"/app"} component={TailoredApp} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
