@@ -437,19 +437,37 @@ function BodyAvatar({
   `;
 
   // Garment paths (shirt + pants), driven by waist delta and sleeve/hem
+  // Shirt is a single, simply-connected polygon walked clockwise: collar →
+  // left shoulder → left sleeve out → left cuff → left underarm → left
+  // armpit → left side → left hem → across hem → mirror back to collar.
+  // Each anchor is constrained so the silhouette never inverts or self-
+  // crosses as measurements shift.
+  const collarHalf = clamp(halfNeck * 1.1, 18, 36);
+  const shoulderSeamY = shoulderY + 4;
+  const sleeveOuterHalf = clamp(halfShoulder - 4, collarHalf + 24, halfShoulder);
+  const cuffOuterHalf = clamp(sleeveOuterHalf - 6, collarHalf + 16, sleeveOuterHalf);
+  const cuffInnerHalf = clamp(cuffOuterHalf - 28, collarHalf + 4, cuffOuterHalf - 10);
+  const armpitHalf = clamp(halfChest + 6, cuffInnerHalf + 6, halfShoulder - 4);
+  const armpitY = shoulderY + clamp(figurePx * 0.10, 50, 80);
+  const sleeveCuffY = clamp(sleeveY, armpitY + 14, waistY + 18);
+  const shirtSideHalf = clamp(halfWaist + 8, armpitHalf - 18, halfChest + 14);
+  const shirtHemY = waistY + 14;
   const shirtPath = `
-    M ${sx(-halfShoulder + 4)} ${shoulderY + 6}
-    L ${sx(-halfShoulder - 8)} ${sleeveY}
-    L ${sx(-halfShoulder - 22)} ${sleeveY + 12}
-    L ${sx(-halfShoulder + 4)} ${sleeveY + 24}
-    L ${sx(-halfWaist - 6)} ${waistY + 12}
-    L ${sx(halfWaist + 6)} ${waistY + 12}
-    L ${sx(halfShoulder - 4)} ${sleeveY + 24}
-    L ${sx(halfShoulder + 22)} ${sleeveY + 12}
-    L ${sx(halfShoulder + 8)} ${sleeveY}
-    L ${sx(halfShoulder - 4)} ${shoulderY + 6}
-    C ${sx(halfShoulder - 24)} ${shoulderY + 4}, ${sx(halfShoulder - 40)} ${shoulderY + 16}, ${sx(0)} ${shoulderY + 16}
-    C ${sx(-halfShoulder + 40)} ${shoulderY + 16}, ${sx(-halfShoulder + 24)} ${shoulderY + 4}, ${sx(-halfShoulder + 4)} ${shoulderY + 6}
+    M ${sx(-collarHalf)} ${shoulderY + 6}
+    L ${sx(-sleeveOuterHalf)} ${shoulderSeamY}
+    L ${sx(-cuffOuterHalf)} ${sleeveCuffY}
+    L ${sx(-cuffInnerHalf)} ${sleeveCuffY + 4}
+    L ${sx(-armpitHalf)} ${armpitY}
+    L ${sx(-shirtSideHalf)} ${shirtHemY - 24}
+    L ${sx(-shirtSideHalf + 4)} ${shirtHemY}
+    L ${sx(shirtSideHalf - 4)} ${shirtHemY}
+    L ${sx(shirtSideHalf)} ${shirtHemY - 24}
+    L ${sx(armpitHalf)} ${armpitY}
+    L ${sx(cuffInnerHalf)} ${sleeveCuffY + 4}
+    L ${sx(cuffOuterHalf)} ${sleeveCuffY}
+    L ${sx(sleeveOuterHalf)} ${shoulderSeamY}
+    L ${sx(collarHalf)} ${shoulderY + 6}
+    C ${sx(collarHalf * 0.55)} ${shoulderY + 14}, ${sx(-collarHalf * 0.55)} ${shoulderY + 14}, ${sx(-collarHalf)} ${shoulderY + 6}
     Z
   `;
   // Pants
