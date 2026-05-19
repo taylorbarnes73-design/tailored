@@ -10,12 +10,15 @@
 html, body, #root {
   width: 100%;
   min-height: 100%;
-  background: #FBF8F1; /* warm parchment — earthy luxury palette */
-  color: #2C3327;
+  background: #F2F3EE; /* parchment — quiet, atelier palette */
+  color: #1F2620;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+::selection { background: rgba(79,107,67,0.18); color: #1F2620; }
 
 html, body {
   overflow-x: hidden;

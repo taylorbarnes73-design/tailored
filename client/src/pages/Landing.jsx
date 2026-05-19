@@ -92,41 +92,44 @@ function SiteNav() {
         maxWidth: 1200, margin: "0 auto", padding: "16px 24px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <a href="#top" onClick={handleAnchorClick("top")} style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+        <a href="#top" onClick={handleAnchorClick("top")} style={{ display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
           <div style={{
-            width: 38, height: 38, borderRadius: 10,
-            background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-            color: P.cream, fontFamily: FONT_SERIF, fontSize: 20, fontWeight: 700,
+            width: 42, height: 42, borderRadius: 4,
+            background: P.ink,
+            color: P.cream, fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 500,
             display: "flex", alignItems: "center", justifyContent: "center",
+            letterSpacing: 0,
           }}>T</div>
           <div>
-            <div style={{ fontFamily: FONT_SERIF, fontWeight: 600, fontSize: 18, color: P.ink, lineHeight: 1 }}>
+            <div style={{ fontFamily: FONT_SERIF, fontWeight: 500, fontSize: 19, color: P.ink, lineHeight: 1, letterSpacing: 0.3 }}>
               The Tailored Company
             </div>
-            <div style={{ fontSize: 10, letterSpacing: 1.8, color: P.warmGray, fontWeight: 700, marginTop: 4, textTransform: "uppercase" }}>
-              Online tailoring · made to fit
+            <div style={{ fontSize: 9.5, letterSpacing: 2.4, color: P.warmGray, fontWeight: 600, marginTop: 5, textTransform: "uppercase" }}>
+              Private digital atelier · made to fit
             </div>
           </div>
         </a>
-        <div style={{ display: "flex", alignItems: "center", gap: 22 }} className="tlc-nav-links">
+        <div style={{ display: "flex", alignItems: "center", gap: 26 }} className="tlc-nav-links">
           {[
-            ["Try the tool", "tool"],
-            ["Get measurements", "measure"],
-            ["How it works", "how"],
-            ["Shipping", "shipping"],
+            ["The fitting", "tool"],
+            ["Measurement suite", "measure"],
+            ["Atelier process", "how"],
+            ["Concierge intake", "shipping"],
             ["FAQ", "faq"],
           ].map(([label, id]) => (
             <a key={label} href={`#${id}`} onClick={handleAnchorClick(id)} style={{
-              color: P.inkSoft, fontSize: 13, fontWeight: 600, textDecoration: "none",
+              color: P.inkSoft, fontSize: 12.5, fontWeight: 500, textDecoration: "none",
+              letterSpacing: 0.3,
             }}>{label}</a>
           ))}
           <a href="#tool" onClick={handleAnchorClick("tool")} style={{
             background: P.ink, color: P.cream,
-            padding: "10px 18px", borderRadius: 999,
-            fontSize: 13, fontWeight: 700, textDecoration: "none",
-            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "11px 20px", borderRadius: 2,
+            fontSize: 11, fontWeight: 600, textDecoration: "none",
+            display: "inline-flex", alignItems: "center", gap: 8,
+            letterSpacing: 1.8, textTransform: "uppercase",
           }}>
-            Start with a link <IconArrow size={14}/>
+            Begin the fitting <IconArrow size={13}/>
           </a>
         </div>
       </div>
@@ -139,69 +142,72 @@ function Hero() {
   return (
     <section id="top" style={{
       position: "relative", overflow: "hidden",
-      padding: "84px 24px 80px",
+      padding: "112px 24px 108px",
       background: `
-        radial-gradient(55% 65% at 18% 18%, rgba(156,175,136,0.30) 0%, transparent 60%),
-        radial-gradient(50% 60% at 88% 78%, rgba(168,174,154,0.34) 0%, transparent 60%),
+        radial-gradient(60% 70% at 14% 16%, rgba(196,210,182,0.22) 0%, transparent 62%),
+        radial-gradient(52% 62% at 92% 82%, rgba(168,174,154,0.22) 0%, transparent 62%),
         linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)
       `,
     }}>
       <div style={{
         maxWidth: 1200, margin: "0 auto",
         display: "grid", gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)",
-        gap: 56, alignItems: "center",
+        gap: 72, alignItems: "center",
       }} className="tlc-hero-grid">
         <div>
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "8px 14px", borderRadius: 999,
-            background: "rgba(242,243,238,0.7)",
-            border: `1px solid rgba(107,142,90,0.30)`,
-            color: P.forestDeep, fontSize: 11, fontWeight: 800,
-            letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 24,
+            display: "inline-flex", alignItems: "center", gap: 10,
+            padding: "7px 14px", borderRadius: 999,
+            background: "rgba(242,243,238,0.65)",
+            border: `1px solid rgba(45,55,42,0.14)`,
+            color: P.forestDeep, fontSize: 10, fontWeight: 700,
+            letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 28,
           }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: P.forest }}/>
-            A website tool · not a shop, not an app
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: P.forest }}/>
+            By invitation of the cloth
           </div>
           <h1 style={{
-            fontFamily: FONT_SERIF, fontSize: "clamp(44px, 5.6vw, 78px)",
-            lineHeight: 1.02, letterSpacing: -1.6, color: P.ink, fontWeight: 500, margin: 0,
+            fontFamily: FONT_SERIF, fontSize: "clamp(46px, 6vw, 84px)",
+            lineHeight: 1.0, letterSpacing: -1.8, color: P.ink, fontWeight: 400, margin: 0,
           }}>
-            Paste a link.
+            A private atelier,
             <br/>
-            <span style={{ color: P.moss, fontStyle: "italic" }}>We tailor it to fit.</span>
+            <span style={{ color: P.moss, fontStyle: "italic", fontWeight: 400 }}>tailored to the piece you love.</span>
           </h1>
           <p style={{
-            marginTop: 22, fontSize: 18, lineHeight: 1.55, color: P.inkSoft, maxWidth: 560,
+            marginTop: 26, fontSize: 17.5, lineHeight: 1.65, color: P.inkSoft, maxWidth: 540,
+            fontWeight: 400,
           }}>
-            Five steps, one page. <strong>Paste</strong> a product link → we <strong>get the fit info</strong>{" "}
-            → you <strong>get your measurements</strong> with two photos → you <strong>drag the alterations</strong>{" "}
-            you want → <strong>go</strong>: ship the piece to us. We don’t sell clothes.
+            Share the garment. Take your fit profile in two quiet photos.
+            Refine the cut by hand on a live preview. Send it to our atelier for review,
+            alteration, and return — concierge from intake to final stitch.
           </p>
-          <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 12, marginTop: 36, flexWrap: "wrap" }}>
             <a href="#tool" onClick={handleAnchorClick("tool")} style={{
-              background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-              color: P.cream, padding: "16px 26px", borderRadius: 14,
-              fontSize: 15, fontWeight: 700, textDecoration: "none",
-              display: "inline-flex", alignItems: "center", gap: 10,
-              boxShadow: "0 16px 34px rgba(107,142,90,0.32)",
+              background: P.ink,
+              color: P.cream, padding: "16px 28px", borderRadius: 2,
+              fontSize: 12, fontWeight: 600, textDecoration: "none",
+              display: "inline-flex", alignItems: "center", gap: 12,
+              boxShadow: "0 18px 38px rgba(31,38,32,0.22)",
+              letterSpacing: 2.2, textTransform: "uppercase",
             }}>
-              Paste a product link <IconArrow/>
+              Begin a fitting <IconArrow size={14}/>
             </a>
             <a href="#measure" onClick={handleAnchorClick("measure")} style={{
-              background: "rgba(242,243,238,0.7)", color: P.ink,
-              padding: "16px 24px", borderRadius: 14,
-              fontSize: 15, fontWeight: 700, textDecoration: "none",
-              border: `1px solid rgba(45,55,42,0.14)`,
+              background: "transparent", color: P.ink,
+              padding: "16px 24px", borderRadius: 2,
+              fontSize: 12, fontWeight: 600, textDecoration: "none",
+              border: `1px solid rgba(45,55,42,0.32)`,
               display: "inline-flex", alignItems: "center", gap: 10,
-            }}><IconCamera size={16}/> Get your measurements</a>
+              letterSpacing: 2.2, textTransform: "uppercase",
+            }}>Take measurements</a>
           </div>
-          <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 20, color: P.warmGray, fontSize: 13 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <IconShield size={16}/> Tailor-reviewed before any cut
+          <div style={{ marginTop: 36, display: "flex", flexWrap: "wrap", gap: 26, color: P.warmGray, fontSize: 12.5, letterSpacing: 0.2 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <IconShield size={15}/> Tailor-reviewed before a thread is cut
             </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <IconLeaf size={16}/> Fewer returns, less landfill
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <IconLock size={15}/> Discreet · your fit profile stays yours
             </span>
           </div>
         </div>
@@ -218,19 +224,20 @@ function HeroVisual() {
     <div style={{
       position: "relative", width: "100%", maxWidth: 520,
       margin: "0 auto",
-      borderRadius: 28,
+      borderRadius: 2,
       background: `linear-gradient(180deg, ${P.cream} 0%, ${P.beige} 100%)`,
-      border: `1px solid rgba(45,55,42,0.10)`,
-      boxShadow: "0 50px 110px rgba(45,55,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
-      padding: 22,
+      border: `1px solid rgba(45,55,42,0.12)`,
+      boxShadow: "0 60px 120px rgba(45,55,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
+      padding: 24,
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
         <div style={{
-          padding: "6px 10px", borderRadius: 999,
-          background: "rgba(107,142,90,0.14)",
-          color: P.forestDeep, fontSize: 10, fontWeight: 800, letterSpacing: 1.6,
-          textTransform: "uppercase",
-        }}>Drag-to-alter preview</div>
+          fontSize: 9.5, color: P.warmGray, fontWeight: 700,
+          letterSpacing: 2.6, textTransform: "uppercase",
+        }}>Fitting room · preview</div>
+        <div style={{ fontFamily: FONT_SERIF, fontStyle: "italic", fontSize: 13, color: P.moss }}>
+          drag to refine
+        </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
         <BodyAvatar
@@ -511,48 +518,51 @@ function BodyAvatar({
           <g>
             {/* HEM handle */}
             <g onPointerDown={startDrag("hem")} style={{ cursor: "ns-resize" }}
-              role="slider" aria-label="Drag to shorten or lengthen the hem" tabIndex={0}>
+              role="slider" aria-label="Set the break — drag to shorten or lengthen the hem" tabIndex={0}>
               <line x1={sx(-halfHip * 0.42)} y1={hemY} x2={sx(halfHip * 0.42)} y2={hemY}
                 stroke={P.cream} strokeWidth="2" opacity="0.85"/>
               <circle cx={cx} cy={hemY} r="22" fill="rgba(0,0,0,0.001)"/>
               <circle cx={cx} cy={hemY} r="14" fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
               <line x1={cx - 6} y1={hemY - 4} x2={cx - 6} y2={hemY + 4} stroke={P.forest} strokeWidth="2"/>
               <line x1={cx + 6} y1={hemY - 4} x2={cx + 6} y2={hemY + 4} stroke={P.forest} strokeWidth="2"/>
-              <text x={cx + 22} y={hemY + 4} fontSize="13" fill={P.ink} fontWeight="700"
-                style={{ fontFamily: FONT_SANS }}>Hem · drag ↕</text>
+              <text x={cx + 22} y={hemY + 4} fontSize="11" fill={P.ink} fontWeight="600"
+                letterSpacing="1.6"
+                style={{ fontFamily: FONT_SANS, textTransform: "uppercase" }}>SET THE BREAK ↕</text>
             </g>
             {/* WAIST handles */}
             <g onPointerDown={startDrag("waist")} style={{ cursor: "ew-resize" }}
-              role="slider" aria-label="Drag to take in or let out the waist" tabIndex={0}>
+              role="slider" aria-label="Refine waist ease — drag to take in or let out" tabIndex={0}>
               <circle cx={sx(-halfHip + waistInset) - 6} cy={hipY - 4} r="22" fill="rgba(0,0,0,0.001)"/>
               <circle cx={sx(-halfHip + waistInset) - 6} cy={hipY - 4} r="14" fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
               <circle cx={sx(halfHip - waistInset) + 6} cy={hipY - 4} r="22" fill="rgba(0,0,0,0.001)"/>
               <circle cx={sx(halfHip - waistInset) + 6} cy={hipY - 4} r="14" fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
-              <text x={sx(halfHip) + 28} y={hipY - 2} fontSize="13" fill={P.ink} fontWeight="700"
-                style={{ fontFamily: FONT_SANS }}>Waist · drag ↔</text>
+              <text x={sx(halfHip) + 28} y={hipY - 2} fontSize="11" fill={P.ink} fontWeight="600"
+                letterSpacing="1.6"
+                style={{ fontFamily: FONT_SANS, textTransform: "uppercase" }}>REFINE WAIST ↔</text>
             </g>
             {/* SLEEVE handle */}
             <g onPointerDown={startDrag("sleeve")} style={{ cursor: "ns-resize" }}
-              role="slider" aria-label="Drag to shorten or lengthen the sleeve" tabIndex={0}>
+              role="slider" aria-label="Set the sleeve — drag to shorten or lengthen" tabIndex={0}>
               <circle cx={sx(-halfShoulder - 18)} cy={sleeveY + 12} r="22" fill="rgba(0,0,0,0.001)"/>
               <circle cx={sx(-halfShoulder - 18)} cy={sleeveY + 12} r="14"
                 fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
               <line x1={sx(-halfShoulder - 18) - 6} y1={sleeveY + 8} x2={sx(-halfShoulder - 18) - 6} y2={sleeveY + 16} stroke={P.forest} strokeWidth="2"/>
               <line x1={sx(-halfShoulder - 18) + 6} y1={sleeveY + 8} x2={sx(-halfShoulder - 18) + 6} y2={sleeveY + 16} stroke={P.forest} strokeWidth="2"/>
-              <text x={14} y={sleeveY + 4} fontSize="13" fill={P.ink} fontWeight="700"
-                style={{ fontFamily: FONT_SANS }}>Sleeve · drag ↕</text>
+              <text x={14} y={sleeveY + 4} fontSize="11" fill={P.ink} fontWeight="600"
+                letterSpacing="1.6"
+                style={{ fontFamily: FONT_SANS, textTransform: "uppercase" }}>SET SLEEVE ↕</text>
             </g>
           </g>
         )}
 
         {/* status badge */}
         <g>
-          <rect x="20" y="20" width="220" height="28" rx="14"
-            fill="rgba(242,243,238,0.92)" stroke="rgba(107,142,90,0.32)"/>
-          <circle cx="36" cy="34" r="4" fill={P.forest}/>
-          <text x="48" y="38" fontSize="10" fontWeight="800"
-            fill={P.forestDeep} style={{ fontFamily: FONT_SANS, letterSpacing: 1.6 }}>
-            ESTIMATED · {view.toUpperCase()} VIEW
+          <rect x="20" y="20" width="200" height="26" rx="2"
+            fill="rgba(242,243,238,0.94)" stroke="rgba(45,55,42,0.18)"/>
+          <circle cx="34" cy="33" r="3" fill={P.forest}/>
+          <text x="46" y="37" fontSize="9.5" fontWeight="600"
+            fill={P.inkSoft} style={{ fontFamily: FONT_SANS, letterSpacing: 2.4 }}>
+            {view === "three-quarter" ? "THREE-QUARTER" : view.toUpperCase()} · FIT PROFILE
           </text>
         </g>
       </svg>
@@ -576,37 +586,39 @@ function Callout({ y, x1, x2, label, side = "top" }) {
 // ─── Linear flow strip ────────────────────────────────────
 function FlowStrip() {
   const steps = [
-    { k: "1", t: "Paste link" },
-    { k: "2", t: "Get info" },
-    { k: "3", t: "Measure" },
-    { k: "4", t: "Alter" },
-    { k: "5", t: "Go" },
+    { k: "I", t: "Share the piece" },
+    { k: "II", t: "Garment brief" },
+    { k: "III", t: "Fit profile" },
+    { k: "IV", t: "Refine" },
+    { k: "V", t: "Atelier" },
   ];
   return (
     <div style={{
-      marginTop: 22, display: "inline-flex", alignItems: "center", gap: 10,
+      marginTop: 28, display: "inline-flex", alignItems: "center", gap: 14,
       flexWrap: "wrap",
       background: "rgba(242,243,238,0.7)",
-      border: `1px solid rgba(45,55,42,0.10)`,
-      padding: "10px 14px", borderRadius: 999,
+      border: `1px solid rgba(45,55,42,0.12)`,
+      padding: "12px 18px", borderRadius: 999,
     }}>
       {steps.map((s, i) => (
         <React.Fragment key={s.k}>
           <span style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            color: P.ink, fontSize: 12, fontWeight: 800,
-            letterSpacing: 1.2, textTransform: "uppercase",
+            display: "inline-flex", alignItems: "center", gap: 10,
+            color: P.ink, fontSize: 11, fontWeight: 600,
+            letterSpacing: 1.8, textTransform: "uppercase",
           }}>
             <span style={{
-              width: 22, height: 22, borderRadius: 999,
-              background: P.forest, color: P.cream,
+              minWidth: 22, height: 22, borderRadius: 999,
+              background: "transparent", color: P.forestDeep,
+              border: `1px solid rgba(107,142,90,0.45)`,
+              padding: "0 6px",
               display: "inline-flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, fontWeight: 800,
+              fontSize: 10, fontWeight: 700, fontFamily: FONT_SERIF, letterSpacing: 0.6,
             }}>{s.k}</span>
             {s.t}
           </span>
           {i < steps.length - 1 && (
-            <span style={{ color: P.warmGray, fontSize: 14, fontWeight: 800 }}>→</span>
+            <span style={{ color: P.warmGray, fontSize: 12, fontWeight: 400 }}>—</span>
           )}
         </React.Fragment>
       ))}
@@ -638,40 +650,46 @@ function ToolSection({ product, setProduct, state, setState, url, setUrl }) {
 
   return (
     <section id="tool" style={{
-      padding: "100px 24px",
+      padding: "120px 24px",
       background: `linear-gradient(180deg, ${P.beige} 0%, ${P.parchment} 100%)`,
     }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
-          eyebrow="Step 1 + 2 · Paste, get info"
-          title={<>Paste → Get info → Measure → Alter → <em style={{ color: P.moss }}>Go.</em></>}
-          body="The whole tool, on one page. Paste a URL, we pull the fit info from the listing, you get measured with two photos, drag the alterations you want, and submit."
+          eyebrow="I — Share the garment"
+          title={<>Begin with the piece. <em style={{ color: P.moss }}>We compose the brief.</em></>}
+          body="Send us a link to the garment you would like tailored. Our system reads the maker's cut, cloth, and size chart, and prepares a private brief for the atelier — the first stitch of a made-to-fit alteration."
         />
         <FlowStrip/>
 
         {/* URL input */}
         <div style={{
           background: P.cream,
-          border: `1px solid rgba(45,55,42,0.10)`,
-          borderRadius: 24, padding: 24,
-          boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
-          marginTop: 36,
+          border: `1px solid rgba(45,55,42,0.12)`,
+          borderRadius: 4, padding: 32,
+          boxShadow: "0 32px 70px rgba(45,55,42,0.07)",
+          marginTop: 44,
         }}>
+          <div style={{
+            fontSize: 10, color: P.warmGray, fontWeight: 700,
+            letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 14,
+          }}>
+            The garment link
+          </div>
           <div style={{
             display: "flex", gap: 10, flexWrap: "wrap", alignItems: "stretch",
           }}>
             <div style={{
               flex: 1, minWidth: 240,
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "12px 16px",
+              display: "flex", alignItems: "center", gap: 12,
+              padding: "14px 18px",
               background: P.parchment,
-              border: `1px solid rgba(45,55,42,0.12)`,
-              borderRadius: 14,
+              border: `1px solid rgba(45,55,42,0.14)`,
+              borderRadius: 2,
             }}>
-              <IconLink size={20}/>
+              <IconLink size={18}/>
               <input
                 type="url"
-                placeholder="Paste a product URL (https://…)"
+                placeholder="https://maker.com/the-piece-you-love"
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") extract(); }}
@@ -685,22 +703,23 @@ function ToolSection({ product, setProduct, state, setState, url, setUrl }) {
               onClick={() => extract()}
               disabled={!url || state === "extracting"}
               style={{
-                background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-                color: P.cream, padding: "14px 22px",
-                borderRadius: 14, border: "none",
-                fontSize: 14, fontWeight: 800, cursor: "pointer",
-                letterSpacing: 0.4, opacity: !url || state === "extracting" ? 0.5 : 1,
-                display: "inline-flex", alignItems: "center", gap: 8,
+                background: P.ink,
+                color: P.cream, padding: "14px 26px",
+                borderRadius: 2, border: "none",
+                fontSize: 11, fontWeight: 600, cursor: "pointer",
+                letterSpacing: 2.2, textTransform: "uppercase",
+                opacity: !url || state === "extracting" ? 0.5 : 1,
+                display: "inline-flex", alignItems: "center", gap: 10,
               }}
             >
-              {state === "extracting" ? "Extracting specs…" : "Extract product specs"}
-              {state !== "extracting" && <IconArrow size={16}/>}
+              {state === "extracting" ? "Reading the cloth…" : "Compose the brief"}
+              {state !== "extracting" && <IconArrow size={14}/>}
             </button>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14, alignItems: "center" }}>
-            <span style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
-              Example link
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 18, alignItems: "center" }}>
+            <span style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase" }}>
+              Try a sample house
             </span>
             {examples.map(ex => (
               <button
@@ -708,17 +727,17 @@ function ToolSection({ product, setProduct, state, setState, url, setUrl }) {
                 onClick={() => extract(`https://${ex.host}/products/example`)}
                 style={{
                   background: "transparent",
-                  border: `1px solid rgba(107,142,90,0.32)`,
-                  color: P.forestDeep, fontWeight: 700, fontSize: 12,
-                  padding: "6px 10px", borderRadius: 999, cursor: "pointer",
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                  border: `1px solid rgba(45,55,42,0.18)`,
+                  color: P.inkSoft, fontWeight: 500, fontSize: 12,
+                  padding: "6px 12px", borderRadius: 999, cursor: "pointer",
+                  fontFamily: FONT_SERIF, fontStyle: "italic", letterSpacing: 0.2,
                 }}
-              >https://{ex.host}/…</button>
+              >{ex.host}</button>
             ))}
           </div>
-          <div style={{ marginTop: 12, fontSize: 12, color: P.warmGray }}>
-            Demo mode — paste any product URL, or click an example to load a sample extraction.
-            Specs are illustrative while we expand retailer coverage.
+          <div style={{ marginTop: 14, fontSize: 12, color: P.warmGray, fontStyle: "italic", lineHeight: 1.6 }}>
+            A working preview — share any garment link, or select a sample house. Retailer coverage
+            is expanding as we extend the atelier's reach.
           </div>
         </div>
 
@@ -741,31 +760,32 @@ function ToolSection({ product, setProduct, state, setState, url, setUrl }) {
 function ProductCard({ product }) {
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 24, padding: 22,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 28,
       boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
     }}>
-      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase" }}>
-        From {product.retailer}
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 2.6, color: P.warmGray, textTransform: "uppercase" }}>
+        Maison · {product.retailer}
       </div>
-      <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 600, color: P.ink, lineHeight: 1.1, marginTop: 4 }}>
+      <div style={{ fontFamily: FONT_SERIF, fontSize: 28, fontWeight: 500, color: P.ink, lineHeight: 1.1, marginTop: 8, letterSpacing: -0.4 }}>
         {product.name}
       </div>
-      <div style={{ marginTop: 10, fontSize: 13, color: P.inkSoft }}>
-        <strong>Category:</strong> {product.category}
-      </div>
-      <div style={{ marginTop: 6, fontSize: 13, color: P.inkSoft }}>
-        <strong>Fabric:</strong> {product.fabric}
-      </div>
-      <div style={{ marginTop: 6, fontSize: 13, color: P.inkSoft, fontStyle: "italic" }}>
-        {product.notes}
-      </div>
+      <div style={{ height: 1, width: 40, background: P.taupe, margin: "16px 0" }}/>
+      <dl style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "8px 16px", margin: 0, fontSize: 13.5 }}>
+        <dt style={{ color: P.warmGray, fontStyle: "italic" }}>Category</dt>
+        <dd style={{ color: P.ink }}>{product.category}</dd>
+        <dt style={{ color: P.warmGray, fontStyle: "italic" }}>Cloth</dt>
+        <dd style={{ color: P.ink }}>{product.fabric}</dd>
+        <dt style={{ color: P.warmGray, fontStyle: "italic" }}>Atelier note</dt>
+        <dd style={{ color: P.inkSoft, fontStyle: "italic" }}>{product.notes}</dd>
+      </dl>
       <a href="#measure" onClick={handleAnchorClick("measure")} style={{
-        marginTop: 16, display: "inline-flex", alignItems: "center", gap: 8,
-        background: P.ink, color: P.cream,
-        padding: "10px 16px", borderRadius: 999,
-        textDecoration: "none", fontWeight: 800, fontSize: 13,
-      }}>Next · Get your measurements <IconArrow size={14}/></a>
+        marginTop: 22, display: "inline-flex", alignItems: "center", gap: 10,
+        background: "transparent", color: P.ink,
+        padding: "10px 0", borderBottom: `1px solid ${P.ink}`,
+        textDecoration: "none", fontWeight: 600, fontSize: 11,
+        letterSpacing: 2.2, textTransform: "uppercase",
+      }}>Continue to your fit profile <IconArrow size={13}/></a>
     </div>
   );
 }
@@ -773,23 +793,28 @@ function ProductCard({ product }) {
 function SpecCard({ product }) {
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 24, padding: 22,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 28,
       boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
     }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase", marginBottom: 10 }}>
-        Extracted size chart · {product.sizeRec}
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 2.6, color: P.warmGray, textTransform: "uppercase" }}>
+          Maker's measure
+        </div>
+        <div style={{ fontFamily: FONT_SERIF, fontStyle: "italic", color: P.moss, fontSize: 13 }}>
+          base size · {product.sizeRec}
+        </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {product.sizeChart.map(row => (
           <div key={row.label} style={{
-            padding: "8px 10px", background: P.parchment,
-            borderRadius: 10, border: `1px solid rgba(45,55,42,0.08)`,
+            padding: "12px 14px", background: P.parchment,
+            borderRadius: 2, border: `1px solid rgba(45,55,42,0.10)`,
           }}>
-            <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 9.5, color: P.warmGray, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" }}>
               {row.label}
             </div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 18, fontWeight: 600, color: P.ink }}>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 500, color: P.ink, marginTop: 4 }}>
               {row.value}
             </div>
           </div>
@@ -845,7 +870,7 @@ function buildProductForHost(host) {
 // confirm/retake. NO getUserMedia — purely simulated UI; produces
 // estimated measurements (height-anchored) with confidence scores.
 function MeasureSection({ measurements, setMeasurements, onComplete }) {
-  const STEPS = ["Prepare", "Front photo", "Side photo", "Measurements", "Recommendation"];
+  const STEPS = ["Prepare", "Front view", "Side view", "Fit profile", "Atelier review"];
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState("self"); // self | assisted
   const [seedHeight, setSeedHeight] = useState(measurements.height);
@@ -860,41 +885,43 @@ function MeasureSection({ measurements, setMeasurements, onComplete }) {
   const prev = () => setStep(s => Math.max(s - 1, 0));
 
   return (
-    <section id="measure" style={{ padding: "100px 24px", background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)` }}>
+    <section id="measure" style={{ padding: "120px 24px", background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)` }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
-          eyebrow="Step 3 · Get your measurements"
-          title={<>Two photos. <em style={{ color: P.moss }}>Estimated measurements</em> in seconds.</>}
-          body="An AI-guided two-photo measurement preview, inspired by 3DLOOK Mobile Tailor and Choozr. The demo simulates capture for your privacy — when we ship the production scan, your photos are used only for measurement, no account needed, deletable any time, never shared or sold."
+          eyebrow="III — The measurement suite"
+          title={<>A private digital fitting. <em style={{ color: P.moss }}>Two quiet photographs.</em></>}
+          body="The measurement suite is your fitting room online. Two composed photographs — front and side — are read against your stated height to draft a precise fit profile. The current preview is fully simulated for your discretion; in the production atelier your images are used only to measure, never stored beyond your session, never shared."
         />
 
         {/* Stepper */}
         <div style={{
-          marginTop: 28,
+          marginTop: 36,
           display: "flex", flexWrap: "wrap", gap: 6,
           background: P.cream,
-          border: `1px solid rgba(45,55,42,0.10)`,
+          border: `1px solid rgba(45,55,42,0.12)`,
           borderRadius: 999,
           padding: 6,
           width: "fit-content",
+          boxShadow: "0 12px 32px rgba(45,55,42,0.05)",
         }}>
           {STEPS.map((label, i) => {
             const active = i === step;
             const done = i < step;
             return (
               <button key={label} onClick={() => setStep(i)} style={{
-                padding: "8px 14px", borderRadius: 999, border: "none", cursor: "pointer",
-                background: active ? P.forest : done ? "rgba(107,142,90,0.18)" : "transparent",
+                padding: "9px 16px", borderRadius: 999, border: "none", cursor: "pointer",
+                background: active ? P.ink : done ? "rgba(79,107,67,0.10)" : "transparent",
                 color: active ? P.cream : done ? P.forestDeep : P.inkSoft,
-                fontWeight: 800, fontSize: 12, letterSpacing: 1.2, textTransform: "uppercase",
-                display: "inline-flex", alignItems: "center", gap: 8,
+                fontWeight: 600, fontSize: 10.5, letterSpacing: 1.8, textTransform: "uppercase",
+                display: "inline-flex", alignItems: "center", gap: 10,
+                fontFamily: FONT_SANS,
               }}>
                 <span style={{
                   width: 18, height: 18, borderRadius: 999,
-                  background: active ? P.cream : done ? P.forest : "rgba(45,55,42,0.10)",
-                  color: active ? P.forest : done ? P.cream : P.inkSoft,
+                  background: active ? P.cream : done ? P.forest : "rgba(45,55,42,0.08)",
+                  color: active ? P.ink : done ? P.cream : P.inkSoft,
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 900,
+                  fontSize: 9.5, fontWeight: 700, fontFamily: FONT_SERIF,
                 }}>{done ? "✓" : i + 1}</span>
                 {label}
               </button>
@@ -954,66 +981,73 @@ function MeasureSection({ measurements, setMeasurements, onComplete }) {
 function PrepareStep({ mode, setMode, seedHeight, setSeedHeight, unit, setUnit, onContinue }) {
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 24, padding: 24,
-      display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 24,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 32,
+      display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 36,
+      boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
     }} className="tlc-tool-grid">
       <div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: 26, color: P.ink, fontWeight: 600, marginBottom: 12 }}>
-          Before you start
+        <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 8 }}>
+          The fitting room
+        </div>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 30, color: P.ink, fontWeight: 500, marginBottom: 18, letterSpacing: -0.4, lineHeight: 1.1 }}>
+          A few quiet preparations
         </div>
         <Checklist items={[
-          ["Wear tight-fitting clothes (gym kit, leggings, fitted top).", true],
-          ["Stand 6–8 feet from your phone, against a plain wall.", true],
-          ["Even, indoor light. No backlight or strong shadows.", true],
-          ["Phone vertical, propped at hip height. Floor visible.", true],
-          ["Hair off the shoulders. Bare feet if possible.", true],
+          ["A close-fitting layer — slip, fitted tee, or athletic kit.", true],
+          ["Stand six to eight feet from the camera, a plain wall behind you.", true],
+          ["Soft, even indoor light. Avoid backlight or hard shadow.", true],
+          ["Phone framed vertically, propped at hip height, floor in view.", true],
+          ["Hair clear of the shoulders. Bare feet, when possible.", true],
         ]}/>
         <div style={{
-          marginTop: 18, padding: 14,
-          borderRadius: 14, background: "rgba(107,142,90,0.10)",
-          border: `1px solid rgba(107,142,90,0.28)`,
-          color: P.forestDeep, fontSize: 13, lineHeight: 1.55,
-          display: "flex", gap: 10, alignItems: "flex-start",
+          marginTop: 22, padding: 18,
+          borderRadius: 2, background: "rgba(79,107,67,0.06)",
+          border: `1px solid rgba(79,107,67,0.22)`,
+          color: P.forestDeep, fontSize: 13, lineHeight: 1.65,
+          display: "flex", gap: 12, alignItems: "flex-start",
         }}>
           <IconLock size={18}/>
           <div>
-            <strong>Privacy first.</strong> Your photos are used only to estimate
-            measurements. No account is needed, you can delete anytime, and we never
-            share or sell your scan. The current demo simulates capture client-side
-            for safety.
+            <span style={{ fontFamily: FONT_SERIF, fontStyle: "italic", color: P.moss, fontSize: 15 }}>In confidence.</span>{" "}
+            Photographs are read only to draft your fit profile. No account required, your session
+            is yours to clear at any time, and nothing is shared or sold. The preview before you is
+            simulated entirely in this browser.
           </div>
         </div>
       </div>
 
       <div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, marginBottom: 12 }}>
-          Scan mode
+        <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 8 }}>
+          Choose your fitting
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 500, marginBottom: 16, letterSpacing: -0.2 }}>
+          Self-guided or assisted by a companion
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {[
-            ["self", "Self-scan", "Hands-free with a 5-second timer. Phone propped, you step into the silhouette."],
-            ["assisted", "Assisted", "A friend taps the shutter. Faster alignment, slightly higher confidence."],
+            ["self", "Private fitting", "Hands-free, with a five-second composure timer. Your phone is propped; you step quietly into frame."],
+            ["assisted", "Assisted fitting", "A companion releases the shutter — quicker composure, slightly closer to a tailor's hand."],
           ].map(([k, label, body]) => {
             const active = mode === k;
             return (
               <button key={k} onClick={() => setMode(k)} style={{
                 textAlign: "left",
-                background: active ? "rgba(107,142,90,0.14)" : P.parchment,
-                border: `1px solid ${active ? P.forest : "rgba(45,55,42,0.12)"}`,
-                borderRadius: 16, padding: 14, cursor: "pointer",
+                background: active ? "rgba(79,107,67,0.08)" : P.parchment,
+                border: `1px solid ${active ? "rgba(79,107,67,0.5)" : "rgba(45,55,42,0.12)"}`,
+                borderRadius: 2, padding: 18, cursor: "pointer",
                 fontFamily: FONT_SANS,
               }}>
-                <div style={{ fontFamily: FONT_SERIF, fontSize: 18, fontWeight: 600, color: P.ink }}>{label}</div>
-                <div style={{ fontSize: 12, color: P.inkSoft, marginTop: 6, lineHeight: 1.5 }}>{body}</div>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: 19, fontWeight: 500, color: P.ink, letterSpacing: -0.2 }}>{label}</div>
+                <div style={{ fontSize: 12.5, color: P.inkSoft, marginTop: 8, lineHeight: 1.6 }}>{body}</div>
               </button>
             );
           })}
         </div>
 
-        <div style={{ marginTop: 20 }}>
-          <div style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 8 }}>
-            Your height — used to anchor scale
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase", marginBottom: 10 }}>
+            Stated height — the anchor of your fit profile
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <input
@@ -1039,15 +1073,15 @@ function PrepareStep({ mode, setMode, seedHeight, setSeedHeight, unit, setUnit, 
         </div>
 
         <button onClick={onContinue} style={{
-          marginTop: 22,
-          background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-          color: P.cream, padding: "14px 22px",
-          borderRadius: 14, border: "none",
-          fontSize: 14, fontWeight: 800, cursor: "pointer",
-          letterSpacing: 0.4,
-          display: "inline-flex", alignItems: "center", gap: 8,
+          marginTop: 28,
+          background: P.ink,
+          color: P.cream, padding: "14px 26px",
+          borderRadius: 2, border: "none",
+          fontSize: 11, fontWeight: 600, cursor: "pointer",
+          letterSpacing: 2.2, textTransform: "uppercase",
+          display: "inline-flex", alignItems: "center", gap: 12,
         }}>
-          Continue · Front photo <IconArrow size={16}/>
+          Continue · Front view <IconArrow size={14}/>
         </button>
       </div>
     </div>
@@ -1057,15 +1091,15 @@ function PrepareStep({ mode, setMode, seedHeight, setSeedHeight, unit, setUnit, 
 function UnitToggle({ unit, setUnit }) {
   return (
     <div style={{
-      display: "inline-flex", padding: 4, borderRadius: 999,
-      background: P.parchment, border: `1px solid rgba(45,55,42,0.12)`,
+      display: "inline-flex", padding: 3, borderRadius: 999,
+      background: P.parchment, border: `1px solid rgba(45,55,42,0.14)`,
     }}>
       {["in", "cm"].map(u => (
         <button key={u} onClick={() => setUnit(u)} style={{
-          padding: "6px 12px", borderRadius: 999, border: "none", cursor: "pointer",
-          background: unit === u ? P.forest : "transparent",
+          padding: "6px 14px", borderRadius: 999, border: "none", cursor: "pointer",
+          background: unit === u ? P.ink : "transparent",
           color: unit === u ? P.cream : P.inkSoft,
-          fontWeight: 800, fontSize: 12, letterSpacing: 1.2, textTransform: "uppercase",
+          fontWeight: 600, fontSize: 10.5, letterSpacing: 2, textTransform: "uppercase",
         }}>{u}</button>
       ))}
     </div>
@@ -1074,17 +1108,15 @@ function UnitToggle({ unit, setUnit }) {
 
 function Checklist({ items }) {
   return (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 8 }}>
+    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 4 }}>
       {items.map(([text], i) => (
         <li key={i} style={{
-          display: "flex", alignItems: "flex-start", gap: 10,
-          padding: "10px 12px",
-          background: P.parchment,
-          border: `1px solid rgba(45,55,42,0.08)`,
-          borderRadius: 12,
-          fontSize: 14, color: P.ink,
+          display: "flex", alignItems: "flex-start", gap: 14,
+          padding: "10px 0",
+          borderBottom: i < items.length - 1 ? `1px solid rgba(45,55,42,0.08)` : "none",
+          fontSize: 13.5, color: P.ink, lineHeight: 1.55,
         }}>
-          <span style={{ color: P.forest, marginTop: 1 }}><IconCheck size={16}/></span>
+          <span style={{ color: P.forest, marginTop: 2, flexShrink: 0 }}><IconCheck size={14}/></span>
           <span>{text}</span>
         </li>
       ))}
@@ -1138,41 +1170,45 @@ function CaptureStep({ kind, capture, setCapture, mode, onComplete, onBack }) {
 
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 24, padding: 24,
-      display: "grid", gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)", gap: 24,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 32,
+      display: "grid", gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)", gap: 36,
+      boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
     }} className="tlc-tool-grid">
       {/* Camera frame (simulated) */}
       <div style={{
         position: "relative",
-        background: "#0f1410",
-        borderRadius: 22,
+        background: "#0e1310",
+        borderRadius: 2,
         aspectRatio: "9/14",
         overflow: "hidden",
-        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
+        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 50px rgba(31,38,32,0.35)",
       }}>
         <SimulatedCameraView kind={kind} status={capture.status} confidence={conf} countdown={countdown}/>
       </div>
 
       {/* Right side: instructions, alignment meter, controls */}
       <div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: 26, color: P.ink, fontWeight: 600 }}>
-          {kind === "front" ? "Front photo" : "Side photo"}
+        <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 8 }}>
+          {kind === "front" ? "Frame · front view" : "Frame · side view"}
         </div>
-        <div style={{ marginTop: 8, color: P.inkSoft, fontSize: 14, lineHeight: 1.55 }}>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 30, color: P.ink, fontWeight: 500, lineHeight: 1.1, letterSpacing: -0.4 }}>
+          {kind === "front" ? "Compose front — face the lens" : "Compose side — turn a quarter"}
+        </div>
+        <div style={{ marginTop: 12, color: P.inkSoft, fontSize: 14, lineHeight: 1.65 }}>
           {kind === "front"
-            ? "Stand facing your phone, feet shoulder-width apart, arms 30–45° away from body, palms forward. Look straight ahead."
-            : "Turn 90° to your right. Arms straight down, palms on thighs. Heels together, look straight ahead."}
+            ? "Face the camera squarely. Feet shoulder-width. Arms held a hand's-breadth from the body, palms forward. A composed, gentle posture."
+            : "Turn ninety degrees to the right. Heels together, knees softened. Arms easy at your sides, palms resting on the thigh. Gaze level."}
         </div>
 
         <PostureGuide kind={kind}/>
 
-        <div style={{ marginTop: 18 }}>
-          <div style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>
-            Alignment confidence
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase", marginBottom: 8 }}>
+            Composure
           </div>
           <div style={{
-            position: "relative", height: 12, borderRadius: 999,
+            position: "relative", height: 6, borderRadius: 999,
             background: P.parchment, overflow: "hidden",
             border: `1px solid rgba(45,55,42,0.12)`,
           }}>
@@ -1183,47 +1219,47 @@ function CaptureStep({ kind, capture, setCapture, mode, onComplete, onBack }) {
               transition: "width 80ms linear",
             }}/>
           </div>
-          <div style={{ marginTop: 6, fontSize: 12, color: ready ? P.forestDeep : P.warmGray, fontWeight: 700 }}>
-            {ready ? `Aligned · ${Math.round(conf * 100)}% — ready to capture` : `${Math.round(conf * 100)}% — keep arms 30–45° from body, fill the silhouette`}
+          <div style={{ marginTop: 8, fontSize: 12.5, color: ready ? P.forestDeep : P.warmGray, fontStyle: ready ? "normal" : "italic" }}>
+            {ready ? `Composed at ${Math.round(conf * 100)}% — ready` : `${Math.round(conf * 100)}% — settle into the silhouette, hold the line`}
           </div>
         </div>
 
-        <div style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ marginTop: 22, display: "flex", gap: 10, flexWrap: "wrap" }}>
           {capture.status === "idle" && (
             <button onClick={startAlign} style={btnPrimary}>
-              <IconCamera size={16}/> Start aligning
+              <IconCamera size={14}/> Step into frame
             </button>
           )}
           {capture.status === "aligning" && (
             <>
               <button onClick={startCapture} disabled={!ready} style={{ ...btnPrimary, opacity: ready ? 1 : 0.5, cursor: ready ? "pointer" : "not-allowed" }}>
-                <IconCamera size={16}/> Capture {kind} photo
+                <IconCamera size={14}/> Take the {kind} view
               </button>
               <button onClick={() => setCapture({ status: "idle", confidence: 0 })} style={btnGhost}>Cancel</button>
             </>
           )}
           {capture.status === "capturing" && (
             <button disabled style={{ ...btnPrimary, opacity: 0.7 }}>
-              Capturing in {countdown ?? 0}…
+              Composing in {countdown ?? 0}…
             </button>
           )}
           {capture.status === "confirming" && (
             <>
               <button onClick={confirm} style={btnPrimary}>
-                <IconCheck size={16}/> Looks good · continue
+                <IconCheck size={14}/> Keep · continue
               </button>
               <button onClick={retake} style={btnGhost}>
-                <IconRotate size={16}/> Retake
+                <IconRotate size={14}/> Retake
               </button>
             </>
           )}
           <button onClick={onBack} style={btnGhost}>Back</button>
         </div>
 
-        <div style={{ marginTop: 14, fontSize: 12, color: P.warmGray, lineHeight: 1.5 }}>
+        <div style={{ marginTop: 18, fontSize: 12, color: P.warmGray, lineHeight: 1.6, fontStyle: "italic" }}>
           {mode === "self"
-            ? "Self-scan: 5-second timer after you confirm alignment."
-            : "Assisted: a helper taps the shutter — 3-second confirm timer."}
+            ? "A five-second composure timer follows the cue to take."
+            : "With a companion at the shutter, a brief three-second confirmation follows."}
         </div>
       </div>
     </div>
@@ -1231,18 +1267,20 @@ function CaptureStep({ kind, capture, setCapture, mode, onComplete, onBack }) {
 }
 
 const btnPrimary = {
-  background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-  color: P.cream, padding: "12px 18px",
-  borderRadius: 12, border: "none",
-  fontSize: 14, fontWeight: 800, cursor: "pointer",
-  display: "inline-flex", alignItems: "center", gap: 8,
+  background: P.ink,
+  color: P.cream, padding: "13px 22px",
+  borderRadius: 2, border: "none",
+  fontSize: 11, fontWeight: 600, cursor: "pointer",
+  display: "inline-flex", alignItems: "center", gap: 10,
+  letterSpacing: 2.2, textTransform: "uppercase",
 };
 const btnGhost = {
   background: "transparent", color: P.inkSoft,
-  padding: "12px 16px", borderRadius: 12,
-  border: `1px solid rgba(45,55,42,0.16)`,
-  fontSize: 13, fontWeight: 700, cursor: "pointer",
-  display: "inline-flex", alignItems: "center", gap: 8,
+  padding: "13px 20px", borderRadius: 2,
+  border: `1px solid rgba(45,55,42,0.28)`,
+  fontSize: 11, fontWeight: 600, cursor: "pointer",
+  display: "inline-flex", alignItems: "center", gap: 10,
+  letterSpacing: 2.2, textTransform: "uppercase",
 };
 
 // Simulated camera viewfinder: dark gradient, framing brackets, silhouette
@@ -1297,28 +1335,28 @@ function SimulatedCameraView({ kind, status, confidence, countdown }) {
       {/* confirming overlay */}
       {status === "confirming" && (
         <g>
-          <rect x="60" y="240" width="240" height="80" rx="14" fill="rgba(0,0,0,0.55)" stroke={P.sage}/>
-          <text x="180" y="280" textAnchor="middle" fontSize="18" fontWeight="800" fill="#fff" style={{ fontFamily: FONT_SANS }}>
-            Photo captured
+          <rect x="60" y="240" width="240" height="80" rx="2" fill="rgba(0,0,0,0.55)" stroke={P.sage}/>
+          <text x="180" y="278" textAnchor="middle" fontSize="17" fontWeight="500" fill="#fff" style={{ fontFamily: FONT_SERIF, letterSpacing: 0.4 }}>
+            Composition taken
           </text>
-          <text x="180" y="304" textAnchor="middle" fontSize="12" fill="#cdd5c4" style={{ fontFamily: FONT_SANS }}>
-            Confirm or retake on the right →
+          <text x="180" y="302" textAnchor="middle" fontSize="11" fill="#cdd5c4" style={{ fontFamily: FONT_SANS, letterSpacing: 1.4 }}>
+            Confirm or retake →
           </text>
         </g>
       )}
 
       {/* HUD */}
       <g>
-        <rect x="14" y="500" width="332" height="42" rx="10" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.08)"/>
-        <text x="26" y="518" fontSize="10" fontWeight="800" fill="#cdd5c4" letterSpacing="1.6">
-          {kind.toUpperCase()} CAPTURE · SIMULATED
+        <rect x="14" y="500" width="332" height="42" rx="2" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.08)"/>
+        <text x="26" y="518" fontSize="9.5" fontWeight="600" fill="#cdd5c4" letterSpacing="2.4">
+          {kind === "front" ? "FRONT VIEW · PREVIEW" : "SIDE VIEW · PREVIEW"}
         </text>
-        <text x="26" y="534" fontSize="11" fill="#9aa48f">
-          {status === "idle" && "Tap “Start aligning” →"}
-          {status === "aligning" && (ready ? "Aligned — ready to capture" : "Step into the silhouette")}
-          {status === "capturing" && "Hold still…"}
+        <text x="26" y="534" fontSize="11" fill="#9aa48f" fontStyle="italic">
+          {status === "idle" && "Begin when ready"}
+          {status === "aligning" && (ready ? "Composed — release at will" : "Settle into the silhouette")}
+          {status === "capturing" && "Hold the line…"}
           {status === "confirming" && "Confirm or retake"}
-          {status === "done" && "Done"}
+          {status === "done" && "Complete"}
         </text>
       </g>
     </svg>
@@ -1355,24 +1393,25 @@ function SideSilhouette({ fill, stroke }) {
 function PostureGuide({ kind }) {
   const items = kind === "front"
     ? [
-        "Feet shoulder-width apart",
-        "Arms 30–45° from body, palms forward",
-        "Look straight ahead, relaxed shoulders",
+        "Feet at shoulder width",
+        "Arms a hand's-breadth from the body, palms forward",
+        "Gaze level, shoulders eased",
       ]
     : [
-        "Turn 90° to your right",
-        "Heels together, knees soft",
-        "Arms down, palms on thighs",
+        "A quarter turn to the right",
+        "Heels together, knees softened",
+        "Arms easy, palms resting at the thigh",
       ];
   return (
-    <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 6 }}>
+    <ul style={{ listStyle: "none", padding: 0, margin: "18px 0 0", display: "grid", gap: 8 }}>
       {items.map((t, i) => (
-        <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, color: P.inkSoft, fontSize: 13 }}>
+        <li key={i} style={{ display: "flex", alignItems: "center", gap: 12, color: P.inkSoft, fontSize: 13 }}>
           <span style={{
-            width: 18, height: 18, borderRadius: 999,
-            background: "rgba(107,142,90,0.16)", color: P.forestDeep,
+            width: 22, height: 22, borderRadius: 999,
+            background: "transparent", color: P.forestDeep,
+            border: `1px solid rgba(79,107,67,0.4)`,
             display: "inline-flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 800, fontSize: 11,
+            fontWeight: 500, fontSize: 11, fontFamily: FONT_SERIF, fontStyle: "italic",
           }}>{i + 1}</span>
           {t}
         </li>
@@ -1427,25 +1466,31 @@ function MeasurementResultStep({ result, unit, setUnit, measurements, setMeasure
 
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 24, padding: 24,
-      display: "grid", gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 24,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 32,
+      display: "grid", gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 36,
+      boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
     }} className="tlc-tool-grid">
       {/* Body map with callouts (left) */}
       <div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-          <div style={{ fontFamily: FONT_SERIF, fontSize: 24, color: P.ink, fontWeight: 600 }}>
-            Estimated measurements
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase" }}>
+              Your fit profile
+            </div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 28, color: P.ink, fontWeight: 500, letterSpacing: -0.4, marginTop: 6 }}>
+              Drafted measurements
+            </div>
           </div>
           <UnitToggle unit={unit} setUnit={setUnit}/>
         </div>
-        <div style={{ marginTop: 14 }}>
+        <div style={{ marginTop: 18 }}>
           <BodyAvatar measurements={measurements} view="front" showCallouts/>
         </div>
-        <div style={{ marginTop: 12, fontSize: 12, color: P.warmGray, lineHeight: 1.5 }}>
-          Overall scan confidence: <strong>{Math.round(result.overallConfidence * 100)}%</strong>.
-          Measurements are estimates from your two photos and height anchor — your tailor reviews
-          before any cut and fine-tunes against the garment in hand.
+        <div style={{ marginTop: 14, fontSize: 12.5, color: P.warmGray, lineHeight: 1.65, fontStyle: "italic" }}>
+          Atelier confidence — <strong style={{ fontStyle: "normal", color: P.forestDeep }}>{Math.round(result.overallConfidence * 100)}%</strong>.
+          These are a tailor's first reading from two compositions and your stated height. The atelier
+          refines against the cloth before any thread is taken up.
         </div>
       </div>
 
@@ -1454,7 +1499,7 @@ function MeasurementResultStep({ result, unit, setUnit, measurements, setMeasure
         <div style={{ display: "grid", gap: 14 }}>
           {groups.map(({ title, keys }) => (
             <div key={title}>
-              <div style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 10 }}>
                 {title}
               </div>
               <div style={{ display: "grid", gap: 8 }}>
@@ -1464,14 +1509,14 @@ function MeasurementResultStep({ result, unit, setUnit, measurements, setMeasure
                   return (
                     <div key={k} style={{
                       display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr",
-                      gap: 10, alignItems: "center",
-                      padding: "10px 12px", background: P.parchment,
-                      border: `1px solid rgba(45,55,42,0.08)`, borderRadius: 12,
+                      gap: 12, alignItems: "center",
+                      padding: "12px 14px", background: P.parchment,
+                      border: `1px solid rgba(45,55,42,0.10)`, borderRadius: 2,
                     }}>
                       <div>
-                        <div style={{ fontSize: 13, color: P.ink, fontWeight: 700 }}>{labels[k]}</div>
-                        <div style={{ fontSize: 11, color: P.warmGray }}>
-                          {k === "height" ? "anchor" : "estimated"}
+                        <div style={{ fontSize: 13, color: P.ink, fontWeight: 500, fontFamily: FONT_SERIF, letterSpacing: -0.1 }}>{labels[k]}</div>
+                        <div style={{ fontSize: 10.5, color: P.warmGray, fontStyle: "italic", marginTop: 2 }}>
+                          {k === "height" ? "anchor" : "drafted"}
                         </div>
                       </div>
                       <div>
@@ -1492,13 +1537,13 @@ function MeasurementResultStep({ result, unit, setUnit, measurements, setMeasure
                             fontFamily: FONT_SANS, fontSize: 14, color: P.ink, outline: "none",
                           }}
                         />
-                        <div style={{ fontSize: 10, color: P.warmGray, marginTop: 2 }}>
+                        <div style={{ fontSize: 10, color: P.warmGray, marginTop: 4, fontStyle: "italic" }}>
                           {fmt(value)}
                         </div>
                       </div>
                       <div>
                         <div style={{
-                          height: 8, borderRadius: 999, background: P.cream,
+                          height: 4, borderRadius: 999, background: P.cream,
                           border: `1px solid rgba(45,55,42,0.10)`, overflow: "hidden",
                         }}>
                           <div style={{
@@ -1506,8 +1551,8 @@ function MeasurementResultStep({ result, unit, setUnit, measurements, setMeasure
                             background: c >= 0.85 ? P.forest : c >= 0.7 ? P.olive : P.taupe,
                           }}/>
                         </div>
-                        <div style={{ fontSize: 10, color: P.warmGray, marginTop: 2 }}>
-                          {Math.round(c * 100)}% conf.
+                        <div style={{ fontSize: 10, color: P.warmGray, marginTop: 4, fontStyle: "italic" }}>
+                          {Math.round(c * 100)}% certain
                         </div>
                       </div>
                     </div>
@@ -1518,12 +1563,12 @@ function MeasurementResultStep({ result, unit, setUnit, measurements, setMeasure
           ))}
         </div>
 
-        <div style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ marginTop: 22, display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button onClick={onContinue} style={btnPrimary}>
-            Use these measurements <IconArrow size={16}/>
+            Accept this fit profile <IconArrow size={14}/>
           </button>
           <button onClick={onBack} style={btnGhost}>
-            <IconRotate size={16}/> Re-scan
+            <IconRotate size={14}/> Retake the fitting
           </button>
         </div>
       </div>
@@ -1534,23 +1579,27 @@ function MeasurementResultStep({ result, unit, setUnit, measurements, setMeasure
 function ScanCompletionStep({ onBack }) {
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 24, padding: 24,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 36,
+      boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
     }}>
-      <div style={{ fontFamily: FONT_SERIF, fontSize: 28, color: P.ink, fontWeight: 600 }}>
-        Measurements saved to this session
+      <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 10 }}>
+        Atelier review
       </div>
-      <p style={{ marginTop: 8, color: P.inkSoft, fontSize: 14, lineHeight: 1.6, maxWidth: 720 }}>
-        Your estimated measurements now drive the body visualizer below — change a slider, see
-        the avatar update, and your size recommendation refresh in real time. Nothing leaves your
-        browser in the demo.
+      <div style={{ fontFamily: FONT_SERIF, fontSize: 34, color: P.ink, fontWeight: 500, letterSpacing: -0.6, lineHeight: 1.1 }}>
+        Your fit profile is composed.
+      </div>
+      <p style={{ marginTop: 14, color: P.inkSoft, fontSize: 15, lineHeight: 1.7, maxWidth: 720 }}>
+        The figure below the suite now follows your numbers — adjust a slider and the rendering
+        responds in kind, with the size recommendation refreshing alongside. Nothing leaves your
+        browser in the preview.
       </p>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 }}>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
         <a href="#visualize" onClick={handleAnchorClick("visualize")} style={{ ...btnPrimary, textDecoration: "none" }}>
-          See your body visualizer <IconArrow size={16}/>
+          See your figure <IconArrow size={14}/>
         </a>
         <a href="#alter" onClick={handleAnchorClick("alter")} style={{ ...btnGhost, textDecoration: "none" }}>
-          Skip to drag-to-alter
+          Refine the garment
         </a>
         <button onClick={onBack} style={btnGhost}>Edit measurements</button>
       </div>
@@ -1575,57 +1624,69 @@ function VisualizerSection({ measurements, setMeasurements }) {
   ];
 
   return (
-    <section id="visualize" style={{ padding: "100px 24px", background: P.parchment }}>
+    <section id="visualize" style={{ padding: "120px 24px", background: P.parchment }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
-          eyebrow="Body visualizer"
-          title={<>See your <em style={{ color: P.moss }}>shape.</em> Tweak any number.</>}
-          body="Inspired by BMI Visualizer and 3DHBGen. Numeric input + slider on the left, full-figure avatar on the right. Front, three-quarter, and side views simulate orbit. Every change updates the avatar instantly and feeds the size recommendation."
+          eyebrow="The figure"
+          title={<>Your silhouette, <em style={{ color: P.moss }}>rendered in confidence.</em></>}
+          body="The figure on the right follows every number on the left — height, girth, length, width — and rotates between front, three-quarter, and side. A clear rendering, never a claim. A confidential reference for the atelier."
         />
 
         <div style={{
-          marginTop: 28,
-          display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 24,
+          marginTop: 40,
+          display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 28,
         }} className="tlc-tool-grid">
           {/* Controls */}
           <div style={{
-            background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-            borderRadius: 24, padding: 22,
+            background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+            borderRadius: 4, padding: 28,
+            boxShadow: "0 18px 50px rgba(45,55,42,0.05)",
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600 }}>
-                Measurements
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+              <div>
+                <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase" }}>
+                  Adjust the numbers
+                </div>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: 24, color: P.ink, fontWeight: 500, marginTop: 6, letterSpacing: -0.3 }}>
+                  Fit profile
+                </div>
               </div>
               <UnitToggle unit={unit} setUnit={setUnit}/>
             </div>
-            <div style={{ display: "grid", gap: 12 }}>
+            <div style={{ display: "grid", gap: 16 }}>
               {fields.map(f => (
                 <SliderRow key={f.k} field={f} unit={unit}
                   value={measurements[f.k]}
                   onChange={(v) => setMeasurements({ ...measurements, [f.k]: round1(v) })}/>
               ))}
             </div>
-            <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 22, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button onClick={() => setMeasurements(DEFAULT_MEASUREMENTS)} style={btnGhost}>
-                <IconRotate size={14}/> Reset to baseline
+                <IconRotate size={13}/> Return to baseline
               </button>
             </div>
           </div>
 
           {/* Avatar */}
           <div style={{
-            background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-            borderRadius: 24, padding: 22,
+            background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+            borderRadius: 4, padding: 28,
+            boxShadow: "0 18px 50px rgba(45,55,42,0.05)",
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600 }}>
-                Your body — {view === "three-quarter" ? "3/4 view" : `${view} view`}
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+              <div>
+                <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase" }}>
+                  {view === "three-quarter" ? "Three-quarter" : `${view} view`}
+                </div>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: 24, color: P.ink, fontWeight: 500, marginTop: 6, letterSpacing: -0.3 }}>
+                  Your figure
+                </div>
               </div>
               <ViewToggle view={view} setView={setView}/>
             </div>
             <BodyAvatar measurements={measurements} view={view} showCallouts/>
-            <div style={{ marginTop: 10, fontSize: 12, color: P.warmGray }}>
-              Estimated render. The figure deforms from your numbers; we don't claim a true 3D mesh in the demo.
+            <div style={{ marginTop: 14, fontSize: 12, color: P.warmGray, fontStyle: "italic", lineHeight: 1.6 }}>
+              A composed rendering. The silhouette follows your stated measurements as a reference for the atelier — not a claim of a true cloth simulation.
             </div>
           </div>
         </div>
@@ -1645,8 +1706,8 @@ function SliderRow({ field, value, onChange, unit }) {
   };
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-        <div style={{ fontSize: 13, color: P.ink, fontWeight: 700 }}>{field.label}</div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
+        <div style={{ fontSize: 13.5, color: P.ink, fontWeight: 500, fontFamily: FONT_SERIF, letterSpacing: -0.1 }}>{field.label}</div>
         <input
           type="number"
           step={dispStep} min={dispMin} max={dispMax}
@@ -1659,7 +1720,7 @@ function SliderRow({ field, value, onChange, unit }) {
           style={{
             width: 84, background: P.parchment,
             border: `1px solid rgba(45,55,42,0.12)`,
-            borderRadius: 8, padding: "4px 8px",
+            borderRadius: 2, padding: "5px 10px",
             fontFamily: FONT_SANS, fontSize: 13, color: P.ink, outline: "none",
             textAlign: "right",
           }}
@@ -1678,20 +1739,20 @@ function SliderRow({ field, value, onChange, unit }) {
 function ViewToggle({ view, setView }) {
   const opts = [
     ["front", "Front"],
-    ["three-quarter", "3/4"],
+    ["three-quarter", "¾"],
     ["side", "Side"],
   ];
   return (
     <div style={{
-      display: "inline-flex", padding: 4, borderRadius: 999,
-      background: P.parchment, border: `1px solid rgba(45,55,42,0.12)`,
+      display: "inline-flex", padding: 3, borderRadius: 999,
+      background: P.parchment, border: `1px solid rgba(45,55,42,0.14)`,
     }}>
       {opts.map(([k, label]) => (
         <button key={k} onClick={() => setView(k)} style={{
-          padding: "6px 12px", borderRadius: 999, border: "none", cursor: "pointer",
-          background: view === k ? P.forest : "transparent",
+          padding: "6px 14px", borderRadius: 999, border: "none", cursor: "pointer",
+          background: view === k ? P.ink : "transparent",
           color: view === k ? P.cream : P.inkSoft,
-          fontWeight: 800, fontSize: 12, letterSpacing: 1.2, textTransform: "uppercase",
+          fontWeight: 600, fontSize: 10.5, letterSpacing: 2, textTransform: "uppercase",
         }}>{label}</button>
       ))}
     </div>
@@ -1756,61 +1817,61 @@ function AlterSection({ product, measurements, alterations, setAlterations }) {
   const altBrief = useMemo(() => buildBrief(alterations), [alterations]);
 
   return (
-    <section id="alter" style={{ padding: "100px 24px", background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)` }}>
+    <section id="alter" style={{ padding: "120px 24px", background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)` }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
-          eyebrow="Step 4 · Alter"
-          title={<>Drag the fit you want. <em style={{ color: P.moss }}>Sized to you.</em></>}
-          body="Your measurements drive the avatar; your size recommendation comes from comparing them to the listing's size chart. Drag the green handles on the body to refine — every change updates the alteration brief and notes any fit risks."
+          eyebrow="IV — Refine the cut"
+          title={<>Adjust the garment. <em style={{ color: P.moss }}>By hand, by eye.</em></>}
+          body="Your measurements draw the figure; the maker's size chart draws the maison's recommendation. Adjust the hem, refine waist ease, set your preferred break — every gesture composes a precise alteration plan for the atelier."
         />
 
         {!product && (
           <div style={{
-            marginTop: 24, padding: 16,
-            background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-            borderRadius: 16, color: P.inkSoft, fontSize: 14,
+            marginTop: 28, padding: 22,
+            background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+            borderRadius: 4, color: P.inkSoft, fontSize: 14, lineHeight: 1.6,
           }}>
-            No product yet — paste a link in <a href="#tool" onClick={handleAnchorClick("tool")} style={{ color: P.forestDeep, fontWeight: 800 }}>step 1</a>.
-            You can still play with the body visualizer above.
+            The garment is not yet in the room — <a href="#tool" onClick={handleAnchorClick("tool")} style={{ color: P.forestDeep, fontWeight: 600, fontFamily: FONT_SERIF, fontStyle: "italic" }}>begin a fitting</a> and we will compose the brief. The figure above remains at your disposal in the meantime.
           </div>
         )}
 
         {product && (
           <div style={{
-            marginTop: 28,
+            marginTop: 40,
             display: "grid",
             gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)",
-            gap: 24,
+            gap: 28,
           }} className="tlc-tool-grid">
             <div style={{
-              background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-              borderRadius: 24, padding: 22,
+              background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+              borderRadius: 4, padding: 28,
               boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
             }}>
               <ProductHeaderInline product={product} recommendation={recommendation}/>
               <div style={{
-                marginTop: 12, display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "6px 12px", borderRadius: 999,
-                background: "rgba(107,142,90,0.12)",
-                border: `1px solid rgba(107,142,90,0.28)`,
-                color: P.forestDeep, fontSize: 12, fontWeight: 700,
+                marginTop: 16, display: "inline-flex", alignItems: "center", gap: 10,
+                padding: "8px 14px", borderRadius: 999,
+                background: "rgba(79,107,67,0.08)",
+                border: `1px solid rgba(79,107,67,0.30)`,
+                color: P.forestDeep, fontSize: 11, fontWeight: 600,
+                letterSpacing: 1.8, textTransform: "uppercase",
               }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: P.forest }}/>
-                Drag the green handles for hem, waist, or sleeve.
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: P.forest }}/>
+                Adjust hem · refine waist · set sleeve
               </div>
-              <div style={{ marginTop: 12 }}>
+              <div style={{ marginTop: 16 }}>
                 <BodyAvatar
                   measurements={measurements}
                   alterations={alterations} setAlterations={setAlterations}
                   view="front" showGarment showHandles
                 />
               </div>
-              <div style={{ marginTop: 12, fontSize: 12, color: P.warmGray }}>
-                Numbers update live in the alteration brief on the right.
+              <div style={{ marginTop: 14, fontSize: 12, color: P.warmGray, fontStyle: "italic" }}>
+                Every gesture writes itself into the alteration plan beside.
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateRows: "auto auto auto 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateRows: "auto auto auto 1fr", gap: 18 }}>
               <SizingCard recommendation={recommendation}/>
               <FitRiskCard recommendation={recommendation}/>
               <AlterationBrief alterations={alterations} brief={altBrief}
@@ -1826,22 +1887,22 @@ function AlterSection({ product, measurements, alterations, setAlterations }) {
 
 function ProductHeaderInline({ product, recommendation }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase" }}>
-          From {product.retailer}
+        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 2.6, color: P.warmGray, textTransform: "uppercase" }}>
+          Maison · {product.retailer}
         </div>
-        <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600, color: P.ink, lineHeight: 1.1, marginTop: 4 }}>
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 24, fontWeight: 500, color: P.ink, lineHeight: 1.1, marginTop: 6, letterSpacing: -0.3 }}>
           {product.name}
         </div>
       </div>
       <div style={{
-        padding: "6px 12px", borderRadius: 999,
-        background: "rgba(107,142,90,0.14)",
-        color: P.forestDeep, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
+        padding: "8px 14px", borderRadius: 2,
+        background: P.ink,
+        color: P.cream, fontSize: 10, fontWeight: 600, letterSpacing: 2.2,
         textTransform: "uppercase",
       }}>
-        Recommended · {recommendation?.recommended?.label ?? product.sizeRec}
+        Atelier base · {recommendation?.recommended?.label ?? product.sizeRec}
       </div>
     </div>
   );
@@ -1851,14 +1912,14 @@ function SizingCard({ recommendation }) {
   if (!recommendation) {
     return (
       <div style={{
-        background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-        borderRadius: 20, padding: 18,
+        background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+        borderRadius: 4, padding: 22,
       }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase" }}>
-          Size recommendation
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.6, color: P.warmGray, textTransform: "uppercase" }}>
+          Fit recommendation
         </div>
-        <div style={{ marginTop: 8, color: P.inkSoft, fontSize: 14 }}>
-          Add measurements to see a recommendation.
+        <div style={{ marginTop: 12, color: P.inkSoft, fontSize: 13.5, fontStyle: "italic", lineHeight: 1.6 }}>
+          Compose your fit profile to receive the atelier's reading.
         </div>
       </div>
     );
@@ -1866,27 +1927,27 @@ function SizingCard({ recommendation }) {
   const { recommended, alternative, confidence } = recommendation;
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 20, padding: 18,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 22,
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase" }}>
-          Size recommendation
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.6, color: P.warmGray, textTransform: "uppercase" }}>
+          Recommended base size
         </div>
-        <div style={{ fontSize: 11, fontWeight: 800, color: P.forestDeep }}>
-          {Math.round(confidence * 100)}% confidence
+        <div style={{ fontSize: 11, fontWeight: 500, color: P.forestDeep, fontFamily: FONT_SERIF, fontStyle: "italic" }}>
+          {Math.round(confidence * 100)}% certain
         </div>
       </div>
-      <div style={{ fontFamily: FONT_SERIF, fontSize: 26, color: P.ink, fontWeight: 600, lineHeight: 1.1 }}>
+      <div style={{ fontFamily: FONT_SERIF, fontSize: 32, color: P.ink, fontWeight: 500, lineHeight: 1.05, letterSpacing: -0.6 }}>
         {recommended.label}
       </div>
       {alternative && (
-        <div style={{ marginTop: 4, fontSize: 13, color: P.inkSoft }}>
-          Alternative: <strong>{alternative.label}</strong> if you prefer a looser fit.
+        <div style={{ marginTop: 8, fontSize: 13, color: P.inkSoft, fontStyle: "italic" }}>
+          Or <strong style={{ fontStyle: "normal", color: P.ink }}>{alternative.label}</strong> for an easier line.
         </div>
       )}
       <div style={{
-        marginTop: 10, height: 8, borderRadius: 999, background: P.parchment,
+        marginTop: 14, height: 4, borderRadius: 999, background: P.parchment,
         border: `1px solid rgba(45,55,42,0.10)`, overflow: "hidden",
       }}>
         <div style={{
@@ -1894,9 +1955,9 @@ function SizingCard({ recommendation }) {
           background: confidence >= 0.85 ? P.forest : confidence >= 0.7 ? P.olive : P.taupe,
         }}/>
       </div>
-      <div style={{ marginTop: 8, fontSize: 12, color: P.warmGray, lineHeight: 1.5 }}>
-        Compared your waist / hip / inseam / shoulder / chest to the listing's size chart and picked
-        the smallest deviation across critical girths.
+      <div style={{ marginTop: 12, fontSize: 11.5, color: P.warmGray, lineHeight: 1.6, fontStyle: "italic" }}>
+        Why this size — the atelier weighed your waist, hip, inseam, shoulder, and chest against
+        the maker's chart and chose the closest reading across the critical lines.
       </div>
     </div>
   );
@@ -1906,25 +1967,25 @@ function FitRiskCard({ recommendation }) {
   const risks = recommendation?.risks ?? [];
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 20, padding: 18,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 22,
     }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase", marginBottom: 10 }}>
-        Fit risks
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.6, color: P.warmGray, textTransform: "uppercase", marginBottom: 12 }}>
+        Atelier notes
       </div>
       {risks.length === 0 ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: P.forestDeep, fontSize: 14, fontWeight: 700 }}>
-          <IconCheck size={16}/> No major risks at this size.
+        <div style={{ display: "flex", alignItems: "center", gap: 10, color: P.forestDeep, fontSize: 13.5, fontWeight: 500, fontFamily: FONT_SERIF, fontStyle: "italic" }}>
+          <IconCheck size={15}/> The cloth reads true to your profile.
         </div>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 8 }}>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
           {risks.map((r, i) => (
             <li key={i} style={{
-              padding: "10px 12px", background: P.parchment,
-              border: `1px solid rgba(45,55,42,0.08)`, borderRadius: 12,
+              padding: "12px 14px", background: P.parchment,
+              border: `1px solid rgba(45,55,42,0.10)`, borderRadius: 2,
             }}>
-              <div style={{ fontSize: 13, color: P.ink, fontWeight: 700 }}>{r.label}</div>
-              <div style={{ fontSize: 12, color: P.inkSoft, marginTop: 4 }}>{r.detail}</div>
+              <div style={{ fontSize: 13, color: P.ink, fontWeight: 500, fontFamily: FONT_SERIF, letterSpacing: -0.1 }}>{r.label}</div>
+              <div style={{ fontSize: 12.5, color: P.inkSoft, marginTop: 4, lineHeight: 1.55 }}>{r.detail}</div>
             </li>
           ))}
         </ul>
@@ -1937,57 +1998,58 @@ function buildBrief({ hemDelta, waistDelta, sleeveDelta }) {
   const lines = [];
   if (Math.abs(hemDelta) >= 0.1) {
     lines.push(hemDelta > 0
-      ? `Lengthen hem by ${hemDelta.toFixed(1)}"`
-      : `Shorten hem (inseam) by ${Math.abs(hemDelta).toFixed(1)}"`);
+      ? `Lengthen the break by ${hemDelta.toFixed(1)}"`
+      : `Shorten the inseam by ${Math.abs(hemDelta).toFixed(1)}"`);
   }
   if (Math.abs(waistDelta) >= 0.1) {
     lines.push(waistDelta < 0
-      ? `Take in waist by ${Math.abs(waistDelta).toFixed(1)}" (center back)`
-      : `Let out waist by ${waistDelta.toFixed(1)}"`);
+      ? `Take in the waist by ${Math.abs(waistDelta).toFixed(1)}" at centre back`
+      : `Let out the waist by ${waistDelta.toFixed(1)}"`);
   }
   if (Math.abs(sleeveDelta) >= 0.1) {
     lines.push(sleeveDelta > 0
-      ? `Lengthen sleeve by ${sleeveDelta.toFixed(1)}"`
-      : `Shorten sleeve by ${Math.abs(sleeveDelta).toFixed(1)}"`);
+      ? `Lengthen the sleeve by ${sleeveDelta.toFixed(1)}"`
+      : `Shorten the sleeve by ${Math.abs(sleeveDelta).toFixed(1)}"`);
   }
-  if (!lines.length) lines.push("No alterations yet — drag a handle on the preview to start.");
+  if (!lines.length) lines.push("The cloth is unaltered — adjust a handle on the figure to begin.");
   return lines;
 }
 
 function AlterationBrief({ alterations, brief, onReset }) {
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 20, padding: 18,
+      background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+      borderRadius: 4, padding: 22,
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase" }}>
-          Alteration brief · live
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.6, color: P.warmGray, textTransform: "uppercase" }}>
+          Alteration plan · live
         </div>
         <button onClick={onReset} style={{
-          background: "transparent", border: `1px solid rgba(45,55,42,0.16)`,
-          padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, color: P.inkSoft,
-          cursor: "pointer",
-        }}>Reset</button>
+          background: "transparent", border: `1px solid rgba(45,55,42,0.18)`,
+          padding: "5px 12px", borderRadius: 999, fontSize: 10, fontWeight: 600, color: P.inkSoft,
+          cursor: "pointer", letterSpacing: 1.8, textTransform: "uppercase",
+        }}>Clear</button>
       </div>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 8 }}>
+      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
         {brief.map((line, i) => (
           <li key={i} style={{
-            display: "flex", alignItems: "flex-start", gap: 10,
-            padding: "10px 12px",
+            display: "flex", alignItems: "flex-start", gap: 12,
+            padding: "12px 14px",
             background: P.parchment,
-            border: `1px solid rgba(45,55,42,0.08)`,
-            borderRadius: 12,
-            fontSize: 14, color: P.ink,
+            border: `1px solid rgba(45,55,42,0.10)`,
+            borderRadius: 2,
+            fontSize: 13.5, color: P.ink, lineHeight: 1.55,
+            fontFamily: FONT_SERIF, letterSpacing: -0.1,
           }}>
-            <span style={{ marginTop: 2, color: P.forest }}><IconScissors size={16}/></span>
+            <span style={{ marginTop: 2, color: P.forest, flexShrink: 0 }}><IconScissors size={14}/></span>
             <span>{line}</span>
           </li>
         ))}
       </ul>
       <div style={{
-        marginTop: 12,
-        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8,
+        marginTop: 14,
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10,
       }}>
         {[
           ["Hem", `${alterations.hemDelta > 0 ? "+" : ""}${alterations.hemDelta.toFixed(1)}"`],
@@ -1995,18 +2057,18 @@ function AlterationBrief({ alterations, brief, onReset }) {
           ["Sleeve", `${alterations.sleeveDelta > 0 ? "+" : ""}${alterations.sleeveDelta.toFixed(1)}"`],
         ].map(([k, v]) => (
           <div key={k} style={{
-            padding: "8px 10px", borderRadius: 10,
-            background: "rgba(107,142,90,0.10)",
-            border: `1px solid rgba(107,142,90,0.22)`,
+            padding: "10px 12px", borderRadius: 2,
+            background: "rgba(79,107,67,0.08)",
+            border: `1px solid rgba(79,107,67,0.22)`,
             textAlign: "center",
           }}>
-            <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>{k}</div>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 18, fontWeight: 600, color: P.ink }}>{v}</div>
+            <div style={{ fontSize: 9.5, color: P.warmGray, fontWeight: 600, letterSpacing: 2.2, textTransform: "uppercase" }}>{k}</div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 19, fontWeight: 500, color: P.ink, marginTop: 4 }}>{v}</div>
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 10, fontSize: 12, color: P.warmGray }}>
-        A human tailor reviews this brief before any cutting begins.
+      <div style={{ marginTop: 14, fontSize: 11.5, color: P.warmGray, fontStyle: "italic", lineHeight: 1.55 }}>
+        A tailor reads this plan against the cloth before a single thread is taken up.
       </div>
     </div>
   );
@@ -2015,22 +2077,27 @@ function AlterationBrief({ alterations, brief, onReset }) {
 function SendToTailorCTA() {
   return (
     <div style={{
-      background: `linear-gradient(135deg, ${P.cocoa}, ${P.brown})`,
-      color: P.cream, borderRadius: 20, padding: 20,
+      background: P.ink,
+      color: P.cream, borderRadius: 4, padding: 26,
+      boxShadow: "0 18px 50px rgba(31,38,32,0.28)",
     }}>
-      <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600, lineHeight: 1.1 }}>
-        Step 5 · Go.
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 2.6, textTransform: "uppercase", opacity: 0.65 }}>
+        V — Send to the atelier
       </div>
-      <div style={{ fontSize: 13, opacity: 0.85, marginTop: 8 }}>
-        Order the piece from the retailer yourself. Submit this alteration brief and we’ll
-        guide you to ship it to <strong>123 Main Street</strong>. No browsing, no checkout here.
+      <div style={{ fontFamily: FONT_SERIF, fontSize: 26, fontWeight: 500, lineHeight: 1.1, marginTop: 8, letterSpacing: -0.4 }}>
+        Entrust the piece.
+      </div>
+      <div style={{ fontSize: 13.5, opacity: 0.85, marginTop: 10, lineHeight: 1.65 }}>
+        Order the garment from the maker in your own name. Submit your plan, and the concierge
+        will guide its passage to the atelier — a private intake, a careful return.
       </div>
       <a href="#shipping" onClick={handleAnchorClick("shipping")} style={{
-        marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8,
+        marginTop: 18, display: "inline-flex", alignItems: "center", gap: 12,
         background: P.cream, color: P.ink,
-        padding: "10px 16px", borderRadius: 999,
-        textDecoration: "none", fontWeight: 800, fontSize: 13,
-      }}>Submit + ship to tailor <IconArrow size={14}/></a>
+        padding: "11px 20px", borderRadius: 2,
+        textDecoration: "none", fontWeight: 600, fontSize: 11,
+        letterSpacing: 2.2, textTransform: "uppercase",
+      }}>Continue to concierge intake <IconArrow size={13}/></a>
     </div>
   );
 }
@@ -2038,17 +2105,21 @@ function SendToTailorCTA() {
 // ─── Section header helper ───────────────────────────────
 function SectionHeader({ eyebrow, title, body }) {
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div style={{ maxWidth: 780 }}>
       <div style={{
-        fontSize: 11, fontWeight: 800, letterSpacing: 2.4,
-        color: P.forest, textTransform: "uppercase", marginBottom: 14,
-      }}>{eyebrow}</div>
+        fontSize: 10.5, fontWeight: 600, letterSpacing: 3.2,
+        color: P.forestDeep, textTransform: "uppercase", marginBottom: 18,
+        display: "inline-flex", alignItems: "center", gap: 14,
+      }}>
+        <span style={{ width: 28, height: 1, background: P.forest }}/>
+        {eyebrow}
+      </div>
       <h2 style={{
-        fontFamily: FONT_SERIF, fontSize: "clamp(36px, 4.2vw, 56px)",
-        lineHeight: 1.05, letterSpacing: -1.2, color: P.ink, fontWeight: 500, margin: 0,
+        fontFamily: FONT_SERIF, fontSize: "clamp(34px, 4.2vw, 58px)",
+        lineHeight: 1.05, letterSpacing: -1.4, color: P.ink, fontWeight: 400, margin: 0,
       }}>{title}</h2>
       {body && (
-        <p style={{ marginTop: 18, fontSize: 17, color: P.inkSoft, lineHeight: 1.6, maxWidth: 640 }}>
+        <p style={{ marginTop: 22, fontSize: 17, color: P.inkSoft, lineHeight: 1.65, maxWidth: 640, fontWeight: 400 }}>
           {body}
         </p>
       )}
@@ -2059,44 +2130,44 @@ function SectionHeader({ eyebrow, title, body }) {
 // ─── How it works ────────────────────────────────────────
 function HowItWorks() {
   const steps = [
-    { n: "01", Icon: IconLink, title: "Paste a product link", body: "We pull the listing — name, image, size chart, fabric, and fit notes — straight from the retailer page." },
-    { n: "02", Icon: IconRuler, title: "Get your measurements", body: "Two photos (front + side), or type in the numbers you already know. Estimated measurements with a confidence score for each." },
-    { n: "03", Icon: IconScissors, title: "Drag the fit you want", body: "Pull the hem, waist, or sleeve on your body preview. Each drag becomes a precise alteration measurement." },
-    { n: "04", Icon: IconBox, title: "Order it yourself + send proof", body: "Buy the garment from the retailer in your name. Upload your order confirmation and tracking so we know it’s coming." },
-    { n: "05", Icon: IconTruck, title: "Ship to 123 Main Street", body: "When it arrives at your door, drop it in the prepaid mailer to The Tailored Company at 123 Main Street." },
-    { n: "06", Icon: IconCheck, title: "We alter, then ship it back", body: "A human tailor reviews your brief, makes the alterations, and ships the finished piece to you." },
+    { n: "I", Icon: IconLink, title: "Share the garment", body: "Send a link to the piece you would like tailored. We read the maker's cut, cloth, and chart, and compose a private brief for the atelier." },
+    { n: "II", Icon: IconRuler, title: "Compose your fit profile", body: "Two photographs, front and side, against your stated height — or enter measurements you already keep. Each line carries its own degree of certainty." },
+    { n: "III", Icon: IconScissors, title: "Refine the cut by hand", body: "Adjust the hem, waist ease, sleeve, and break against a live preview of your figure. Every gesture is captured in measurement, ready for the workroom." },
+    { n: "IV", Icon: IconBox, title: "Order in your own name", body: "You purchase the garment directly from the maker. We never take payment in your stead. Upload the confirmation so the concierge can attend its arrival." },
+    { n: "V", Icon: IconTruck, title: "Concierge intake", body: "When the piece reaches you, place it in the prepaid mailer to our intake — 123 Main Street — addressed to the atelier." },
+    { n: "VI", Icon: IconCheck, title: "Returned, ready to wear", body: "A tailor reviews your plan against the cloth, refines the cut by hand, and returns the finished piece to your door." },
   ];
   return (
-    <section id="how" style={{ padding: "100px 24px", background: P.parchment }}>
+    <section id="how" style={{ padding: "120px 24px", background: P.parchment }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
-          eyebrow="How it works"
-          title={<>Six steps. <em style={{ color: P.moss }}>One page.</em></>}
-          body="The Tailored Company is a tailoring tool, not a store. You order the garment from the retailer in your name; we handle the alterations. Nothing to browse here."
+          eyebrow="The atelier process"
+          title={<>Six considered <em style={{ color: P.moss }}>movements.</em></>}
+          body="The Tailored Company is a private tailoring service — not a shop, not a marketplace. You order the garment from the maker yourself; the atelier attends to the fitting, the alteration, and the return."
         />
         <div style={{
-          marginTop: 36,
+          marginTop: 48,
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 18,
         }}>
           {steps.map(({ n, Icon, title, body }) => (
             <article key={n} style={{
-              background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-              borderRadius: 20, padding: 22,
+              background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+              borderRadius: 4, padding: 28,
             }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
                 <div style={{
-                  width: 44, height: 44, borderRadius: 14,
-                  background: `linear-gradient(135deg, ${P.sageMist}, ${P.cream})`,
-                  border: `1px solid rgba(107,142,90,0.30)`,
+                  width: 42, height: 42, borderRadius: 2,
+                  background: P.parchment,
+                  border: `1px solid rgba(45,55,42,0.14)`,
                   color: P.forestDeep,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                }}><Icon size={22}/></div>
-                <div style={{ fontFamily: FONT_SERIF, fontSize: 26, color: P.taupe, fontWeight: 600 }}>{n}</div>
+                }}><Icon size={20}/></div>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: 24, color: P.taupe, fontWeight: 400, fontStyle: "italic", letterSpacing: 0.4 }}>{n}</div>
               </div>
-              <h3 style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, lineHeight: 1.1, margin: 0 }}>{title}</h3>
-              <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.55, color: P.inkSoft }}>{body}</p>
+              <h3 style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 500, lineHeight: 1.15, margin: 0, letterSpacing: -0.3 }}>{title}</h3>
+              <p style={{ marginTop: 12, fontSize: 13.5, lineHeight: 1.65, color: P.inkSoft }}>{body}</p>
             </article>
           ))}
         </div>
@@ -2117,52 +2188,57 @@ function ShippingSection() {
   };
 
   return (
-    <section id="shipping" style={{ padding: "100px 24px", background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)` }}>
+    <section id="shipping" style={{ padding: "120px 24px", background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)` }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
-          eyebrow="Order + ship"
-          title={<>Show proof of order. Ship to <em style={{ color: P.moss }}>123 Main Street.</em></>}
-          body="You buy the garment in your name from the retailer. We never handle your payment. Upload your order confirmation so we know what to expect, then drop the piece in the mail when it arrives."
+          eyebrow="V — Concierge intake"
+          title={<>A private passage to <em style={{ color: P.moss }}>the atelier.</em></>}
+          body="You purchase the garment from the maker in your own name; payment never passes through this house. Lodge your proof of order with the concierge, and we will attend to the cloth from intake to return."
         />
 
         <div style={{
-          marginTop: 36,
+          marginTop: 48,
           display: "grid",
           gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)",
-          gap: 24,
+          gap: 28,
         }} className="tlc-ship-grid">
           <div style={{
-            background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-            borderRadius: 24, padding: 22,
+            background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+            borderRadius: 4, padding: 32,
+            boxShadow: "0 20px 50px rgba(45,55,42,0.05)",
           }}>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, marginBottom: 12 }}>
-              Step 1 · Proof of order
+            <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 8 }}>
+              Step one
             </div>
-            <div style={{ display: "grid", gap: 10 }}>
-              <Field label="Retailer" placeholder="Everlane" value={order.retailer} onChange={update("retailer")}/>
-              <Field label="Order number" placeholder="EV-1029384" value={order.orderId} onChange={update("orderId")}/>
-              <Field label="Tracking number" placeholder="1Z…" value={order.tracking} onChange={update("tracking")}/>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 26, color: P.ink, fontWeight: 500, marginBottom: 22, letterSpacing: -0.4 }}>
+              Lodge proof of order
+            </div>
+            <div style={{ display: "grid", gap: 14 }}>
+              <Field label="Maison" placeholder="The Reformation" value={order.retailer} onChange={update("retailer")}/>
+              <Field label="Order reference" placeholder="REF-104928" value={order.orderId} onChange={update("orderId")}/>
+              <Field label="Carrier tracking" placeholder="1Z…" value={order.tracking} onChange={update("tracking")}/>
               <div>
-                <label style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
-                  Upload order confirmation
+                <label style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase" }}>
+                  Order confirmation
                 </label>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   style={{
-                    marginTop: 6, width: "100%",
-                    background: P.parchment, border: `1px dashed rgba(45,55,42,0.2)`,
-                    borderRadius: 12, padding: "16px 14px",
-                    display: "flex", alignItems: "center", gap: 10,
-                    color: P.inkSoft, fontWeight: 700, cursor: "pointer", fontSize: 14,
+                    marginTop: 8, width: "100%",
+                    background: P.parchment, border: `1px dashed rgba(45,55,42,0.22)`,
+                    borderRadius: 2, padding: "18px 16px",
+                    display: "flex", alignItems: "center", gap: 12,
+                    color: P.inkSoft, fontWeight: 500, cursor: "pointer", fontSize: 13.5,
+                    fontFamily: FONT_SERIF, fontStyle: proofName ? "normal" : "italic", letterSpacing: -0.1,
                   }}
                 >
-                  <IconUpload size={20}/>
-                  {proofName ? proofName : "Click to attach a screenshot or PDF"}
+                  <IconUpload size={18}/>
+                  {proofName ? proofName : "Attach a screenshot or PDF of your order"}
                 </button>
                 <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={onFile} style={{ display: "none" }}/>
-                <div style={{ marginTop: 6, fontSize: 12, color: P.warmGray }}>
-                  Demo only — your file stays on this page and is not uploaded.
+                <div style={{ marginTop: 8, fontSize: 11.5, color: P.warmGray, fontStyle: "italic" }}>
+                  In the preview the file remains on this page; nothing is transmitted.
                 </div>
               </div>
             </div>
@@ -2170,32 +2246,49 @@ function ShippingSection() {
 
           <div style={{
             background: `linear-gradient(135deg, ${P.cream}, ${P.oat})`,
-            border: `1px solid rgba(45,55,42,0.10)`,
-            borderRadius: 24, padding: 22,
-            display: "flex", flexDirection: "column", gap: 14,
+            border: `1px solid rgba(45,55,42,0.12)`,
+            borderRadius: 4, padding: 32,
+            display: "flex", flexDirection: "column", gap: 18,
+            boxShadow: "0 20px 50px rgba(45,55,42,0.05)",
           }}>
-            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600 }}>
-              Step 2 · Ship to The Tailored Company
+            <div>
+              <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase", marginBottom: 8 }}>
+                Step two
+              </div>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 26, color: P.ink, fontWeight: 500, letterSpacing: -0.4 }}>
+                Send the piece to the atelier
+              </div>
             </div>
             <div style={{
-              background: P.cream, borderRadius: 16, padding: 18,
-              border: `1px dashed rgba(45,55,42,0.2)`,
+              background: P.cream, borderRadius: 2, padding: 22,
+              border: `1px solid rgba(45,55,42,0.14)`,
+              position: "relative",
             }}>
-              <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>Ship to</div>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, marginTop: 4 }}>
+              <div style={{ fontSize: 9.5, color: P.warmGray, fontWeight: 700, letterSpacing: 2.6, textTransform: "uppercase" }}>Intake address</div>
+              <div style={{ height: 1, width: 28, background: P.taupe, margin: "10px 0" }}/>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 500, marginTop: 4, letterSpacing: -0.2 }}>
                 The Tailored Company
               </div>
-              <div style={{ fontSize: 14, color: P.inkSoft, marginTop: 4 }}>
+              <div style={{ fontSize: 14, color: P.inkSoft, marginTop: 6, lineHeight: 1.65 }}>
                 123 Main Street<br/>
-                Attn: Tailoring intake<br/>
-                (temporary intake address — full label provided after checkout)
+                <span style={{ fontStyle: "italic", color: P.warmGray }}>Attn: Atelier intake</span>
+              </div>
+              <div style={{ marginTop: 14, fontSize: 11, color: P.warmGray, fontStyle: "italic", lineHeight: 1.55 }}>
+                A temporary intake address — your full concierge label is issued upon confirmation.
               </div>
             </div>
-            <ol style={{ paddingLeft: 18, margin: 0, color: P.inkSoft, fontSize: 14, lineHeight: 1.6 }}>
-              <li>Order arrives at your door from the retailer.</li>
-              <li>Drop it in the prepaid mailer we email you.</li>
-              <li>We alter it (typically 5–7 business days).</li>
-              <li>We ship the finished piece back to you.</li>
+            <ol style={{ padding: 0, margin: 0, listStyle: "none", color: P.inkSoft, fontSize: 14, lineHeight: 1.7, display: "grid", gap: 10 }}>
+              {[
+                "The maker's parcel reaches you.",
+                "Place the piece in the prepaid mailer the concierge issues.",
+                "The atelier reviews and alters — five to seven days, by hand.",
+                "The finished piece is returned to your door.",
+              ].map((t, i) => (
+                <li key={i} style={{ display: "flex", gap: 14 }}>
+                  <span style={{ fontFamily: FONT_SERIF, fontStyle: "italic", color: P.taupe, fontSize: 14, minWidth: 18 }}>{i + 1}.</span>
+                  <span>{t}</span>
+                </li>
+              ))}
             </ol>
           </div>
         </div>
@@ -2207,15 +2300,15 @@ function ShippingSection() {
 function Field({ label, placeholder, value, onChange }) {
   return (
     <label style={{ display: "block" }}>
-      <div style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+      <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase" }}>
         {label}
       </div>
       <input
         type="text" placeholder={placeholder} value={value} onChange={onChange}
         style={{
-          marginTop: 6, width: "100%",
-          background: P.parchment, border: `1px solid rgba(45,55,42,0.12)`,
-          borderRadius: 12, padding: "12px 14px",
+          marginTop: 8, width: "100%",
+          background: P.parchment, border: `1px solid rgba(45,55,42,0.14)`,
+          borderRadius: 2, padding: "13px 16px",
           fontFamily: FONT_SANS, fontSize: 14, color: P.ink, outline: "none",
         }}
       />
@@ -2226,30 +2319,31 @@ function Field({ label, placeholder, value, onChange }) {
 // ─── Trust + FAQ + Footer ───────────────────────────────
 function TrustSection() {
   const items = [
-    { title: "A human tailor reviews every brief", body: "AI drafts the alteration spec from your drags. A tailor checks fabric, seam allowance, and feasibility before scissors touch the cloth." },
-    { title: "Buy once, wear longer", body: "Tailored garments fit better, get worn more, and get returned less. Less waste, fewer landfill miles." },
-    { title: "Your measurements stay yours", body: "We don’t sell your fit profile. We use it once to do your alterations." },
+    { title: "A tailor reviews every plan", body: "The system drafts your alteration plan. A tailor reads the cloth, the seam allowance, and the feasibility of every line before scissors are lifted." },
+    { title: "Made to wear longer", body: "A garment tailored to the body is worn more, returned less, and quietly outlasts the season's wardrobe." },
+    { title: "Your fit profile stays yours", body: "Your measurements are used once, for your piece. Nothing is sold; nothing is shared." },
   ];
   return (
-    <section style={{ padding: "100px 24px", background: P.parchment }}>
+    <section style={{ padding: "120px 24px", background: P.parchment }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
-          eyebrow="Why tailoring (still) matters"
-          title={<>Made for <em style={{ color: P.moss }}>your</em> body. Not the average.</>}
+          eyebrow="The atelier promise"
+          title={<>Made for <em style={{ color: P.moss }}>your</em> body, not the average.</>}
         />
         <div style={{
-          marginTop: 36,
+          marginTop: 48,
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: 16,
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 18,
         }}>
           {items.map(({ title, body }) => (
             <article key={title} style={{
-              background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-              borderRadius: 20, padding: 22,
+              background: P.cream, border: `1px solid rgba(45,55,42,0.12)`,
+              borderRadius: 4, padding: 30,
             }}>
-              <h3 style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, lineHeight: 1.15, margin: 0 }}>{title}</h3>
-              <p style={{ marginTop: 8, fontSize: 14, color: P.inkSoft, lineHeight: 1.6 }}>{body}</p>
+              <h3 style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 500, lineHeight: 1.2, margin: 0, letterSpacing: -0.3 }}>{title}</h3>
+              <div style={{ height: 1, width: 28, background: P.taupe, margin: "14px 0" }}/>
+              <p style={{ marginTop: 4, fontSize: 14, color: P.inkSoft, lineHeight: 1.7 }}>{body}</p>
             </article>
           ))}
         </div>
@@ -2260,20 +2354,20 @@ function TrustSection() {
 
 function FAQ() {
   const faqs = [
-    { q: "Do I have to download an app?", a: "No. Everything is right here on the website. We may release a companion app later for repeat customers, but it’s never required." },
-    { q: "How does the measurement scan work?", a: "It's an AI-guided two-photo measurement preview, inspired by 3DLOOK Mobile Tailor and Choozr. The current demo simulates capture in your browser for safety; production scans use your two photos and a height anchor to estimate measurements with per-dimension confidence." },
-    { q: "How does the body visualizer work?", a: "Front, three-quarter, and side views are rendered from your measurements as a vector silhouette. It deforms in real time as you change numbers — a visual guide, not a perfect cloth simulation. Your tailor reviews everything before any cutting." },
-    { q: "How is my recommended size calculated?", a: "We compare your measurements (waist, hip, inseam, shoulder, chest) to the listing's size chart and pick the size with the smallest weighted deviation across critical girths. We flag fit risks like 'too long' or 'tight waist'." },
-    { q: "Why do I have to buy the garment myself?", a: "We don’t resell. You order in your name from the retailer (so returns and warranties stay with you), then ship the piece to us for alterations." },
-    { q: "Where do I ship the garment?", a: "To The Tailored Company at 123 Main Street, our temporary intake address. We’ll include a prepaid label and detailed instructions with your order." },
-    { q: "What can the drag-to-alter tool actually change?", a: "Hem / inseam length, waist take-in or let-out, and sleeve length today. We’re adding shoulder, taper, and rise next." },
-    { q: "What about my privacy?", a: "Your measurements stay in your browser during the demo. When the production scan ships, photos are used only to estimate measurements, no account is required, and you can delete your scan at any time. We don't share or sell scans." },
+    { q: "Is the service a website or an app?", a: "A website. The full experience lives here, on one private page. A companion application may be offered to returning patrons in time, but it is never required of you." },
+    { q: "How does the measurement suite work?", a: "It is a private digital fitting — two composed photographs against a height anchor — drafting your measurements with a degree of certainty for each. The preview before you is fully simulated for your discretion; production fittings read only to measure, never to retain." },
+    { q: "What does the figure render show me?", a: "Front, three-quarter, and side views, drawn from your stated measurements. The silhouette responds to your figures in real time — a confidential reference for the atelier, never a claim of a true cloth simulation." },
+    { q: "How is the recommended size chosen?", a: "The atelier reads your waist, hip, inseam, shoulder, and chest against the maker's chart and selects the closest line across the critical measurements. Where the fit is uneasy, the notes will say so." },
+    { q: "Why purchase the garment myself?", a: "The atelier never resells. You buy in your own name from the maker — keeping returns and provenance with you — and entrust the piece to us only for alteration." },
+    { q: "Where is the atelier intake?", a: "The Tailored Company, 123 Main Street, addressed to Atelier intake. A full concierge label follows your confirmation, along with detailed instructions." },
+    { q: "What does the refine step alter today?", a: "Hem and inseam, waist ease, and sleeve length. Shoulder, taper, and rise will join the suite in the next chapter of the atelier." },
+    { q: "And my privacy?", a: "Your measurements remain in this browser throughout the preview. In production fittings, photographs are read only to measure, no account is asked of you, and your record may be cleared at any time. Nothing is shared or sold." },
   ];
   return (
-    <section id="faq" style={{ padding: "100px 24px", background: `linear-gradient(180deg, ${P.beige} 0%, ${P.parchment} 100%)` }}>
+    <section id="faq" style={{ padding: "120px 24px", background: `linear-gradient(180deg, ${P.beige} 0%, ${P.parchment} 100%)` }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <SectionHeader eyebrow="FAQ" title={<>Common <em style={{ color: P.moss }}>questions.</em></>}/>
-        <div style={{ marginTop: 28, display: "grid", gap: 12 }}>
+        <SectionHeader eyebrow="In quiet conversation" title={<>Questions, <em style={{ color: P.moss }}>kindly answered.</em></>}/>
+        <div style={{ marginTop: 40, display: "grid", gap: 0, borderTop: `1px solid rgba(45,55,42,0.12)` }}>
           {faqs.map((f, i) => <FAQItem key={i} q={f.q} a={f.a}/>)}
         </div>
       </div>
@@ -2284,20 +2378,19 @@ function FAQItem({ q, a }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{
-      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
-      borderRadius: 16, overflow: "hidden",
+      borderBottom: `1px solid rgba(45,55,42,0.12)`,
     }}>
       <button onClick={() => setOpen(o => !o)} style={{
         width: "100%", textAlign: "left",
-        background: "transparent", border: "none", padding: "16px 18px",
-        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+        background: "transparent", border: "none", padding: "22px 4px",
+        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
         fontFamily: FONT_SANS,
       }}>
-        <span style={{ fontFamily: FONT_SERIF, fontSize: 19, color: P.ink, fontWeight: 600 }}>{q}</span>
-        <span style={{ color: P.forestDeep, fontWeight: 800, fontSize: 18 }}>{open ? "–" : "+"}</span>
+        <span style={{ fontFamily: FONT_SERIF, fontSize: 20, color: P.ink, fontWeight: 500, letterSpacing: -0.2, lineHeight: 1.3 }}>{q}</span>
+        <span style={{ color: P.forestDeep, fontWeight: 300, fontSize: 22, fontFamily: FONT_SERIF, flexShrink: 0 }}>{open ? "—" : "+"}</span>
       </button>
       {open && (
-        <div style={{ padding: "0 18px 18px", color: P.inkSoft, fontSize: 14, lineHeight: 1.6 }}>{a}</div>
+        <div style={{ padding: "0 4px 24px", color: P.inkSoft, fontSize: 14.5, lineHeight: 1.75, maxWidth: 720 }}>{a}</div>
       )}
     </div>
   );
@@ -2306,40 +2399,60 @@ function FAQItem({ q, a }) {
 function Footer() {
   return (
     <footer style={{
-      background: P.cocoa, color: P.oat, padding: "48px 24px",
+      background: P.ink, color: P.oat, padding: "72px 24px 48px",
     }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gap: 24, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        <div>
-          <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600, color: P.cream }}>The Tailored Company</div>
-          <div style={{ marginTop: 8, fontSize: 13, opacity: 0.8 }}>
-            A tailoring tool for clothing you bought anywhere. Not a store, not an app — one page,
-            five steps: paste, get info, measure, alter, go.
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ display: "grid", gap: 36, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          <div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 500, color: P.cream, letterSpacing: 0.3 }}>
+              The Tailored Company
+            </div>
+            <div style={{ fontFamily: FONT_SERIF, fontStyle: "italic", fontSize: 13, color: P.sage, marginTop: 4 }}>
+              A private digital atelier
+            </div>
+            <div style={{ marginTop: 18, fontSize: 13, opacity: 0.78, lineHeight: 1.7, maxWidth: 280 }}>
+              A made-to-fit tailoring house for the pieces you already love. By invitation of the cloth.
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 2.6, textTransform: "uppercase", opacity: 0.55 }}>Atelier intake</div>
+            <div style={{ marginTop: 12, fontSize: 14, lineHeight: 1.7 }}>
+              123 Main Street<br/>
+              <span style={{ fontStyle: "italic", opacity: 0.7 }}>Attn: Atelier intake</span>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 2.6, textTransform: "uppercase", opacity: 0.55 }}>The fitting</div>
+            <div style={{ marginTop: 12, display: "grid", gap: 8, fontSize: 13.5 }}>
+              {[
+                ["The fitting", "tool"],
+                ["Measurement suite", "measure"],
+                ["The figure", "visualize"],
+                ["Refine the cut", "alter"],
+                ["Atelier process", "how"],
+                ["Concierge intake", "shipping"],
+                ["FAQ", "faq"],
+              ].map(([label, id]) => (
+                <a key={id} href={`#${id}`} onClick={handleAnchorClick(id)} style={{ color: P.oat, textDecoration: "none", opacity: 0.78 }}>{label}</a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 2.6, textTransform: "uppercase", opacity: 0.55 }}>A quiet note</div>
+            <div style={{ marginTop: 12, fontSize: 13, opacity: 0.78, lineHeight: 1.7, maxWidth: 260 }}>
+              A companion application may be offered to returning patrons in time. For now, the website is the whole atelier.
+            </div>
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", opacity: 0.7 }}>Intake address</div>
-          <div style={{ marginTop: 6, fontSize: 14 }}>
-            123 Main Street<br/>
-            Attn: Tailoring intake
-          </div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", opacity: 0.7 }}>Site</div>
-          <div style={{ marginTop: 6, display: "grid", gap: 4, fontSize: 14 }}>
-            <a href="#tool" onClick={handleAnchorClick("tool")} style={{ color: P.oat, textDecoration: "none" }}>Try the tool</a>
-            <a href="#measure" onClick={handleAnchorClick("measure")} style={{ color: P.oat, textDecoration: "none" }}>Get measurements</a>
-            <a href="#visualize" onClick={handleAnchorClick("visualize")} style={{ color: P.oat, textDecoration: "none" }}>Body visualizer</a>
-            <a href="#alter" onClick={handleAnchorClick("alter")} style={{ color: P.oat, textDecoration: "none" }}>Drag-to-alter</a>
-            <a href="#how" onClick={handleAnchorClick("how")} style={{ color: P.oat, textDecoration: "none" }}>How it works</a>
-            <a href="#shipping" onClick={handleAnchorClick("shipping")} style={{ color: P.oat, textDecoration: "none" }}>Shipping</a>
-            <a href="#faq" onClick={handleAnchorClick("faq")} style={{ color: P.oat, textDecoration: "none" }}>FAQ</a>
-          </div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", opacity: 0.7 }}>A note</div>
-          <div style={{ marginTop: 6, fontSize: 13, opacity: 0.85 }}>
-            Member app coming later. For now, the website is the whole product.
-          </div>
+        <div style={{
+          marginTop: 56, paddingTop: 24, borderTop: `1px solid rgba(255,255,255,0.08)`,
+          display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "space-between",
+          fontSize: 11, opacity: 0.5, letterSpacing: 1.4, textTransform: "uppercase", fontWeight: 600,
+        }}>
+          <span>© The Tailored Company · Est. {new Date().getFullYear()}</span>
+          <span style={{ fontFamily: FONT_SERIF, fontStyle: "italic", textTransform: "none", letterSpacing: 0.4, fontSize: 12 }}>
+            measure once · cut by hand
+          </span>
         </div>
       </div>
     </footer>
