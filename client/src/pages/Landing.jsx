@@ -1,1793 +1,1132 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "wouter";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-// ─── Palette · earthy sustainability (NO orange/amber/copper/terracotta) ──
+// ─── Palette · earthy, sustainable (NO orange/amber/copper/terracotta/rust/gold)
 const P = {
   sage: "#9CAF88",
   sageMist: "#C4D2B6",
   forest: "#6B8E5A",
   forestDeep: "#4F6B43",
+  moss: "#3F5535",
   olive: "#8B9556",
-  beige: "#EDEEE8",      // cool stone
-  cream: "#F2F3EE",      // cool cream
-  parchment: "#F2F3EE",  // cool parchment
-  tan: "#A8AE9A",        // cool olive-stone (legacy name kept)
-  sand: "#9AA88E",       // muted moss (legacy name kept)
-  clay: "#4E5C49",       // deep forest (legacy name kept)
-  cocoa: "#3A4537",      // espresso forest
-  warmGray: "#7C857B",   // cool stone-gray
+  beige: "#EDEEE8",
+  cream: "#F2F3EE",
+  parchment: "#F2F3EE",
+  taupe: "#A8AE9A",
+  stone: "#9AA88E",
+  cocoa: "#3A4537",
+  brown: "#544A3E",
+  warmGray: "#7C857B",
   ink: "#1F2620",
   inkSoft: "#3A4137",
-  oat: "#DBDEC9",        // cool oat-mint
-  bark: "#3A4537",
+  oat: "#DBDEC9",
 };
 const FONT_SERIF = "'Cormorant Garamond', Georgia, serif";
 const FONT_SANS = "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif";
 
-// ─── Small icon set (line) ─────────────────────────────────
+// ─── tiny icons ───────────────────────────────────────────
 const Ico = ({ children, size = 22, sw = 1.6 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={sw}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
     {children}
   </svg>
 );
-const IconCamera = ({ size }) => (
-  <Ico size={size}>
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-    <circle cx="12" cy="13" r="4" />
-  </Ico>
-);
-const IconRuler = ({ size }) => (
-  <Ico size={size}>
-    <path d="M21 6 6 21 3 18 18 3z" />
-    <path d="M9 9l1.5 1.5M12 6l1.5 1.5M6 12l1.5 1.5M15 15l1.5 1.5M18 18l1.5 1.5" />
-  </Ico>
-);
-const IconScissors = ({ size }) => (
-  <Ico size={size}>
-    <circle cx="6" cy="6" r="3" />
-    <circle cx="6" cy="18" r="3" />
-    <line x1="20" y1="4" x2="8.12" y2="15.88" />
-    <line x1="14.47" y1="14.48" x2="20" y2="20" />
-    <line x1="8.12" y1="8.12" x2="12" y2="12" />
-  </Ico>
-);
-const IconSparkle = ({ size }) => (
-  <Ico size={size}>
-    <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />
-  </Ico>
-);
-const IconShield = ({ size }) => (
-  <Ico size={size}>
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-  </Ico>
-);
-const IconArrow = ({ size = 18 }) => (
-  <Ico size={size} sw={2}>
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </Ico>
-);
-const IconCheck = ({ size = 16 }) => (
-  <Ico size={size} sw={2.4}>
-    <polyline points="20 6 9 17 4 12" />
-  </Ico>
-);
-const IconTarget = ({ size }) => (
-  <Ico size={size}>
-    <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="6" />
-    <circle cx="12" cy="12" r="2" />
-  </Ico>
-);
-const IconLayers = ({ size }) => (
-  <Ico size={size}>
-    <polygon points="12 2 2 7 12 12 22 7 12 2" />
-    <polyline points="2 17 12 22 22 17" />
-    <polyline points="2 12 12 17 22 12" />
-  </Ico>
-);
-const IconStar = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={P.clay}>
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" />
-  </svg>
-);
+const IconLink = ({ size }) => (<Ico size={size}><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></Ico>);
+const IconScissors = ({ size }) => (<Ico size={size}><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></Ico>);
+const IconBox = ({ size }) => (<Ico size={size}><path d="M21 16V8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></Ico>);
+const IconTruck = ({ size }) => (<Ico size={size}><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></Ico>);
+const IconCheck = ({ size = 16 }) => (<Ico size={size} sw={2.4}><polyline points="20 6 9 17 4 12"/></Ico>);
+const IconArrow = ({ size = 18 }) => (<Ico size={size} sw={2}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></Ico>);
+const IconShield = ({ size }) => (<Ico size={size}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></Ico>);
+const IconUpload = ({ size }) => (<Ico size={size}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Ico>);
+const IconLeaf = ({ size }) => (<Ico size={size}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.5c1 1.5.5 7-2 10.5-2.5 3.5-5.5 4.8-7.5 4.5"/><path d="M2 22c1-3 4.5-7 9-7"/></Ico>);
 
-// ─── Hero body silhouette — premium scan illustration ───────
-function HeroBodyScan() {
-  const [pulse, setPulse] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setPulse(p => (p + 1) % 100), 50);
-    return () => clearInterval(id);
-  }, []);
-  // y positions for anchor lines (% of 600px viewbox height) — now aligned
-  // with the realistic full-body figure (head at top, feet at bottom).
-  const anchors = [
-    { y: 178, label: "SHOULDER", value: '17.5"', side: "left" },
-    { y: 232, label: "BUST", value: '36.0"', side: "right" },
-    { y: 304, label: "WAIST", value: '28.5"', side: "left" },
-    { y: 366, label: "HIPS", value: '38.5"', side: "right" },
-    { y: 504, label: "INSEAM", value: '31.0"', side: "left" },
-  ];
-
-  // sweep position 0..1
-  const sweep = (pulse % 60) / 60;
+// ─── Section: Nav (lean, marketing site) ──────────────────
+function SiteNav() {
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        maxWidth: 520,
-        aspectRatio: "5 / 6",
-        margin: "0 auto",
-      }}
-    >
-      {/* Glow */}
-      <div
-        style={{
-          position: "absolute",
-          inset: "-12%",
-          background: `radial-gradient(circle at 50% 45%, ${P.sageMist} 0%, rgba(196,210,182,0) 60%)`,
-          filter: "blur(20px)",
-          pointerEvents: "none",
-        }}
-      />
-      {/* Frame card */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 32,
-          background: `linear-gradient(180deg, ${P.cream} 0%, ${P.beige} 100%)`,
-          border: `1px solid rgba(45,55,42,0.10)`,
-          boxShadow:
-            "0 60px 120px rgba(45,55,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
-          overflow: "hidden",
-        }}
-      >
-        {/* Measurement grid background */}
-        <svg
-          viewBox="0 0 500 600"
-          width="100%"
-          height="100%"
-          preserveAspectRatio="xMidYMid slice"
-          style={{ display: "block" }}
-        >
-          <defs>
-            <pattern id="hero-grid" width="22" height="22" patternUnits="userSpaceOnUse">
-              <path d="M 22 0 L 0 0 0 22" fill="none" stroke={P.warmGray} strokeOpacity="0.15" strokeWidth="0.5" />
-            </pattern>
-            {/* Realistic skin gradient — cool earthy beige with no warm/orange cast */}
-            <linearGradient id="bodyFill" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#E8DCC6" />
-              <stop offset="55%" stopColor="#D6C5A8" />
-              <stop offset="100%" stopColor="#B5A589" />
-            </linearGradient>
-            <linearGradient id="bodyShade" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="rgba(45,55,42,0.22)" />
-              <stop offset="25%" stopColor="rgba(45,55,42,0)" />
-              <stop offset="75%" stopColor="rgba(45,55,42,0)" />
-              <stop offset="100%" stopColor="rgba(45,55,42,0.24)" />
-            </linearGradient>
-            <radialGradient id="bodyHi" cx="0.42" cy="0.32" r="0.55">
-              <stop offset="0%" stopColor="#F4ECDB" stopOpacity="0.9" />
-              <stop offset="60%" stopColor="#F4ECDB" stopOpacity="0" />
-            </radialGradient>
-            <linearGradient id="hairFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3A4537" />
-              <stop offset="100%" stopColor="#2A3128" />
-            </linearGradient>
-            <radialGradient id="haloFill" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor={P.sage} stopOpacity="0.55" />
-              <stop offset="80%" stopColor={P.sage} stopOpacity="0" />
-            </radialGradient>
-          </defs>
-          <rect width="500" height="600" fill="url(#hero-grid)" />
-
-          {/* Halo */}
-          <ellipse cx="250" cy="568" rx="170" ry="26" fill="url(#haloFill)" />
-
-          {/* Arms — hanging slightly out from the torso */}
-          <path
-            d="M180 196
-               C 168 220, 160 280, 158 326
-               C 156 360, 162 388, 168 410
-               C 162 422, 162 436, 170 440
-               C 178 442, 184 432, 184 422
-               C 184 396, 186 360, 192 326
-               C 198 280, 198 230, 196 200
-               Z"
-            fill="url(#bodyFill)"
-          />
-          <path
-            d="M320 196
-               C 332 220, 340 280, 342 326
-               C 344 360, 338 388, 332 410
-               C 338 422, 338 436, 330 440
-               C 322 442, 316 432, 316 422
-               C 316 396, 314 360, 308 326
-               C 302 280, 302 230, 304 200
-               Z"
-            fill="url(#bodyFill)"
-          />
-
-          {/* Hair — back/top silhouette */}
-          <path
-            d="M204 122
-               C 198 86, 220 64, 250 64
-               C 280 64, 302 86, 296 122
-               C 304 134, 306 156, 296 172
-               C 286 180, 274 172, 268 162
-               C 274 152, 274 138, 268 130
-               C 256 122, 244 122, 232 130
-               C 226 138, 226 152, 232 162
-               C 226 172, 214 180, 204 172
-               C 194 156, 196 134, 204 122 Z"
-            fill="url(#hairFill)"
-          />
-
-          {/* Body — head + neck + torso + legs as one human silhouette */}
-          <path
-            d="M250 86
-               C 272 86, 286 104, 286 126
-               C 286 144, 278 156, 268 162
-               L 264 178
-               C 286 184, 304 200, 312 226
-               C 320 256, 322 280, 320 304
-               C 318 328, 308 350, 296 366
-               C 320 380, 332 404, 336 432
-               C 340 460, 336 492, 328 520
-               C 322 550, 318 568, 318 580
-               L 286 580
-               C 282 552, 274 514, 266 484
-               C 262 468, 258 458, 252 458
-               L 248 458
-               C 242 458, 238 468, 234 484
-               C 226 514, 218 552, 214 580
-               L 182 580
-               C 182 568, 178 550, 172 520
-               C 164 492, 160 460, 164 432
-               C 168 404, 180 380, 204 366
-               C 192 350, 182 328, 180 304
-               C 178 280, 180 256, 188 226
-               C 196 200, 214 184, 236 178
-               L 232 162
-               C 222 156, 214 144, 214 126
-               C 214 104, 228 86, 250 86 Z"
-            fill="url(#bodyFill)"
-          />
-          {/* Highlight */}
-          <path
-            d="M250 86 C 272 86, 286 104, 286 126 C 286 144, 278 156, 268 162 L 264 178 C 286 184, 304 200, 312 226 C 320 256, 322 280, 320 304 C 318 328, 308 350, 296 366 C 320 380, 332 404, 336 432 C 340 460, 336 492, 328 520 C 322 550, 318 568, 318 580 L 286 580 C 282 552, 274 514, 266 484 C 262 468, 258 458, 252 458 L 248 458 C 242 458, 238 468, 234 484 C 226 514, 218 552, 214 580 L 182 580 C 182 568, 178 550, 172 520 C 164 492, 160 460, 164 432 C 168 404, 180 380, 204 366 C 192 350, 182 328, 180 304 C 178 280, 180 256, 188 226 C 196 200, 214 184, 236 178 L 232 162 C 222 156, 214 144, 214 126 C 214 104, 228 86, 250 86 Z"
-            fill="url(#bodyHi)"
-            opacity="0.7"
-          />
-          {/* Side shading */}
-          <path
-            d="M250 86 C 272 86, 286 104, 286 126 C 286 144, 278 156, 268 162 L 264 178 C 286 184, 304 200, 312 226 C 320 256, 322 280, 320 304 C 318 328, 308 350, 296 366 C 320 380, 332 404, 336 432 C 340 460, 336 492, 328 520 C 322 550, 318 568, 318 580 L 286 580 C 282 552, 274 514, 266 484 C 262 468, 258 458, 252 458 L 248 458 C 242 458, 238 468, 234 484 C 226 514, 218 552, 214 580 L 182 580 C 182 568, 178 550, 172 520 C 164 492, 160 460, 164 432 C 168 404, 180 380, 204 366 C 192 350, 182 328, 180 304 C 178 280, 180 256, 188 226 C 196 200, 214 184, 236 178 L 232 162 C 222 156, 214 144, 214 126 C 214 104, 228 86, 250 86 Z"
-            fill="url(#bodyShade)"
-          />
-
-          {/* Hair front fringe — sits over the forehead */}
-          <path
-            d="M212 110
-               C 224 96, 238 92, 250 92
-               C 262 92, 276 96, 288 110
-               C 282 124, 264 122, 250 124
-               C 236 122, 218 124, 212 110 Z"
-            fill="url(#hairFill)"
-            opacity="0.92"
-          />
-
-          {/* Subtle face cues (eye, lip, chin shadows) for a person read */}
-          <ellipse cx="234" cy="128" rx="5" ry="1.6" fill="rgba(58,69,55,0.38)" />
-          <ellipse cx="266" cy="128" rx="5" ry="1.6" fill="rgba(58,69,55,0.38)" />
-          <path d="M242 152 Q 250 156 258 152"
-            stroke="rgba(78,92,73,0.35)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-
-          {/* Collarbone / sternum / inner contour hints */}
-          <path d="M220 192 Q 250 188 280 192"
-            stroke="rgba(58,69,55,0.20)" strokeWidth="0.8" fill="none" />
-          <path d="M250 198 L 250 268"
-            stroke="rgba(58,69,55,0.10)" strokeWidth="0.8" fill="none" />
-          <circle cx="250" cy="332" r="1.6" fill="rgba(58,69,55,0.22)" />
-          <path d="M250 460 L 250 560"
-            stroke="rgba(58,69,55,0.16)" strokeWidth="0.8" fill="none" />
-
-          {/* Anchor measurement rings — sized to the realistic figure */}
-          {anchors.map((a, i) => {
-            const rxByIdx = [70, 64, 58, 76, 28];
-            return (
-              <g key={a.label}>
-                <ellipse
-                  cx="250"
-                  cy={a.y}
-                  rx={rxByIdx[i] || 50}
-                  ry={i === 4 ? 5 : 8}
-                  fill="none"
-                  stroke={i === 2 ? P.clay : P.forestDeep}
-                  strokeOpacity={0.55}
-                  strokeWidth="1.1"
-                  strokeDasharray="3 4"
-                />
-                <circle
-                  cx={a.side === "left" ? 180 : 320}
-                  cy={a.y}
-                  r="3.5"
-                  fill={i === 2 ? P.clay : P.forest}
-                />
-                <line
-                  x1={a.side === "left" ? 180 : 320}
-                  y1={a.y}
-                  x2={a.side === "left" ? 50 : 450}
-                  y2={a.y}
-                  stroke={i === 2 ? P.clay : P.forest}
-                  strokeOpacity="0.55"
-                  strokeWidth="1"
-                />
-              </g>
-            );
-          })}
-
-          {/* Sweep scan line */}
-          <rect
-            x="20"
-            y={60 + sweep * 520}
-            width="460"
-            height="2"
-            fill={P.forest}
-            opacity={0.55}
-          />
-          <rect
-            x="20"
-            y={60 + sweep * 520 - 14}
-            width="460"
-            height="14"
-            fill={`url(#sweepGrad)`}
-            opacity={0.25}
-          />
-          <defs>
-            <linearGradient id="sweepGrad" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={P.forest} stopOpacity="0" />
-              <stop offset="100%" stopColor={P.forest} stopOpacity="0.45" />
-            </linearGradient>
-          </defs>
-
-          {/* Corner reticles */}
-          {[
-            { x: 24, y: 24, h: 1, v: 1 },
-            { x: 476, y: 24, h: -1, v: 1 },
-            { x: 24, y: 576, h: 1, v: -1 },
-            { x: 476, y: 576, h: -1, v: -1 },
-          ].map((c, i) => (
-            <g key={i} stroke={P.forest} strokeWidth="1.6" fill="none">
-              <line x1={c.x} y1={c.y} x2={c.x + 14 * c.h} y2={c.y} />
-              <line x1={c.x} y1={c.y} x2={c.x} y2={c.y + 14 * c.v} />
-            </g>
-          ))}
-        </svg>
-
-        {/* HTML overlay — labels and HUD */}
-        {anchors.map(a => (
-          <div
-            key={a.label}
-            style={{
-              position: "absolute",
-              top: `${(a.y / 600) * 100}%`,
-              [a.side === "left" ? "left" : "right"]: "3%",
-              transform: "translateY(-50%)",
-              textAlign: a.side === "left" ? "left" : "right",
-              pointerEvents: "none",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: 2,
-                color: P.warmGray,
-              }}
-            >
-              {a.label}
-            </div>
-            <div
-              style={{
-                fontFamily: FONT_SERIF,
-                fontSize: 22,
-                fontWeight: 600,
-                color: a.label === "WAIST" ? P.clay : P.forestDeep,
-                lineHeight: 1,
-              }}
-            >
-              {a.value}
-            </div>
-          </div>
-        ))}
-
-        {/* Top status pill */}
-        <div
-          style={{
-            position: "absolute",
-            top: 22,
-            left: "50%",
-            transform: "translateX(-50%)",
-            maxWidth: "calc(100% - 32px)",
-            whiteSpace: "nowrap",
-            background: "rgba(242,243,238,0.92)",
-            border: `1px solid rgba(107,142,90,0.32)`,
-            color: P.forestDeep,
-            padding: "8px 14px",
-            borderRadius: 999,
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            boxShadow: "0 6px 18px rgba(45,55,42,0.10)",
-          }}
-        >
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              background: P.forest,
-              boxShadow: `0 0 0 4px rgba(107,142,90,0.20)`,
-            }}
-          />
-          Live Fit Mesh · contour confidence
-        </div>
-
-        {/* Fit chip bottom */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 24,
-            left: 24,
-            background: "rgba(242,243,238,0.92)",
-            border: `1px solid rgba(45,55,42,0.10)`,
-            padding: "10px 14px",
-            borderRadius: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            boxShadow: "0 10px 24px rgba(45,55,42,0.10)",
-          }}
-        >
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-              color: P.cream,
-              fontFamily: FONT_SERIF,
-              fontWeight: 700,
-              fontSize: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            96
-          </div>
-          <div>
-            <div style={{ fontSize: 9, color: P.warmGray, letterSpacing: 1.6, fontWeight: 800 }}>FIT MATCH</div>
-            <div style={{ fontSize: 13, color: P.ink, fontWeight: 700 }}>Reformation · Linen Trouser</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-}
-
-// ─── Section: Nav ──────────────────────────────────────────
-function LandingNav() {
-  return (
-    <nav
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        background: "rgba(237,238,232,0.78)",
-        backdropFilter: "blur(20px)",
-        borderBottom: `1px solid rgba(45,55,42,0.08)`,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: "16px 24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-              color: P.cream,
-              fontFamily: FONT_SERIF,
-              fontSize: 20,
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 8px 22px rgba(107,142,90,0.32)",
-            }}
-          >
-            T
-          </div>
+    <nav style={{
+      position: "sticky", top: 0, zIndex: 100,
+      background: "rgba(242,243,238,0.85)",
+      backdropFilter: "blur(18px)",
+      borderBottom: `1px solid rgba(45,55,42,0.08)`,
+    }}>
+      <div style={{
+        maxWidth: 1200, margin: "0 auto", padding: "16px 24px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 10,
+            background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
+            color: P.cream, fontFamily: FONT_SERIF, fontSize: 20, fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>T</div>
           <div>
             <div style={{ fontFamily: FONT_SERIF, fontWeight: 600, fontSize: 18, color: P.ink, lineHeight: 1 }}>
               The Tailored Company
             </div>
-            <div style={{ fontSize: 10, letterSpacing: 2, color: P.warmGray, fontWeight: 700, marginTop: 4, textTransform: "uppercase" }}>
-              Fit Intelligence · Est. 2024
+            <div style={{ fontSize: 10, letterSpacing: 1.8, color: P.warmGray, fontWeight: 700, marginTop: 4, textTransform: "uppercase" }}>
+              Online tailoring · made to fit
             </div>
           </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 28 }} className="tlc-nav-links">
+        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: 24 }} className="tlc-nav-links">
           {[
-            ["Technology", "#tech"],
+            ["Try the tool", "#tool"],
             ["How it works", "#how"],
-            ["Atelier", "#atelier"],
-            ["Sustainability", "#sustainability"],
-            ["Press", "#press"],
+            ["Shipping", "#shipping"],
+            ["FAQ", "#faq"],
           ].map(([label, href]) => (
-            <a
-              key={label}
-              href={href}
-              style={{
-                color: P.inkSoft,
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
-            >
-              {label}
-            </a>
+            <a key={label} href={href} style={{
+              color: P.inkSoft, fontSize: 13, fontWeight: 600, textDecoration: "none",
+            }}>{label}</a>
           ))}
-          <Link href="/app">
-            <a
-              style={{
-                background: P.ink,
-                color: P.cream,
-                padding: "10px 18px",
-                borderRadius: 999,
-                fontSize: 13,
-                fontWeight: 700,
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              Open the app <IconArrow size={14} />
-            </a>
-          </Link>
+          <a href="#tool" style={{
+            background: P.ink, color: P.cream,
+            padding: "10px 18px", borderRadius: 999,
+            fontSize: 13, fontWeight: 700, textDecoration: "none",
+            display: "inline-flex", alignItems: "center", gap: 6,
+          }}>
+            Start with a link <IconArrow size={14}/>
+          </a>
         </div>
       </div>
     </nav>
   );
 }
 
-// ─── Section: Hero ─────────────────────────────────────────
+// ─── Section: Hero ────────────────────────────────────────
 function Hero() {
   return (
-    <section
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        padding: "84px 24px 100px",
-        background: `
-          radial-gradient(60% 70% at 20% 20%, rgba(156,175,136,0.32) 0%, transparent 60%),
-          radial-gradient(50% 60% at 90% 80%, rgba(168,174,154,0.38) 0%, transparent 60%),
-          linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)
-        `,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)",
-          gap: 48,
-          alignItems: "center",
-        }}
-        className="tlc-hero-grid"
-      >
+    <section id="top" style={{
+      position: "relative", overflow: "hidden",
+      padding: "84px 24px 80px",
+      background: `
+        radial-gradient(55% 65% at 18% 18%, rgba(156,175,136,0.30) 0%, transparent 60%),
+        radial-gradient(50% 60% at 88% 78%, rgba(168,174,154,0.34) 0%, transparent 60%),
+        linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)
+      `,
+    }}>
+      <div style={{
+        maxWidth: 1200, margin: "0 auto",
+        display: "grid", gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)",
+        gap: 56, alignItems: "center",
+      }} className="tlc-hero-grid">
         <div>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 14px",
-              borderRadius: 999,
-              background: "rgba(242,243,238,0.7)",
-              border: `1px solid rgba(107,142,90,0.30)`,
-              color: P.forestDeep,
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 1.8,
-              textTransform: "uppercase",
-              marginBottom: 28,
-            }}
-          >
-            <span
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: "50%",
-                background: P.forest,
-                boxShadow: `0 0 0 4px rgba(107,142,90,0.20)`,
-              }}
-            />
-            AI-powered · tailor-verified · private beta
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "8px 14px", borderRadius: 999,
+            background: "rgba(242,243,238,0.7)",
+            border: `1px solid rgba(107,142,90,0.30)`,
+            color: P.forestDeep, fontSize: 11, fontWeight: 800,
+            letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 24,
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: P.forest }}/>
+            Online tailoring · paste a link, get it altered
           </div>
-
-          <h1
-            style={{
-              fontFamily: FONT_SERIF,
-              fontSize: "clamp(48px, 6vw, 84px)",
-              lineHeight: 1.02,
-              letterSpacing: -2,
-              color: P.ink,
-              fontWeight: 500,
-              margin: 0,
-            }}
-          >
-            Fashion that fits
-            <br />
-            <span style={{ color: P.clay, fontStyle: "italic" }}>every body.</span>
+          <h1 style={{
+            fontFamily: FONT_SERIF, fontSize: "clamp(44px, 5.6vw, 78px)",
+            lineHeight: 1.02, letterSpacing: -1.6, color: P.ink, fontWeight: 500, margin: 0,
+          }}>
+            Buy any garment online.
+            <br/>
+            <span style={{ color: P.moss, fontStyle: "italic" }}>We tailor it to fit.</span>
           </h1>
-
-          <p
-            style={{
-              marginTop: 24,
-              fontSize: 19,
-              lineHeight: 1.55,
-              color: P.inkSoft,
-              maxWidth: 520,
-            }}
-          >
-            The Tailored Company is a couture-grade AI fit engine. AI-guided multi-angle fit capture — AI silhouette segmentation, depth-informed fit mesh, and contour confidence — builds a measurement-grade avatar, then a human tailor verifies the alteration brief. Shop any retailer with a fit-confidence score, the right size pre-selected, and an alteration plan your tailor can actually use.
+          <p style={{
+            marginTop: 22, fontSize: 18, lineHeight: 1.55, color: P.inkSoft, maxWidth: 560,
+          }}>
+            Paste a product link from any retailer. We pull the size chart, render an estimated
+            try-on preview on your body, and let you <em>drag the hem, waist, or sleeve</em> exactly
+            where you want it. Order the piece yourself, ship it to us, we alter it and send it back.
           </p>
-
-          <div style={{ display: "flex", gap: 14, marginTop: 36, flexWrap: "wrap" }}>
-            <Link href="/app">
-              <a
-                style={{
-                  background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-                  color: P.cream,
-                  padding: "18px 28px",
-                  borderRadius: 16,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  letterSpacing: 0.4,
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 10,
-                  boxShadow: "0 18px 38px rgba(107,142,90,0.36)",
-                }}
-              >
-                Build your fit profile <IconArrow />
-              </a>
-            </Link>
-            <a
-              href="#how"
-              style={{
-                background: "rgba(242,243,238,0.7)",
-                color: P.ink,
-                padding: "18px 26px",
-                borderRadius: 16,
-                fontSize: 15,
-                fontWeight: 700,
-                textDecoration: "none",
-                border: `1px solid rgba(45,55,42,0.14)`,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              See how it works
+          <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
+            <a href="#tool" style={{
+              background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
+              color: P.cream, padding: "16px 26px", borderRadius: 14,
+              fontSize: 15, fontWeight: 700, textDecoration: "none",
+              display: "inline-flex", alignItems: "center", gap: 10,
+              boxShadow: "0 16px 34px rgba(107,142,90,0.32)",
+            }}>
+              Paste a product link <IconArrow/>
             </a>
+            <a href="#how" style={{
+              background: "rgba(242,243,238,0.7)", color: P.ink,
+              padding: "16px 24px", borderRadius: 14,
+              fontSize: 15, fontWeight: 700, textDecoration: "none",
+              border: `1px solid rgba(45,55,42,0.14)`,
+              display: "inline-flex", alignItems: "center", gap: 10,
+            }}>See how it works</a>
           </div>
-
-          <div
-            style={{
-              marginTop: 38,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 24,
-              alignItems: "center",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {[0, 1, 2, 3, 4].map(i => (
-                <IconStar key={i} />
-              ))}
-              <span style={{ marginLeft: 8, fontWeight: 700, color: P.ink, fontSize: 13 }}>4.9</span>
-              <span style={{ color: P.warmGray, fontSize: 12 }}>· 2,800+ early members</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, color: P.warmGray, fontSize: 12 }}>
-              <IconShield size={16} /> On-device · never sold
-            </div>
+          <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 20, color: P.warmGray, fontSize: 13 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <IconShield size={16}/> Tailor-reviewed before any cut
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <IconLeaf size={16}/> Fewer returns, less landfill
+            </span>
           </div>
         </div>
-
         <div>
-          <HeroBodyScan />
+          <HeroVisual/>
         </div>
       </div>
     </section>
   );
 }
 
-// ─── Section: Press ─────────────────────────────────────────
-function PressMarquee() {
-  const items = ["VOGUE", "THE CUT", "GQ", "BUSINESS OF FASHION", "WIRED", "FAST COMPANY", "ELLE"];
+// ─── Hero side visual: a small static preview of the tool ─
+function HeroVisual() {
   return (
-    <section
-      id="press"
-      style={{
-        background: P.cream,
-        borderTop: `1px solid rgba(45,55,42,0.08)`,
-        borderBottom: `1px solid rgba(45,55,42,0.08)`,
-        padding: "28px 24px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 24,
-        }}
+    <div style={{
+      position: "relative", width: "100%", maxWidth: 520,
+      margin: "0 auto",
+      borderRadius: 28,
+      background: `linear-gradient(180deg, ${P.cream} 0%, ${P.beige} 100%)`,
+      border: `1px solid rgba(45,55,42,0.10)`,
+      boxShadow: "0 50px 110px rgba(45,55,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
+      padding: 22,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+        <div style={{
+          padding: "6px 10px", borderRadius: 999,
+          background: "rgba(107,142,90,0.14)",
+          color: P.forestDeep, fontSize: 10, fontWeight: 800, letterSpacing: 1.6,
+          textTransform: "uppercase",
+        }}>Drag-to-alter preview</div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+        <BodyGarmentPreview compact/>
+      </div>
+    </div>
+  );
+}
+
+// ─── Body + Garment SVG with optional draggable handles ──
+// alterations: { hemDelta, waistDelta, sleeveDelta } in inches (signed)
+// onChange: setter
+function BodyGarmentPreview({ compact = false, alterations, onChange, garmentType = "pants" }) {
+  const localState = useState({ hemDelta: 0, waistDelta: 0, sleeveDelta: 0 });
+  const a = alterations ?? localState[0];
+  const setA = onChange ?? localState[1];
+  const svgRef = useRef(null);
+  const draggingRef = useRef(null);
+
+  // Base SVG coords: viewBox 0 0 500 760
+  // Convert pixel drag delta to inches: rough scale 1in = 14px (visualization only)
+  const PX_PER_IN = 14;
+
+  const startDrag = (handle) => (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    draggingRef.current = {
+      handle,
+      startX: e.clientX,
+      startY: e.clientY,
+      start: { ...a },
+    };
+    const move = (ev) => {
+      const d = draggingRef.current;
+      if (!d) return;
+      const dx = ev.clientX - d.startX;
+      const dy = ev.clientY - d.startY;
+      const next = { ...d.start };
+      if (d.handle === "hem") {
+        next.hemDelta = clamp(round1(-dy / PX_PER_IN), -4, 4);
+      } else if (d.handle === "waist") {
+        next.waistDelta = clamp(round1(-Math.abs(dx) / PX_PER_IN * Math.sign(dx)), -3, 3);
+      } else if (d.handle === "sleeve") {
+        next.sleeveDelta = clamp(round1(-dy / PX_PER_IN), -3, 3);
+      }
+      setA(next);
+    };
+    const up = () => {
+      draggingRef.current = null;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  const isInteractive = !!onChange;
+
+  // Garment geometry adjustments
+  const hemY = 700 + a.hemDelta * PX_PER_IN; // pants hem y (deeper y = longer)
+  const waistInset = a.waistDelta * (PX_PER_IN / 2); // taken in (negative = tighter)
+  const sleeveY = 360 + a.sleeveDelta * PX_PER_IN;
+
+  return (
+    <div style={{
+      position: "relative", width: "100%",
+      aspectRatio: compact ? "5/6" : "4/6",
+      background: `linear-gradient(180deg, ${P.cream} 0%, ${P.beige} 100%)`,
+      borderRadius: 20,
+      border: `1px solid rgba(45,55,42,0.10)`,
+      overflow: "hidden",
+      touchAction: isInteractive ? "none" : "auto",
+    }}>
+      <svg
+        ref={svgRef}
+        viewBox="0 0 500 760"
+        width="100%" height="100%"
+        preserveAspectRatio="xMidYMid meet"
+        style={{ display: "block" }}
       >
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 2.4,
-            color: P.warmGray,
-            textTransform: "uppercase",
-          }}
-        >
-          As featured in
-        </span>
-        {items.map(name => (
-          <span
-            key={name}
-            style={{
-              fontFamily: FONT_SERIF,
-              fontWeight: 600,
-              fontSize: 18,
-              letterSpacing: 2,
-              color: P.inkSoft,
-              opacity: 0.85,
-            }}
-          >
-            {name}
-          </span>
-        ))}
-      </div>
-    </section>
+        <defs>
+          <pattern id="grid-prev" width="22" height="22" patternUnits="userSpaceOnUse">
+            <path d="M 22 0 L 0 0 0 22" fill="none" stroke={P.warmGray} strokeOpacity="0.14" strokeWidth="0.5"/>
+          </pattern>
+          <linearGradient id="bodyFillPrev" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#E8DCC6"/>
+            <stop offset="55%" stopColor="#D6C5A8"/>
+            <stop offset="100%" stopColor="#B5A589"/>
+          </linearGradient>
+          <linearGradient id="garmentFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={P.forest}/>
+            <stop offset="100%" stopColor={P.forestDeep}/>
+          </linearGradient>
+          <linearGradient id="shirtFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={P.oat}/>
+            <stop offset="100%" stopColor={P.taupe}/>
+          </linearGradient>
+        </defs>
+        <rect width="500" height="760" fill="url(#grid-prev)"/>
+
+        {/* Body silhouette (head + torso + legs) */}
+        {/* head */}
+        <ellipse cx="250" cy="120" rx="48" ry="58" fill="url(#bodyFillPrev)"/>
+        {/* neck */}
+        <rect x="232" y="170" width="36" height="30" fill="url(#bodyFillPrev)"/>
+        {/* torso */}
+        <path d="M180 200
+                 C 180 220 178 260 184 320
+                 L 188 400
+                 C 188 420 195 430 215 432
+                 L 285 432
+                 C 305 430 312 420 312 400
+                 L 316 320
+                 C 322 260 320 220 320 200
+                 Z" fill="url(#bodyFillPrev)"/>
+        {/* arms */}
+        <path d="M180 200 C 168 220 158 280 156 340 C 154 380 158 410 164 432 L 184 430 C 186 410 184 380 188 340 C 192 280 196 220 196 200 Z" fill="url(#bodyFillPrev)"/>
+        <path d="M320 200 C 332 220 342 280 344 340 C 346 380 342 410 336 432 L 316 430 C 314 410 316 380 312 340 C 308 280 304 220 304 200 Z" fill="url(#bodyFillPrev)"/>
+        {/* legs */}
+        <path d="M210 432 L 218 720 L 248 720 L 252 432 Z" fill="url(#bodyFillPrev)"/>
+        <path d="M252 432 L 282 720 L 290 720 L 290 432 Z" fill="url(#bodyFillPrev)"/>
+
+        {/* GARMENT — shirt (always shown) */}
+        <path d={`
+          M 184 200
+          L 184 ${sleeveY}
+          L 160 ${sleeveY + 8}
+          L 156 ${sleeveY + 24}
+          L 188 ${sleeveY + 18}
+          L 188 430
+          L 312 430
+          L 312 ${sleeveY + 18}
+          L 344 ${sleeveY + 24}
+          L 340 ${sleeveY + 8}
+          L 316 ${sleeveY}
+          L 316 200
+          C 300 196 280 208 250 208
+          C 220 208 200 196 184 200
+          Z
+        `} fill="url(#shirtFill)" stroke="rgba(45,55,42,0.18)" strokeWidth="1"/>
+
+        {/* GARMENT — pants */}
+        {garmentType === "pants" && (
+          <g>
+            {/* waist band, with optional take-in (inset) */}
+            <path d={`
+              M ${188 + waistInset} 432
+              L ${312 - waistInset} 432
+              L ${312 - waistInset} 446
+              L ${188 + waistInset} 446
+              Z
+            `} fill="url(#garmentFill)" stroke="rgba(45,55,42,0.25)" strokeWidth="1"/>
+            {/* left leg */}
+            <path d={`
+              M ${188 + waistInset} 446
+              L 200 ${hemY}
+              L 252 ${hemY}
+              L 252 446
+              Z
+            `} fill="url(#garmentFill)" stroke="rgba(45,55,42,0.2)" strokeWidth="1"/>
+            {/* right leg */}
+            <path d={`
+              M 252 446
+              L 252 ${hemY}
+              L 304 ${hemY}
+              L ${312 - waistInset} 446
+              Z
+            `} fill="url(#garmentFill)" stroke="rgba(45,55,42,0.2)" strokeWidth="1"/>
+            {/* original hem ghost when altered */}
+            {Math.abs(a.hemDelta) > 0.05 && (
+              <line x1="195" y1={700} x2="310" y2={700}
+                stroke={P.warmGray} strokeDasharray="5 5" strokeWidth="1.5" opacity="0.6"/>
+            )}
+          </g>
+        )}
+
+        {/* Handles (drag targets) */}
+        {isInteractive && (
+          <g>
+            {/* HEM handle (vertical drag) */}
+            <g
+              onPointerDown={startDrag("hem")}
+              style={{ cursor: "ns-resize" }}
+            >
+              <line x1="200" y1={hemY} x2="304" y2={hemY}
+                stroke={P.cream} strokeWidth="2" opacity="0.85"/>
+              <circle cx="252" cy={hemY} r="14"
+                fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
+              <line x1="246" y1={hemY - 4} x2="246" y2={hemY + 4} stroke={P.forest} strokeWidth="2"/>
+              <line x1="258" y1={hemY - 4} x2="258" y2={hemY + 4} stroke={P.forest} strokeWidth="2"/>
+              <text x="270" y={hemY + 4} fontSize="13" fill={P.ink} fontWeight="700"
+                style={{ fontFamily: FONT_SANS }}>
+                Hem · drag ↕
+              </text>
+            </g>
+            {/* WAIST handle (horizontal drag) */}
+            <g
+              onPointerDown={startDrag("waist")}
+              style={{ cursor: "ew-resize" }}
+            >
+              <circle cx={188 + waistInset - 6} cy={438} r="11"
+                fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
+              <line x1={185 + waistInset - 6} y1="438" x2={191 + waistInset - 6} y2="438" stroke={P.forest} strokeWidth="2"/>
+              <circle cx={312 - waistInset + 6} cy={438} r="11"
+                fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
+              <line x1={309 - waistInset + 6} y1="438" x2={315 - waistInset + 6} y2="438" stroke={P.forest} strokeWidth="2"/>
+              <text x="360" y="442" fontSize="13" fill={P.ink} fontWeight="700"
+                style={{ fontFamily: FONT_SANS }}>
+                Waist · drag ↔
+              </text>
+            </g>
+            {/* SLEEVE handle */}
+            <g
+              onPointerDown={startDrag("sleeve")}
+              style={{ cursor: "ns-resize" }}
+            >
+              <circle cx="156" cy={sleeveY + 18} r="11"
+                fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
+              <line x1="153" y1={sleeveY + 18} x2="159" y2={sleeveY + 18} stroke={P.forest} strokeWidth="2"/>
+              <text x="14" y={sleeveY + 4} fontSize="13" fill={P.ink} fontWeight="700"
+                style={{ fontFamily: FONT_SANS }}>
+                Sleeve ↕
+              </text>
+            </g>
+          </g>
+        )}
+
+        {/* Status badge */}
+        <g>
+          <rect x="20" y="20" width="200" height="28" rx="14"
+            fill="rgba(242,243,238,0.92)" stroke="rgba(107,142,90,0.32)"/>
+          <circle cx="36" cy="34" r="4" fill={P.forest}/>
+          <text x="48" y="38" fontSize="10" fontWeight="800"
+            fill={P.forestDeep} style={{ fontFamily: FONT_SANS, letterSpacing: 1.6 }}>
+            ESTIMATED TRY-ON PREVIEW
+          </text>
+        </g>
+      </svg>
+    </div>
   );
 }
 
-// ─── Section: Value pillars ────────────────────────────────
-function ValuePillars() {
-  const cards = [
-    {
-      Icon: IconCamera,
-      eyebrow: "Capture",
-      title: "Sub-60-second AI fit capture",
-      body:
-        "Five guided phone passes powered by the TTC AI Fit Engine — AI silhouette segmentation, depth-informed fit mesh, and contour confidence build a measurement-grade avatar with a fit-confidence model, then a human tailor verifies the alteration brief.",
-    },
-    {
-      Icon: IconTarget,
-      eyebrow: "Match",
-      title: "Fit-confidence score for every brand",
-      body:
-        "A live catalogue of 85+ pieces across 20 brands, with new retailers added weekly. AI garment-aware fit modeling scores your measurement-grade avatar against every garment so the right size is always pre-selected.",
-    },
-    {
-      Icon: IconScissors,
-      eyebrow: "Refine",
-      title: "Tailor-verified, delivered, or resold",
-      body:
-        "Close-but-not-perfect garments get an AI-drafted, tailor-verified alteration brief and door-to-door tailoring. Pieces you outgrow flow into a measurement-matched resale marketplace — fewer returns, less waste.",
-    },
-  ];
-  return (
-    <section
-      id="tech"
-      style={{
-        padding: "120px 24px",
-        background: P.parchment,
-      }}
-    >
-      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-        <div style={{ maxWidth: 760, marginBottom: 64 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 2.6,
-              color: P.forest,
-              textTransform: "uppercase",
-              marginBottom: 18,
-            }}
-          >
-            The Tailored System
-          </div>
-          <h2
-            style={{
-              fontFamily: FONT_SERIF,
-              fontSize: "clamp(40px, 4.6vw, 64px)",
-              lineHeight: 1.05,
-              letterSpacing: -1.4,
-              color: P.ink,
-              fontWeight: 500,
-              margin: 0,
-            }}
-          >
-            We measure you once. <br />
-            Then we measure <em style={{ color: P.clay }}>every garment</em> against you.
-          </h2>
-          <p
-            style={{
-              marginTop: 22,
-              fontSize: 17,
-              color: P.inkSoft,
-              lineHeight: 1.6,
-              maxWidth: 620,
-            }}
-          >
-            No more guessing between an S and an M. No more returns. Every recommendation comes with an AI fit-confidence score, a measurement-grade estimate, and a tailor-reviewed explanation.
-          </p>
-        </div>
+function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+function round1(v) { return Math.round(v * 10) / 10; }
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 24,
-          }}
-        >
-          {cards.map(({ Icon, eyebrow, title, body }) => (
-            <article
-              key={title}
-              style={{
-                background: P.cream,
-                border: `1px solid rgba(45,55,42,0.10)`,
-                borderRadius: 28,
-                padding: 32,
-                position: "relative",
-                overflow: "hidden",
-                boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
-              }}
-            >
-              <div
+// ─── Section: Tool — paste a link, extract specs, drag-to-alter ─
+function ToolSection() {
+  const [url, setUrl] = useState("");
+  const [state, setState] = useState("idle"); // idle | extracting | extracted
+  const [product, setProduct] = useState(null);
+  const [alterations, setAlterations] = useState({ hemDelta: 0, waistDelta: 0, sleeveDelta: 0 });
+
+  const examples = [
+    { name: "Everlane · Way-High Drape Pant", host: "everlane.com" },
+    { name: "Reformation · Linen Trouser", host: "thereformation.com" },
+    { name: "COS · Wide-Leg Pant", host: "cos.com" },
+    { name: "Madewell · Curvy Demi Boot Jean", host: "madewell.com" },
+  ];
+
+  const extract = (linkOverride) => {
+    const link = linkOverride ?? url;
+    if (!link) return;
+    setUrl(link);
+    setState("extracting");
+    setProduct(null);
+    setAlterations({ hemDelta: 0, waistDelta: 0, sleeveDelta: 0 });
+    setTimeout(() => {
+      const host = safeHost(link);
+      setProduct({
+        retailer: host || "retailer.com",
+        name: pickName(host),
+        category: "Pants",
+        sizeRec: "US 6",
+        sizeChart: [
+          { label: "Waist (size 6)", value: '27.5"' },
+          { label: "Hip (size 6)", value: '37.5"' },
+          { label: "Inseam (size 6)", value: '31.0"' },
+          { label: "Leg opening", value: '14.0"' },
+        ],
+        fabric: "Mid-weight linen · 4% stretch",
+        notes: "Runs long. Many customers shorten the inseam 1–2 inches.",
+      });
+      setState("extracted");
+    }, 1100);
+  };
+
+  const altBrief = useMemo(() => buildBrief(alterations), [alterations]);
+
+  return (
+    <section id="tool" style={{
+      padding: "100px 24px",
+      background: `linear-gradient(180deg, ${P.beige} 0%, ${P.parchment} 100%)`,
+    }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <SectionHeader
+          eyebrow="The website tool"
+          title={<>Paste a link. Drag the fit. <em style={{ color: P.moss }}>Done.</em></>}
+          body="Try it right here — no install, no app. We pull the product specs, render an estimated try-on preview on your measurements, and let you adjust the fit in real time."
+        />
+
+        {/* URL input */}
+        <div style={{
+          background: P.cream,
+          border: `1px solid rgba(45,55,42,0.10)`,
+          borderRadius: 24, padding: 24,
+          boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
+          marginTop: 36,
+        }}>
+          <div style={{
+            display: "flex", gap: 10, flexWrap: "wrap", alignItems: "stretch",
+          }}>
+            <div style={{
+              flex: 1, minWidth: 240,
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "12px 16px",
+              background: P.parchment,
+              border: `1px solid rgba(45,55,42,0.12)`,
+              borderRadius: 14,
+            }}>
+              <IconLink size={20}/>
+              <input
+                type="url"
+                placeholder="Paste a product URL (https://…)"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") extract(); }}
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: `radial-gradient(120% 90% at 100% 0%, rgba(156,175,136,0.18) 0%, transparent 60%)`,
-                  pointerEvents: "none",
+                  flex: 1, background: "transparent", border: "none", outline: "none",
+                  fontFamily: FONT_SANS, fontSize: 15, color: P.ink,
                 }}
               />
-              <div
+            </div>
+            <button
+              onClick={() => extract()}
+              disabled={!url || state === "extracting"}
+              style={{
+                background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
+                color: P.cream, padding: "14px 22px",
+                borderRadius: 14, border: "none",
+                fontSize: 14, fontWeight: 800, cursor: "pointer",
+                letterSpacing: 0.4, opacity: !url || state === "extracting" ? 0.5 : 1,
+                display: "inline-flex", alignItems: "center", gap: 8,
+              }}
+            >
+              {state === "extracting" ? "Extracting specs…" : "Extract product specs"}
+              {state !== "extracting" && <IconArrow size={16}/>}
+            </button>
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14, alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
+              Try one
+            </span>
+            {examples.map(ex => (
+              <button
+                key={ex.host}
+                onClick={() => extract(`https://${ex.host}/products/example`)}
                 style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 18,
-                  background: `linear-gradient(135deg, ${P.sageMist}, ${P.cream})`,
+                  background: "transparent",
                   border: `1px solid rgba(107,142,90,0.32)`,
-                  color: P.forestDeep,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 26,
-                  position: "relative",
+                  color: P.forestDeep, fontWeight: 700, fontSize: 12,
+                  padding: "6px 10px", borderRadius: 999, cursor: "pointer",
                 }}
-              >
-                <Icon size={26} />
-              </div>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 800,
-                  letterSpacing: 2.2,
-                  color: P.warmGray,
-                  textTransform: "uppercase",
-                  marginBottom: 10,
-                  position: "relative",
-                }}
-              >
-                {eyebrow}
-              </div>
-              <h3
-                style={{
-                  fontFamily: FONT_SERIF,
-                  fontSize: 28,
-                  fontWeight: 600,
-                  color: P.ink,
-                  marginBottom: 12,
-                  lineHeight: 1.1,
-                  position: "relative",
-                }}
-              >
-                {title}
-              </h3>
-              <p
-                style={{
-                  fontSize: 15,
-                  lineHeight: 1.6,
-                  color: P.inkSoft,
-                  position: "relative",
-                }}
-              >
-                {body}
-              </p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Section: How it works ─────────────────────────────────
-function HowItWorks() {
-  const steps = [
-    {
-      n: "01",
-      title: "Stand · spin · done",
-      body:
-        "Five guided phone passes, under 60 seconds. The TTC AI Fit Engine segments your silhouette, builds a depth-informed fit mesh, and locks contour confidence; low-confidence frames are discarded automatically before the avatar is finalized.",
-    },
-    {
-      n: "02",
-      title: "Measurement-grade avatar",
-      body:
-        "Bust, waist, hip, shoulder, inseam, neck, sleeve and rise — landed as a measurement-grade estimate. A 3D body model renders in Three.js for an estimated try-on preview.",
-    },
-    {
-      n: "03",
-      title: "Shop with AI fit-confidence",
-      body:
-        "85 pieces across 20 brands, scored by AI garment-aware fit modeling against your avatar. The right size is pre-selected and the cuts that will need work are flagged before you buy.",
-    },
-    {
-      n: "04",
-      title: "Tailor-verified · deliver · circulate",
-      body:
-        "Order through the app and we route to a professional tailor who reviews the AI alteration brief and finishes the piece to your exact measurements. Pieces you outgrow enter a measurement-matched resale marketplace.",
-    },
-  ];
-
-  return (
-    <section
-      id="how"
-      style={{
-        padding: "120px 24px",
-        background: `
-          linear-gradient(180deg, ${P.beige} 0%, ${P.parchment} 100%)
-        `,
-      }}
-    >
-      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 24, marginBottom: 56 }}>
-          <div style={{ maxWidth: 640 }}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: 2.6,
-                color: P.forest,
-                textTransform: "uppercase",
-                marginBottom: 18,
-              }}
-            >
-              The Flow
-            </div>
-            <h2
-              style={{
-                fontFamily: FONT_SERIF,
-                fontSize: "clamp(40px, 4.4vw, 60px)",
-                lineHeight: 1.05,
-                letterSpacing: -1.2,
-                color: P.ink,
-                margin: 0,
-                fontWeight: 500,
-              }}
-            >
-              Four steps to a wardrobe that <em style={{ color: P.clay }}>fits</em>.
-            </h2>
-          </div>
-          <Link href="/app">
-            <a
-              style={{
-                color: P.forestDeep,
-                fontWeight: 700,
-                fontSize: 14,
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "12px 18px",
-                borderRadius: 999,
-                border: `1px solid rgba(107,142,90,0.32)`,
-                background: "rgba(242,243,238,0.6)",
-              }}
-            >
-              Start your scan <IconArrow />
-            </a>
-          </Link>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 20,
-          }}
-        >
-          {steps.map((s, i) => (
-            <div
-              key={s.n}
-              style={{
-                background: P.cream,
-                border: `1px solid rgba(45,55,42,0.10)`,
-                borderRadius: 22,
-                padding: 26,
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: FONT_SERIF,
-                  fontSize: 64,
-                  lineHeight: 1,
-                  color: i === 1 ? P.clay : P.sage,
-                  opacity: 0.92,
-                  fontWeight: 500,
-                  marginBottom: 14,
-                  letterSpacing: -1,
-                }}
-              >
-                {s.n}
-              </div>
-              <div
-                style={{
-                  fontFamily: FONT_SERIF,
-                  fontSize: 22,
-                  color: P.ink,
-                  fontWeight: 600,
-                  lineHeight: 1.15,
-                  marginBottom: 8,
-                }}
-              >
-                {s.title}
-              </div>
-              <p style={{ fontSize: 14, color: P.inkSoft, lineHeight: 1.55, margin: 0 }}>{s.body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Section: Tech showcase ────────────────────────────────
-function TechShowcase() {
-  const points = [
-    "TTC AI Fit Engine · AI-guided multi-angle phone capture, AI silhouette segmentation, depth-informed fit mesh, contour confidence, garment-aware fit modeling, and human tailor verification",
-    "React + Three.js renders a measurement-grade avatar for an estimated try-on preview",
-    "AI fit-confidence model cross-references your avatar against every brand's sizing model",
-    "Live fit-confidence scoring across 85 items, 20 brands · new retailers added every week",
-    "AI-drafted, tailor-verified alteration briefs — exact takes, releases and hem heights",
-    "Measurement-matched resale marketplace — circular wardrobes, fewer returns, less waste",
-    "Measurements stay on-device · we never sell or share your body data",
-  ];
-  return (
-    <section
-      id="atelier"
-      style={{
-        padding: "120px 24px",
-        background: P.ink,
-        color: P.cream,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `
-            radial-gradient(60% 50% at 0% 0%, rgba(107,142,90,0.32) 0%, transparent 60%),
-            radial-gradient(50% 50% at 100% 100%, rgba(139,149,86,0.18) 0%, transparent 60%)
-          `,
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          position: "relative",
-          display: "grid",
-          gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)",
-          gap: 64,
-          alignItems: "center",
-        }}
-        className="tlc-tech-grid"
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 2.6,
-              color: P.sageMist,
-              textTransform: "uppercase",
-              marginBottom: 18,
-            }}
-          >
-            The Tech Underneath
-          </div>
-          <h2
-            style={{
-              fontFamily: FONT_SERIF,
-              fontSize: "clamp(38px, 4.2vw, 56px)",
-              lineHeight: 1.08,
-              letterSpacing: -1.2,
-              fontWeight: 500,
-              color: P.cream,
-              margin: 0,
-            }}
-          >
-            A couture atelier, <br />
-            <em style={{ color: P.sage }}>compiled into your pocket.</em>
-          </h2>
-          <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.6, color: "rgba(219,222,201,0.78)", maxWidth: 560 }}>
-            We rebuilt a tailor's bench in software. The TTC AI Fit Engine fuses AI-guided multi-angle phone capture, AI silhouette segmentation, a depth-informed fit mesh, contour confidence, garment-aware fit modeling, brand-by-brand size-chart extraction, a measurement-grade 3D avatar, and a professional tailoring network — all working together so you know what will fit before you ever try it on, and so what doesn't fit returns to circulation instead of landfill.
-          </p>
-          <ul style={{ listStyle: "none", padding: 0, margin: "28px 0 0", display: "grid", gap: 12 }}>
-            {points.map(text => (
-              <li key={text} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                <span
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 999,
-                    background: P.sage,
-                    color: P.ink,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    marginTop: 1,
-                  }}
-                >
-                  <IconCheck />
-                </span>
-                <span style={{ fontSize: 14.5, lineHeight: 1.55, color: "rgba(219,222,201,0.86)" }}>{text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <div
-            style={{
-              borderRadius: 28,
-              background: "linear-gradient(180deg, rgba(242,243,238,0.06) 0%, rgba(242,243,238,0.02) 100%)",
-              border: `1px solid rgba(219,222,201,0.10)`,
-              padding: 24,
-              boxShadow: "0 50px 120px rgba(0,0,0,0.45)",
-            }}
-          >
-            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 18 }}>
-              {["#4E5C49", "#A8AE9A", "#9CAF88"].map(c => (
-                <span key={c} style={{ width: 9, height: 9, borderRadius: 999, background: c, opacity: 0.7 }} />
-              ))}
-              <div
-                style={{
-                  marginLeft: "auto",
-                  fontSize: 10,
-                  letterSpacing: 2,
-                  color: "rgba(219,222,201,0.5)",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                }}
-              >
-                fit-engine · v3.2
-              </div>
-            </div>
-
-            {[
-              ["Reformation · Linen Trouser", 96, "Perfect", P.sage],
-              ["Toteme · Wool Coat", 88, "Tailor 0.5cm at waist", P.sand],
-              ["Khaite · Cashmere Knit", 81, "Size up · sleeves long", P.clay],
-              ["The Row · Silk Blouse", 73, "Bust runs narrow", P.sand],
-            ].map(([name, score, note, color]) => (
-              <div
-                key={name}
-                style={{
-                  padding: "16px 0",
-                  borderTop: "1px solid rgba(219,222,201,0.08)",
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto",
-                  gap: 8,
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 14, color: P.cream, fontWeight: 600 }}>{name}</div>
-                  <div style={{ fontSize: 11.5, color: "rgba(219,222,201,0.55)", marginTop: 2 }}>{note}</div>
-                </div>
-                <div
-                  style={{
-                    fontFamily: FONT_SERIF,
-                    fontSize: 28,
-                    color: color,
-                    fontWeight: 600,
-                  }}
-                >
-                  {score}
-                </div>
-                <div style={{ gridColumn: "1 / -1", marginTop: 6, height: 4, background: "rgba(219,222,201,0.08)", borderRadius: 999 }}>
-                  <div
-                    style={{
-                      width: `${score}%`,
-                      height: "100%",
-                      borderRadius: 999,
-                      background: `linear-gradient(90deg, ${color}, ${color}AA)`,
-                    }}
-                  />
-                </div>
-              </div>
+              >{ex.name}</button>
             ))}
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Section: Sustainability ───────────────────────────────
-function Sustainability() {
-  const stats = [
-    {
-      stat: "30%",
-      label: "Industry returns rate",
-      body: "Online fashion returns drive emissions, repackaging waste, and landfill. We aim to halve that for every member.",
-    },
-    {
-      stat: "85",
-      label: "Items, 20 brands",
-      body: "A curated catalogue — not infinite scroll — chosen for fit consistency and resale value.",
-    },
-    {
-      stat: "0",
-      label: "Body data sold",
-      body: "Your measurements live on your device. We don't sell, share, or train on your body.",
-    },
-  ];
-  const pillars = [
-    {
-      Icon: IconShield,
-      title: "Fewer returns",
-      body: "Every garment is fit-scored before checkout. The right size is pre-selected, the cuts that need work are flagged.",
-    },
-    {
-      Icon: IconScissors,
-      title: "Professional tailoring",
-      body: "Almost-right pieces route to a vetted tailor for door-to-door alteration — instead of a return shipment.",
-    },
-    {
-      Icon: IconLayers,
-      title: "Measurement-matched resale",
-      body: "Pieces you outgrow enter a circular marketplace matched to the next member's exact body — closer-to-perfect, less waste.",
-    },
-    {
-      Icon: IconSparkle,
-      title: "Wardrobe extension",
-      body: "Existing pieces in your closet are measured too, so new purchases harmonize instead of collide.",
-    },
-  ];
-  return (
-    <section
-      id="sustainability"
-      style={{
-        padding: "120px 24px",
-        background: `
-          radial-gradient(60% 70% at 80% 20%, rgba(139,149,86,0.18) 0%, transparent 60%),
-          linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)
-        `,
-      }}
-    >
-      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-        <div style={{ maxWidth: 760, marginBottom: 56 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 2.6,
-              color: P.forest,
-              textTransform: "uppercase",
-              marginBottom: 18,
-            }}
-          >
-            Circular by design
+          <div style={{ marginTop: 12, fontSize: 12, color: P.warmGray }}>
+            Demo mode — extracted specs are illustrative while we expand retailer coverage.
           </div>
-          <h2
-            style={{
-              fontFamily: FONT_SERIF,
-              fontSize: "clamp(40px, 4.6vw, 64px)",
-              lineHeight: 1.05,
-              letterSpacing: -1.4,
-              color: P.ink,
-              fontWeight: 500,
-              margin: 0,
-            }}
-          >
-            Fashion that fits — <em style={{ color: P.clay }}>and stays in circulation.</em>
-          </h2>
-          <p style={{ marginTop: 22, fontSize: 17, color: P.inkSoft, lineHeight: 1.6, maxWidth: 640 }}>
-            The fashion industry's biggest waste source is the gap between sizing charts and real bodies. We close that gap with measurement, tailoring, and a resale marketplace matched to the next member's exact body.
-          </p>
         </div>
 
-        <div
-          style={{
+        {/* Two-column: preview + brief */}
+        {state === "extracted" && product && (
+          <div style={{
+            marginTop: 28,
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 16,
-            marginBottom: 40,
-          }}
-        >
-          {stats.map(s => (
-            <div
-              key={s.label}
-              style={{
-                background: P.cream,
-                border: `1px solid rgba(45,55,42,0.10)`,
-                borderRadius: 22,
-                padding: 26,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: FONT_SERIF,
-                  fontSize: 56,
-                  lineHeight: 1,
-                  color: P.forestDeep,
-                  fontWeight: 500,
-                  letterSpacing: -1.4,
-                }}
-              >
-                {s.stat}
+            gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)",
+            gap: 24,
+          }} className="tlc-tool-grid">
+            <div style={{
+              background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
+              borderRadius: 24, padding: 22,
+              boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
+            }}>
+              <ProductHeader product={product}/>
+              <div style={{ marginTop: 14 }}>
+                <BodyGarmentPreview
+                  alterations={alterations}
+                  onChange={setAlterations}
+                />
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  fontWeight: 800,
-                  color: P.warmGray,
-                  textTransform: "uppercase",
-                  margin: "12px 0 10px",
-                }}
-              >
-                {s.label}
+              <div style={{ marginTop: 12, fontSize: 12, color: P.warmGray }}>
+                Drag the circular handles on the hem, waist, or sleeve. Numbers update live in the
+                alteration brief on the right.
               </div>
-              <p style={{ fontSize: 14, lineHeight: 1.55, color: P.inkSoft, margin: 0 }}>{s.body}</p>
             </div>
-          ))}
-        </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 20,
-          }}
-        >
-          {pillars.map(({ Icon, title, body }) => (
-            <article
-              key={title}
-              style={{
-                background: P.cream,
-                border: `1px solid rgba(107,142,90,0.22)`,
-                borderRadius: 22,
-                padding: 26,
-              }}
-            >
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 14,
-                  background: `linear-gradient(135deg, ${P.sageMist}, ${P.cream})`,
-                  border: `1px solid rgba(107,142,90,0.28)`,
-                  color: P.forestDeep,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 18,
-                }}
-              >
-                <Icon size={22} />
-              </div>
-              <h3
-                style={{
-                  fontFamily: FONT_SERIF,
-                  fontSize: 22,
-                  fontWeight: 600,
-                  color: P.ink,
-                  margin: "0 0 8px",
-                  lineHeight: 1.15,
-                }}
-              >
-                {title}
-              </h3>
-              <p style={{ fontSize: 14, color: P.inkSoft, lineHeight: 1.55, margin: 0 }}>{body}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Section: Testimonials ─────────────────────────────────
-function Testimonials() {
-  const quotes = [
-    {
-      q: "I haven't returned a piece in four months. Tailored knows my body better than I do.",
-      who: "Maren K.",
-      role: "Member · NYC",
-    },
-    {
-      q: "The alteration brief feature alone saved me from buying three coats that were almost-right.",
-      who: "Lila A.",
-      role: "Member · London",
-    },
-    {
-      q: "First time online shopping has actually felt couture. Every recommendation lands.",
-      who: "Sara H.",
-      role: "Member · LA",
-    },
-  ];
-  return (
-    <section
-      style={{
-        padding: "120px 24px",
-        background: P.cream,
-      }}
-    >
-      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: 2.6,
-            color: P.forest,
-            textTransform: "uppercase",
-            marginBottom: 18,
-          }}
-        >
-          From the atelier
-        </div>
-        <h2
-          style={{
-            fontFamily: FONT_SERIF,
-            fontSize: "clamp(36px, 3.8vw, 52px)",
-            lineHeight: 1.1,
-            color: P.ink,
-            margin: 0,
-            marginBottom: 48,
-            fontWeight: 500,
-            letterSpacing: -1,
-          }}
-        >
-          Members say it best.
-        </h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 22,
-          }}
-        >
-          {quotes.map(q => (
-            <figure
-              key={q.who}
-              style={{
-                margin: 0,
-                background: P.parchment,
-                border: `1px solid rgba(45,55,42,0.10)`,
-                borderRadius: 22,
-                padding: 28,
-              }}
-            >
-              <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
-                {[0, 1, 2, 3, 4].map(i => (
-                  <IconStar key={i} />
-                ))}
-              </div>
-              <blockquote
-                style={{
-                  margin: 0,
-                  fontFamily: FONT_SERIF,
-                  fontSize: 22,
-                  lineHeight: 1.32,
-                  color: P.ink,
-                  fontWeight: 500,
-                }}
-              >
-                “{q.q}”
-              </blockquote>
-              <figcaption style={{ marginTop: 18, fontSize: 12, color: P.warmGray, fontWeight: 700, letterSpacing: 0.5 }}>
-                <span style={{ color: P.ink }}>{q.who}</span> · {q.role}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Section: Final CTA ────────────────────────────────────
-function FinalCta() {
-  return (
-    <section
-      style={{
-        padding: "120px 24px",
-        background: `
-          radial-gradient(60% 80% at 50% 20%, rgba(107,142,90,0.25) 0%, transparent 60%),
-          linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)
-        `,
-        textAlign: "center",
-      }}
-    >
-      <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        <h2
-          style={{
-            fontFamily: FONT_SERIF,
-            fontSize: "clamp(40px, 5vw, 68px)",
-            lineHeight: 1.04,
-            color: P.ink,
-            fontWeight: 500,
-            margin: 0,
-            letterSpacing: -1.4,
-          }}
-        >
-          Your closet, <em style={{ color: P.clay }}>tailored.</em>
-        </h2>
-        <p
-          style={{
-            marginTop: 20,
-            fontSize: 18,
-            color: P.inkSoft,
-            lineHeight: 1.6,
-            maxWidth: 600,
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        >
-          Under 60 seconds of AI-guided capture. Then shop any retailer with the confidence of someone who has a tailor — and a circular wardrobe — on call.
-        </p>
-        <Link href="/app">
-          <a
-            style={{
-              marginTop: 36,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "20px 34px",
-              borderRadius: 18,
-              background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
-              color: P.cream,
-              fontSize: 16,
-              fontWeight: 700,
-              letterSpacing: 0.4,
-              textDecoration: "none",
-              boxShadow: "0 24px 56px rgba(107,142,90,0.42)",
-            }}
-          >
-            Build your fit profile <IconArrow />
-          </a>
-        </Link>
-        <div style={{ marginTop: 18, fontSize: 12, color: P.warmGray }}>
-          Free to start · No card required · Profile stays on your device
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Footer ────────────────────────────────────────────────
-function Footer() {
-  return (
-    <footer
-      style={{
-        background: P.ink,
-        color: "rgba(219,222,201,0.7)",
-        padding: "64px 24px 32px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "minmax(0,1.4fr) repeat(3, minmax(0,1fr))",
-          gap: 40,
-        }}
-        className="tlc-footer-grid"
-      >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                background: `linear-gradient(135deg, ${P.sage}, ${P.forest})`,
-                color: P.cream,
-                fontFamily: FONT_SERIF,
-                fontSize: 20,
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              T
-            </div>
-            <div style={{ color: P.cream, fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600 }}>
-              The Tailored Company
+            <div style={{ display: "grid", gridTemplateRows: "auto auto 1fr", gap: 16 }}>
+              <SpecCard product={product}/>
+              <AlterationBrief alterations={alterations} brief={altBrief} onReset={() => setAlterations({ hemDelta:0, waistDelta:0, sleeveDelta:0 })}/>
+              <SendToTailorCTA/>
             </div>
           </div>
-          <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 320 }}>
-            Fashion that fits every body. AI-guided fit capture, tailor-verified alterations, and a measurement-matched circular marketplace — for closets that finally know your body.
-          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function pickName(host) {
+  if (!host) return "Linen Trouser";
+  if (host.includes("everlane")) return "Way-High Drape Pant";
+  if (host.includes("reformation")) return "Linen Trouser";
+  if (host.includes("cos")) return "Wide-Leg Pant";
+  if (host.includes("madewell")) return "Curvy Demi Boot Jean";
+  return "Tailored Trouser";
+}
+function safeHost(u) {
+  try { return new URL(u).host.replace(/^www\./, ""); } catch { return ""; }
+}
+
+function ProductHeader({ product }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <div>
+        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase" }}>
+          From {product.retailer}
         </div>
-        {[
-          { title: "Product", links: ["The app", "How it works", "For tailors", "For brands"] },
-          { title: "Company", links: ["About", "Press", "Careers", "Contact"] },
-          { title: "Legal", links: ["Privacy", "Terms", "Cookies", "Accessibility"] },
-        ].map(group => (
-          <div key={group.title}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: 2,
-                color: P.sageMist,
-                textTransform: "uppercase",
-                marginBottom: 16,
-              }}
-            >
-              {group.title}
+        <div style={{ fontFamily: FONT_SERIF, fontSize: 24, fontWeight: 600, color: P.ink, lineHeight: 1.1, marginTop: 4 }}>
+          {product.name}
+        </div>
+      </div>
+      <div style={{
+        padding: "6px 12px", borderRadius: 999,
+        background: "rgba(107,142,90,0.14)",
+        color: P.forestDeep, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
+        textTransform: "uppercase",
+      }}>
+        Recommended size · {product.sizeRec}
+      </div>
+    </div>
+  );
+}
+
+function SpecCard({ product }) {
+  return (
+    <div style={{
+      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
+      borderRadius: 20, padding: 18,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase", marginBottom: 10 }}>
+        Extracted specs
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {product.sizeChart.map(row => (
+          <div key={row.label} style={{
+            padding: "8px 10px", background: P.parchment,
+            borderRadius: 10, border: `1px solid rgba(45,55,42,0.08)`,
+          }}>
+            <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+              {row.label}
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
-              {group.links.map(l => (
-                <li key={l}>
-                  <a
-                    href="#"
-                    style={{ color: "rgba(219,222,201,0.72)", textDecoration: "none", fontSize: 14 }}
-                  >
-                    {l}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 18, fontWeight: 600, color: P.ink }}>
+              {row.value}
+            </div>
           </div>
         ))}
       </div>
+      <div style={{ marginTop: 10, fontSize: 13, color: P.inkSoft }}>
+        <strong>Fabric:</strong> {product.fabric}
+      </div>
+      <div style={{ marginTop: 6, fontSize: 13, color: P.inkSoft, fontStyle: "italic" }}>
+        {product.notes}
+      </div>
+    </div>
+  );
+}
 
-      <div
+function buildBrief({ hemDelta, waistDelta, sleeveDelta }) {
+  const lines = [];
+  if (Math.abs(hemDelta) >= 0.1) {
+    lines.push(hemDelta > 0
+      ? `Lengthen hem by ${hemDelta.toFixed(1)}"` // unusual but supported on cuffed/turn-up
+      : `Shorten hem (inseam) by ${Math.abs(hemDelta).toFixed(1)}"`);
+  }
+  if (Math.abs(waistDelta) >= 0.1) {
+    lines.push(waistDelta < 0
+      ? `Take in waist by ${Math.abs(waistDelta).toFixed(1)}" (center back)`
+      : `Let out waist by ${waistDelta.toFixed(1)}"`);
+  }
+  if (Math.abs(sleeveDelta) >= 0.1) {
+    lines.push(sleeveDelta > 0
+      ? `Lengthen sleeve by ${sleeveDelta.toFixed(1)}"`
+      : `Shorten sleeve by ${Math.abs(sleeveDelta).toFixed(1)}"`);
+  }
+  if (!lines.length) lines.push("No alterations yet — drag a handle on the preview to start.");
+  return lines;
+}
+
+function AlterationBrief({ alterations, brief, onReset }) {
+  return (
+    <div style={{
+      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
+      borderRadius: 20, padding: 18,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, color: P.warmGray, textTransform: "uppercase" }}>
+          Alteration brief · live
+        </div>
+        <button onClick={onReset} style={{
+          background: "transparent", border: `1px solid rgba(45,55,42,0.16)`,
+          padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, color: P.inkSoft,
+          cursor: "pointer",
+        }}>Reset</button>
+      </div>
+      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 8 }}>
+        {brief.map((line, i) => (
+          <li key={i} style={{
+            display: "flex", alignItems: "flex-start", gap: 10,
+            padding: "10px 12px",
+            background: P.parchment,
+            border: `1px solid rgba(45,55,42,0.08)`,
+            borderRadius: 12,
+            fontSize: 14, color: P.ink,
+          }}>
+            <span style={{ marginTop: 2, color: P.forest }}><IconScissors size={16}/></span>
+            <span>{line}</span>
+          </li>
+        ))}
+      </ul>
+      <div style={{
+        marginTop: 12,
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8,
+      }}>
+        {[
+          ["Hem", `${alterations.hemDelta > 0 ? "+" : ""}${alterations.hemDelta.toFixed(1)}"`],
+          ["Waist", `${alterations.waistDelta > 0 ? "+" : ""}${alterations.waistDelta.toFixed(1)}"`],
+          ["Sleeve", `${alterations.sleeveDelta > 0 ? "+" : ""}${alterations.sleeveDelta.toFixed(1)}"`],
+        ].map(([k, v]) => (
+          <div key={k} style={{
+            padding: "8px 10px", borderRadius: 10,
+            background: "rgba(107,142,90,0.10)",
+            border: `1px solid rgba(107,142,90,0.22)`,
+            textAlign: "center",
+          }}>
+            <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>{k}</div>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 18, fontWeight: 600, color: P.ink }}>{v}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 10, fontSize: 12, color: P.warmGray }}>
+        A human tailor reviews this brief before any cutting begins.
+      </div>
+    </div>
+  );
+}
+
+function SendToTailorCTA() {
+  return (
+    <div style={{
+      background: `linear-gradient(135deg, ${P.cocoa}, ${P.brown})`,
+      color: P.cream, borderRadius: 20, padding: 20,
+    }}>
+      <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600, lineHeight: 1.1 }}>
+        Ready when you are.
+      </div>
+      <div style={{ fontSize: 13, opacity: 0.85, marginTop: 8 }}>
+        Order the piece from the retailer yourself. Then start your tailoring order and we’ll
+        guide you to ship it to <strong>123 Main Street</strong>.
+      </div>
+      <a href="#shipping" style={{
+        marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8,
+        background: P.cream, color: P.ink,
+        padding: "10px 16px", borderRadius: 999,
+        textDecoration: "none", fontWeight: 800, fontSize: 13,
+      }}>Start tailoring order <IconArrow size={14}/></a>
+    </div>
+  );
+}
+
+// ─── Section header helper ───────────────────────────────
+function SectionHeader({ eyebrow, title, body }) {
+  return (
+    <div style={{ maxWidth: 760 }}>
+      <div style={{
+        fontSize: 11, fontWeight: 800, letterSpacing: 2.4,
+        color: P.forest, textTransform: "uppercase", marginBottom: 14,
+      }}>{eyebrow}</div>
+      <h2 style={{
+        fontFamily: FONT_SERIF, fontSize: "clamp(36px, 4.2vw, 56px)",
+        lineHeight: 1.05, letterSpacing: -1.2, color: P.ink, fontWeight: 500, margin: 0,
+      }}>{title}</h2>
+      {body && (
+        <p style={{ marginTop: 18, fontSize: 17, color: P.inkSoft, lineHeight: 1.6, maxWidth: 640 }}>
+          {body}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Section: How it works ───────────────────────────────
+function HowItWorks() {
+  const steps = [
+    { n: "01", Icon: IconLink, title: "Paste a product link", body: "We pull the listing — name, image, size chart, fabric, and fit notes — straight from the retailer page." },
+    { n: "02", Icon: IconScissors, title: "Drag the fit you want", body: "Pull the hem, waist, or sleeve on your body preview. Each drag becomes a precise alteration measurement." },
+    { n: "03", Icon: IconBox, title: "Order it yourself + send proof", body: "Buy the garment from the retailer in your name. Upload your order confirmation and tracking so we know it’s coming." },
+    { n: "04", Icon: IconTruck, title: "Ship to 123 Main Street", body: "When it arrives at your door, drop it in the prepaid mailer to The Tailored Company at 123 Main Street." },
+    { n: "05", Icon: IconCheck, title: "We alter, then ship it back", body: "A human tailor reviews your brief, makes the alterations, and ships the finished piece to you." },
+  ];
+  return (
+    <section id="how" style={{ padding: "100px 24px", background: P.parchment }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <SectionHeader
+          eyebrow="How it works"
+          title={<>Five steps. <em style={{ color: P.moss }}>No app required.</em></>}
+          body="Everything happens right on this site. You order the garment from the retailer; we handle the tailoring."
+        />
+        <div style={{
+          marginTop: 36,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: 16,
+        }}>
+          {steps.map(({ n, Icon, title, body }) => (
+            <article key={n} style={{
+              background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
+              borderRadius: 20, padding: 22,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 14,
+                  background: `linear-gradient(135deg, ${P.sageMist}, ${P.cream})`,
+                  border: `1px solid rgba(107,142,90,0.30)`,
+                  color: P.forestDeep,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}><Icon size={22}/></div>
+                <div style={{ fontFamily: FONT_SERIF, fontSize: 26, color: P.taupe, fontWeight: 600 }}>{n}</div>
+              </div>
+              <h3 style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, lineHeight: 1.1, margin: 0 }}>{title}</h3>
+              <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.55, color: P.inkSoft }}>{body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Section: Shipping / proof-of-order ──────────────────
+function ShippingSection() {
+  const [order, setOrder] = useState({ orderId: "", retailer: "", tracking: "" });
+  const [proofName, setProofName] = useState(null);
+  const fileRef = useRef(null);
+  const update = (k) => (e) => setOrder(o => ({ ...o, [k]: e.target.value }));
+  const onFile = (e) => {
+    const f = e.target.files?.[0];
+    setProofName(f ? f.name : null);
+  };
+
+  return (
+    <section id="shipping" style={{ padding: "100px 24px", background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.beige} 100%)` }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <SectionHeader
+          eyebrow="Order + ship"
+          title={<>Show proof of order. Ship to <em style={{ color: P.moss }}>123 Main Street.</em></>}
+          body="You buy the garment in your name from the retailer. We never handle your payment. Upload your order confirmation so we know what to expect, then drop the piece in the mail when it arrives."
+        />
+
+        <div style={{
+          marginTop: 36,
+          display: "grid",
+          gridTemplateColumns: "minmax(0,1.05fr) minmax(0,0.95fr)",
+          gap: 24,
+        }} className="tlc-ship-grid">
+          {/* Proof of order form */}
+          <div style={{
+            background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
+            borderRadius: 24, padding: 22,
+          }}>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, marginBottom: 12 }}>
+              Step 1 · Proof of order
+            </div>
+            <div style={{ display: "grid", gap: 10 }}>
+              <Field label="Retailer" placeholder="Everlane" value={order.retailer} onChange={update("retailer")}/>
+              <Field label="Order number" placeholder="EV-1029384" value={order.orderId} onChange={update("orderId")}/>
+              <Field label="Tracking number" placeholder="1Z…" value={order.tracking} onChange={update("tracking")}/>
+              <div>
+                <label style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+                  Upload order confirmation
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  style={{
+                    marginTop: 6, width: "100%",
+                    background: P.parchment, border: `1px dashed rgba(45,55,42,0.2)`,
+                    borderRadius: 12, padding: "16px 14px",
+                    display: "flex", alignItems: "center", gap: 10,
+                    color: P.inkSoft, fontWeight: 700, cursor: "pointer", fontSize: 14,
+                  }}
+                >
+                  <IconUpload size={20}/>
+                  {proofName ? proofName : "Click to attach a screenshot or PDF"}
+                </button>
+                <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={onFile} style={{ display: "none" }}/>
+                <div style={{ marginTop: 6, fontSize: 12, color: P.warmGray }}>
+                  Demo only — your file stays on this page and is not uploaded.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Shipping label */}
+          <div style={{
+            background: `linear-gradient(135deg, ${P.cream}, ${P.oat})`,
+            border: `1px solid rgba(45,55,42,0.10)`,
+            borderRadius: 24, padding: 22,
+            display: "flex", flexDirection: "column", gap: 14,
+          }}>
+            <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600 }}>
+              Step 2 · Ship to The Tailored Company
+            </div>
+            <div style={{
+              background: P.cream, borderRadius: 16, padding: 18,
+              border: `1px dashed rgba(45,55,42,0.2)`,
+            }}>
+              <div style={{ fontSize: 10, color: P.warmGray, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>Ship to</div>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, marginTop: 4 }}>
+                The Tailored Company
+              </div>
+              <div style={{ fontSize: 14, color: P.inkSoft, marginTop: 4 }}>
+                123 Main Street<br/>
+                Attn: Tailoring intake<br/>
+                (temporary intake address — full label provided after checkout)
+              </div>
+            </div>
+            <ol style={{ paddingLeft: 18, margin: 0, color: P.inkSoft, fontSize: 14, lineHeight: 1.6 }}>
+              <li>Order arrives at your door from the retailer.</li>
+              <li>Drop it in the prepaid mailer we email you.</li>
+              <li>We alter it (typically 5–7 business days).</li>
+              <li>We ship the finished piece back to you.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Field({ label, placeholder, value, onChange }) {
+  return (
+    <label style={{ display: "block" }}>
+      <div style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
+        {label}
+      </div>
+      <input
+        type="text" placeholder={placeholder} value={value} onChange={onChange}
         style={{
-          maxWidth: 1280,
-          margin: "48px auto 0",
-          paddingTop: 24,
-          borderTop: "1px solid rgba(219,222,201,0.10)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-          fontSize: 12,
-          color: "rgba(219,222,201,0.55)",
+          marginTop: 6, width: "100%",
+          background: P.parchment, border: `1px solid rgba(45,55,42,0.12)`,
+          borderRadius: 12, padding: "12px 14px",
+          fontFamily: FONT_SANS, fontSize: 14, color: P.ink, outline: "none",
         }}
-      >
-        <span>© {new Date().getFullYear()} The Tailored Company · All rights reserved</span>
-        <span>thetailoredcompany.com</span>
+      />
+    </label>
+  );
+}
+
+// ─── Section: Sustainability + tailor trust ──────────────
+function TrustSection() {
+  const items = [
+    { title: "A human tailor reviews every brief", body: "AI drafts the alteration spec from your drags. A tailor checks fabric, seam allowance, and feasibility before scissors touch the cloth." },
+    { title: "Buy once, wear longer", body: "Tailored garments fit better, get worn more, and get returned less. Less waste, fewer landfill miles." },
+    { title: "Your measurements stay yours", body: "We don’t sell your fit profile. We use it once to do your alterations." },
+  ];
+  return (
+    <section style={{ padding: "100px 24px", background: P.parchment }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <SectionHeader
+          eyebrow="Why tailoring (still) matters"
+          title={<>Made for <em style={{ color: P.moss }}>your</em> body. Not the average.</>}
+        />
+        <div style={{
+          marginTop: 36,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: 16,
+        }}>
+          {items.map(({ title, body }) => (
+            <article key={title} style={{
+              background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
+              borderRadius: 20, padding: 22,
+            }}>
+              <h3 style={{ fontFamily: FONT_SERIF, fontSize: 22, color: P.ink, fontWeight: 600, lineHeight: 1.15, margin: 0 }}>{title}</h3>
+              <p style={{ marginTop: 8, fontSize: 14, color: P.inkSoft, lineHeight: 1.6 }}>{body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Section: FAQ ────────────────────────────────────────
+function FAQ() {
+  const faqs = [
+    {
+      q: "Do I have to download an app?",
+      a: "No. Everything is right here on the website. We may release a companion app later for repeat customers, but it’s never required.",
+    },
+    {
+      q: "How does the body preview work?",
+      a: "We render an estimated try-on preview using the garment’s size chart and a measurement-based avatar. It’s a visual guide, not a perfect cloth simulation — your tailor reviews everything before any cutting.",
+    },
+    {
+      q: "Why do I have to buy the garment myself?",
+      a: "We don’t resell. You order in your name from the retailer (so returns and warranties stay with you), then ship the piece to us for alterations.",
+    },
+    {
+      q: "Where do I ship the garment?",
+      a: "To The Tailored Company at 123 Main Street, our temporary intake address. We’ll include a prepaid label and detailed instructions with your order.",
+    },
+    {
+      q: "What can the drag-to-alter tool actually change?",
+      a: "Hem / inseam length, waist take-in or let-out, and sleeve length today. We’re adding shoulder, taper, and rise next.",
+    },
+    {
+      q: "What if my alteration isn’t feasible on this fabric?",
+      a: "A tailor reviews the brief and flags anything risky — like recutting a fully lined garment or shortening a finished cuff — before work begins. You confirm before any cuts.",
+    },
+  ];
+  return (
+    <section id="faq" style={{ padding: "100px 24px", background: `linear-gradient(180deg, ${P.beige} 0%, ${P.parchment} 100%)` }}>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <SectionHeader eyebrow="FAQ" title={<>Common <em style={{ color: P.moss }}>questions.</em></>}/>
+        <div style={{ marginTop: 28, display: "grid", gap: 12 }}>
+          {faqs.map((f, i) => <FAQItem key={i} q={f.q} a={f.a}/>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+function FAQItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      background: P.cream, border: `1px solid rgba(45,55,42,0.10)`,
+      borderRadius: 16, overflow: "hidden",
+    }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: "100%", textAlign: "left",
+        background: "transparent", border: "none", padding: "16px 18px",
+        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+        fontFamily: FONT_SANS,
+      }}>
+        <span style={{ fontFamily: FONT_SERIF, fontSize: 19, color: P.ink, fontWeight: 600 }}>{q}</span>
+        <span style={{ color: P.forestDeep, fontWeight: 800, fontSize: 18 }}>{open ? "–" : "+"}</span>
+      </button>
+      {open && (
+        <div style={{ padding: "0 18px 18px", color: P.inkSoft, fontSize: 14, lineHeight: 1.6 }}>{a}</div>
+      )}
+    </div>
+  );
+}
+
+// ─── Section: Footer ─────────────────────────────────────
+function Footer() {
+  return (
+    <footer style={{
+      background: P.cocoa, color: P.oat, padding: "48px 24px",
+    }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gap: 24, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+        <div>
+          <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600, color: P.cream }}>The Tailored Company</div>
+          <div style={{ marginTop: 8, fontSize: 13, opacity: 0.8 }}>
+            Online tailoring for clothing you bought anywhere. A website tool — not an app.
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", opacity: 0.7 }}>Intake address</div>
+          <div style={{ marginTop: 6, fontSize: 14 }}>
+            123 Main Street<br/>
+            Attn: Tailoring intake
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", opacity: 0.7 }}>Site</div>
+          <div style={{ marginTop: 6, display: "grid", gap: 4, fontSize: 14 }}>
+            <a href="#tool" style={{ color: P.oat, textDecoration: "none" }}>Try the tool</a>
+            <a href="#how" style={{ color: P.oat, textDecoration: "none" }}>How it works</a>
+            <a href="#shipping" style={{ color: P.oat, textDecoration: "none" }}>Shipping</a>
+            <a href="#faq" style={{ color: P.oat, textDecoration: "none" }}>FAQ</a>
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", opacity: 0.7 }}>A note</div>
+          <div style={{ marginTop: 6, fontSize: 13, opacity: 0.85 }}>
+            Member app coming later. For now, the website is the whole product.
+          </div>
+        </div>
       </div>
     </footer>
   );
 }
 
-// ─── Main ──────────────────────────────────────────────────
+// ─── Responsive helper styles ────────────────────────────
+function ResponsiveStyles() {
+  return (
+    <style>{`
+      @media (max-width: 900px) {
+        .tlc-hero-grid, .tlc-tool-grid, .tlc-ship-grid {
+          grid-template-columns: 1fr !important;
+        }
+        .tlc-nav-links a:not(:last-child) { display: none !important; }
+      }
+    `}</style>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────
 export default function Landing() {
   return (
-    <div
-      style={{
-        width: "100%",
-        minHeight: "100vh",
-        background: P.parchment,
-        color: P.ink,
-        fontFamily: FONT_SANS,
-        overflowX: "hidden",
-        overflowY: "auto",
-        height: "100vh",
-      }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-        html, body, #root { background: ${P.parchment}; }
-        body { -webkit-font-smoothing: antialiased; }
-        a { transition: opacity 0.2s ease, transform 0.2s ease; }
-        a:hover { opacity: 0.88; }
-        @media (max-width: 900px) {
-          .tlc-hero-grid, .tlc-tech-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .tlc-nav-links {
-            display: none !important;
-          }
-          .tlc-footer-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-        @media (max-width: 600px) {
-          .tlc-footer-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        /* Force this page to scroll over the root no-scroll rule */
-        :root { overflow: auto !important; }
-      `}</style>
-      <LandingNav />
-      <Hero />
-      <PressMarquee />
-      <ValuePillars />
-      <HowItWorks />
-      <TechShowcase />
-      <Sustainability />
-      <Testimonials />
-      <FinalCta />
-      <Footer />
+    <div style={{
+      background: P.parchment, minHeight: "100vh",
+      color: P.ink, fontFamily: FONT_SANS,
+    }}>
+      <ResponsiveStyles/>
+      <SiteNav/>
+      <Hero/>
+      <ToolSection/>
+      <HowItWorks/>
+      <ShippingSection/>
+      <TrustSection/>
+      <FAQ/>
+      <Footer/>
     </div>
   );
 }
