@@ -121,22 +121,23 @@ function Hero() {
             letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 24,
           }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: P.forest }}/>
-            Online tailoring · paste a link, get it altered
+            A website tool · not a shop, not an app
           </div>
           <h1 style={{
             fontFamily: FONT_SERIF, fontSize: "clamp(44px, 5.6vw, 78px)",
             lineHeight: 1.02, letterSpacing: -1.6, color: P.ink, fontWeight: 500, margin: 0,
           }}>
-            Buy any garment online.
+            Paste a link.
             <br/>
             <span style={{ color: P.moss, fontStyle: "italic" }}>We tailor it to fit.</span>
           </h1>
           <p style={{
             marginTop: 22, fontSize: 18, lineHeight: 1.55, color: P.inkSoft, maxWidth: 560,
           }}>
-            Paste a product link from any retailer. We pull the size chart, render an estimated
-            try-on preview on your body, and let you <em>drag the hem, waist, or sleeve</em> exactly
-            where you want it. Order the piece yourself, ship it to us, we alter it and send it back.
+            Four steps, one page. <strong>Paste</strong> a product link from any retailer →
+            we <strong>get the fit info</strong> off the listing → you <strong>make alterations</strong> by
+            dragging the hem, waist, or sleeve → <strong>go</strong>: ship the piece to us and we tailor it.
+            We don’t sell clothes. There’s nothing to browse.
           </p>
           <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
             <a href="#tool" style={{
@@ -436,6 +437,46 @@ function BodyGarmentPreview({ compact = false, alterations, onChange, garmentTyp
 function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 function round1(v) { return Math.round(v * 10) / 10; }
 
+// ─── Linear flow strip: paste → get info → alter → go ──
+function FlowStrip() {
+  const steps = [
+    { k: "1", t: "Paste link" },
+    { k: "2", t: "Get info" },
+    { k: "3", t: "Alter" },
+    { k: "4", t: "Go" },
+  ];
+  return (
+    <div style={{
+      marginTop: 22, display: "inline-flex", alignItems: "center", gap: 10,
+      flexWrap: "wrap",
+      background: "rgba(242,243,238,0.7)",
+      border: `1px solid rgba(45,55,42,0.10)`,
+      padding: "10px 14px", borderRadius: 999,
+    }}>
+      {steps.map((s, i) => (
+        <React.Fragment key={s.k}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            color: P.ink, fontSize: 12, fontWeight: 800,
+            letterSpacing: 1.2, textTransform: "uppercase",
+          }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: 999,
+              background: P.forest, color: P.cream,
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 800,
+            }}>{s.k}</span>
+            {s.t}
+          </span>
+          {i < steps.length - 1 && (
+            <span style={{ color: P.warmGray, fontSize: 14, fontWeight: 800 }}>→</span>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 // ─── Section: Tool — paste a link, extract specs, drag-to-alter ─
 function ToolSection() {
   const [url, setUrl] = useState("");
@@ -444,10 +485,10 @@ function ToolSection() {
   const [alterations, setAlterations] = useState({ hemDelta: 0, waistDelta: 0, sleeveDelta: 0 });
 
   const examples = [
-    { name: "Everlane · Way-High Drape Pant", host: "everlane.com" },
-    { name: "Reformation · Linen Trouser", host: "thereformation.com" },
-    { name: "COS · Wide-Leg Pant", host: "cos.com" },
-    { name: "Madewell · Curvy Demi Boot Jean", host: "madewell.com" },
+    { host: "everlane.com" },
+    { host: "thereformation.com" },
+    { host: "cos.com" },
+    { host: "madewell.com" },
   ];
 
   const extract = (linkOverride) => {
@@ -487,9 +528,10 @@ function ToolSection() {
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
           eyebrow="The website tool"
-          title={<>Paste a link. Drag the fit. <em style={{ color: P.moss }}>Done.</em></>}
-          body="Try it right here — no install, no app. We pull the product specs, render an estimated try-on preview on your measurements, and let you adjust the fit in real time."
+          title={<>Paste → Get info → Alter → <em style={{ color: P.moss }}>Go.</em></>}
+          body="The whole product, on one page. Paste a URL, we pull the fit info from the listing, you drag the alterations you want, and you submit. No install, no account, no catalog."
         />
+        <FlowStrip/>
 
         {/* URL input */}
         <div style={{
@@ -542,7 +584,7 @@ function ToolSection() {
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14, alignItems: "center" }}>
             <span style={{ fontSize: 11, color: P.warmGray, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase" }}>
-              Try one
+              Example link
             </span>
             {examples.map(ex => (
               <button
@@ -553,12 +595,14 @@ function ToolSection() {
                   border: `1px solid rgba(107,142,90,0.32)`,
                   color: P.forestDeep, fontWeight: 700, fontSize: 12,
                   padding: "6px 10px", borderRadius: 999, cursor: "pointer",
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
                 }}
-              >{ex.name}</button>
+              >https://{ex.host}/…</button>
             ))}
           </div>
           <div style={{ marginTop: 12, fontSize: 12, color: P.warmGray }}>
-            Demo mode — extracted specs are illustrative while we expand retailer coverage.
+            Demo mode — paste any product URL, or click an example to load a sample extraction.
+            Specs are illustrative while we expand retailer coverage.
           </div>
         </div>
 
@@ -755,18 +799,18 @@ function SendToTailorCTA() {
       color: P.cream, borderRadius: 20, padding: 20,
     }}>
       <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600, lineHeight: 1.1 }}>
-        Ready when you are.
+        Step 4 · Go.
       </div>
       <div style={{ fontSize: 13, opacity: 0.85, marginTop: 8 }}>
-        Order the piece from the retailer yourself. Then start your tailoring order and we’ll
-        guide you to ship it to <strong>123 Main Street</strong>.
+        Order the piece from the retailer yourself. Submit this alteration brief and we’ll
+        guide you to ship it to <strong>123 Main Street</strong>. No browsing, no checkout here.
       </div>
       <a href="#shipping" style={{
         marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8,
         background: P.cream, color: P.ink,
         padding: "10px 16px", borderRadius: 999,
         textDecoration: "none", fontWeight: 800, fontSize: 13,
-      }}>Start tailoring order <IconArrow size={14}/></a>
+      }}>Submit + ship to tailor <IconArrow size={14}/></a>
     </div>
   );
 }
@@ -806,8 +850,8 @@ function HowItWorks() {
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <SectionHeader
           eyebrow="How it works"
-          title={<>Five steps. <em style={{ color: P.moss }}>No app required.</em></>}
-          body="Everything happens right on this site. You order the garment from the retailer; we handle the tailoring."
+          title={<>Five steps. <em style={{ color: P.moss }}>One page.</em></>}
+          body="The Tailored Company is a tailoring tool, not a store. You order the garment from the retailer in your name; we handle the alterations. Nothing to browse here."
         />
         <div style={{
           marginTop: 36,
@@ -1067,7 +1111,8 @@ function Footer() {
         <div>
           <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 600, color: P.cream }}>The Tailored Company</div>
           <div style={{ marginTop: 8, fontSize: 13, opacity: 0.8 }}>
-            Online tailoring for clothing you bought anywhere. A website tool — not an app.
+            A tailoring tool for clothing you bought anywhere. Not a store, not an app — one page,
+            four steps: paste, get info, alter, go.
           </div>
         </div>
         <div>
