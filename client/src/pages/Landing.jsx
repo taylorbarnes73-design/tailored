@@ -79,6 +79,62 @@ const IconRotate = ({ size }) => (<Ico size={size}><polyline points="23 4 23 10 
 const IconRuler = ({ size }) => (<Ico size={size}><path d="M2 16 16 2l6 6L8 22Z"/><path d="M7 17l-3-3"/><path d="M11 13l-2-2"/><path d="M15 9l-3-3"/><path d="M19 5l-2-2"/></Ico>);
 const IconLock = ({ size }) => (<Ico size={size}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Ico>);
 
+// ─── Atelier mark ────────────────────────────────────────
+// A quiet couture seal: an oval cartouche with four measuring-tape notches at
+// the cardinals, a serif T·C monogram interlocked at the crossbar, and a
+// single threaded needle slipped through the loop of the C. Drawn with
+// currentColor so it can sit on cream (ink) or ink (cream) without re-paint.
+function AtelierMark({ size = 44, accent }) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 100 100"
+      role="img" aria-label="The Tailored Company atelier mark"
+      style={{ display: "block", overflow: "visible" }}
+    >
+      <title>The Tailored Company</title>
+      {/* outer seal */}
+      <ellipse cx="50" cy="50" rx="38" ry="46"
+        fill="none" stroke="currentColor" strokeWidth="1.4" />
+      {/* inner double-line cartouche */}
+      <ellipse cx="50" cy="50" rx="34.5" ry="42.5"
+        fill="none" stroke="currentColor" strokeWidth="0.7" opacity="0.55" />
+      {/* measuring-tape notches at the four cardinals */}
+      <g stroke="currentColor" strokeWidth="1.1" strokeLinecap="round">
+        <line x1="50" y1="2"   x2="50" y2="7.5" />
+        <line x1="50" y1="92.5" x2="50" y2="98" />
+        <line x1="10" y1="50"  x2="15.5" y2="50" />
+        <line x1="84.5" y1="50" x2="90" y2="50" />
+      </g>
+      {/* T — serif crossbar + tapered stem */}
+      <g fill="currentColor">
+        <path d="M28.5 32 L60.5 32 L60.5 35.6 L48.6 35.6 L48.6 70.4
+                 Q48.6 71.6 47.4 71.6 L43.4 71.6 Q42.2 71.6 42.2 70.4
+                 L42.2 35.6 L28.5 35.6 Z" />
+        {/* crossbar serif drops */}
+        <rect x="28.5" y="32" width="1.4" height="3.6" />
+        <rect x="59.1" y="32" width="1.4" height="3.6" />
+      </g>
+      {/* C — serif open counter, interlocked with the T's stem on the left */}
+      <path
+        d="M71.5 39.2
+           A 14.6 16.0 0 1 0 71.5 65.8
+           L 68.2 62.2
+           A 10.4 11.8 0 1 1 68.2 42.6 Z"
+        fill="currentColor" opacity="0.92"
+      />
+      {/* needle — a single fine line slipped diagonally through the C's eye */}
+      <g stroke={accent || "currentColor"} strokeLinecap="round" fill="none">
+        <line x1="55.4" y1="58.0" x2="78.0" y2="44.6" strokeWidth="0.9" />
+        {/* eye of the needle */}
+        <circle cx="56.6" cy="57.3" r="0.9" strokeWidth="0.6" />
+        {/* thread, tracing a quiet curl */}
+        <path d="M56.0 57.8 Q52 60.8 50.4 64.4 Q49.2 67.4 50.6 70.2"
+          strokeWidth="0.6" opacity="0.7" />
+      </g>
+    </svg>
+  );
+}
+
 // ─── Section: Nav ─────────────────────────────────────────
 function SiteNav() {
   return (
@@ -93,13 +149,9 @@ function SiteNav() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <a href="#top" onClick={handleAnchorClick("top")} style={{ display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
-          <div style={{
-            width: 42, height: 42, borderRadius: 4,
-            background: P.ink,
-            color: P.cream, fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 500,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            letterSpacing: 0,
-          }}>T</div>
+          <div style={{ color: P.ink, display: "flex", alignItems: "center" }}>
+            <AtelierMark size={46} accent={P.moss} />
+          </div>
           <div>
             <div style={{ fontFamily: FONT_SERIF, fontWeight: 500, fontSize: 19, color: P.ink, lineHeight: 1, letterSpacing: 0.3 }}>
               The Tailored Company
@@ -2404,6 +2456,9 @@ function Footer() {
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ display: "grid", gap: 36, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
           <div>
+            <div style={{ color: P.cream, marginBottom: 14, display: "inline-flex" }}>
+              <AtelierMark size={54} accent={P.sage} />
+            </div>
             <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 500, color: P.cream, letterSpacing: 0.3 }}>
               The Tailored Company
             </div>
