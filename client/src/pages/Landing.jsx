@@ -1,5 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+// Scroll to a section by id without changing the URL hash.
+// We use this on internal nav links / CTAs because the app uses wouter's
+// hash router — clicking <a href="#tool"> would set location to /tool and
+// hit the NotFound route. Instead, intercept the click and scroll manually.
+function scrollToId(id) {
+  if (typeof document === "undefined") return;
+  const el = document.getElementById(id);
+  if (el && typeof el.scrollIntoView === "function") {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+function handleAnchorClick(id) {
+  return (e) => {
+    e.preventDefault();
+    scrollToId(id);
+  };
+}
+
 // ─── Palette · earthy, sustainable (NO orange/amber/copper/terracotta/rust/gold)
 const P = {
   sage: "#9CAF88",
@@ -53,7 +71,7 @@ function SiteNav() {
         maxWidth: 1200, margin: "0 auto", padding: "16px 24px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+        <a href="#top" onClick={handleAnchorClick("top")} style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
           <div style={{
             width: 38, height: 38, borderRadius: 10,
             background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
@@ -76,11 +94,11 @@ function SiteNav() {
             ["Shipping", "#shipping"],
             ["FAQ", "#faq"],
           ].map(([label, href]) => (
-            <a key={label} href={href} style={{
+            <a key={label} href={href} onClick={handleAnchorClick(href.replace(/^#/, ""))} style={{
               color: P.inkSoft, fontSize: 13, fontWeight: 600, textDecoration: "none",
             }}>{label}</a>
           ))}
-          <a href="#tool" style={{
+          <a href="#tool" onClick={handleAnchorClick("tool")} style={{
             background: P.ink, color: P.cream,
             padding: "10px 18px", borderRadius: 999,
             fontSize: 13, fontWeight: 700, textDecoration: "none",
@@ -140,7 +158,7 @@ function Hero() {
             We don’t sell clothes. There’s nothing to browse.
           </p>
           <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
-            <a href="#tool" style={{
+            <a href="#tool" onClick={handleAnchorClick("tool")} style={{
               background: `linear-gradient(135deg, ${P.forest}, ${P.forestDeep})`,
               color: P.cream, padding: "16px 26px", borderRadius: 14,
               fontSize: 15, fontWeight: 700, textDecoration: "none",
@@ -149,7 +167,7 @@ function Hero() {
             }}>
               Paste a product link <IconArrow/>
             </a>
-            <a href="#how" style={{
+            <a href="#how" onClick={handleAnchorClick("how")} style={{
               background: "rgba(242,243,238,0.7)", color: P.ink,
               padding: "16px 24px", borderRadius: 14,
               fontSize: 15, fontWeight: 700, textDecoration: "none",
@@ -375,9 +393,14 @@ function BodyGarmentPreview({ compact = false, alterations, onChange, garmentTyp
             <g
               onPointerDown={startDrag("hem")}
               style={{ cursor: "ns-resize" }}
+              role="slider"
+              aria-label="Drag to shorten or lengthen the hem"
+              tabIndex={0}
             >
               <line x1="200" y1={hemY} x2="304" y2={hemY}
                 stroke={P.cream} strokeWidth="2" opacity="0.85"/>
+              {/* Enlarged transparent hit target (~44px) */}
+              <circle cx="252" cy={hemY} r="22" fill="rgba(0,0,0,0.001)"/>
               <circle cx="252" cy={hemY} r="14"
                 fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
               <line x1="246" y1={hemY - 4} x2="246" y2={hemY + 4} stroke={P.forest} strokeWidth="2"/>
@@ -387,33 +410,47 @@ function BodyGarmentPreview({ compact = false, alterations, onChange, garmentTyp
                 Hem · drag ↕
               </text>
             </g>
-            {/* WAIST handle (horizontal drag) */}
+            {/* WAIST handle (horizontal drag) — both sides */}
             <g
               onPointerDown={startDrag("waist")}
               style={{ cursor: "ew-resize" }}
+              role="slider"
+              aria-label="Drag to take in or let out the waist"
+              tabIndex={0}
             >
-              <circle cx={188 + waistInset - 6} cy={438} r="11"
+              <circle cx={188 + waistInset - 6} cy={438} r="22" fill="rgba(0,0,0,0.001)"/>
+              <circle cx={188 + waistInset - 6} cy={438} r="14"
                 fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
-              <line x1={185 + waistInset - 6} y1="438" x2={191 + waistInset - 6} y2="438" stroke={P.forest} strokeWidth="2"/>
-              <circle cx={312 - waistInset + 6} cy={438} r="11"
+              <line x1={184 + waistInset - 6} y1="434" x2={184 + waistInset - 6} y2="442" stroke={P.forest} strokeWidth="2"/>
+              <line x1={192 + waistInset - 6} y1="434" x2={192 + waistInset - 6} y2="442" stroke={P.forest} strokeWidth="2"/>
+              <circle cx={312 - waistInset + 6} cy={438} r="22" fill="rgba(0,0,0,0.001)"/>
+              <circle cx={312 - waistInset + 6} cy={438} r="14"
                 fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
-              <line x1={309 - waistInset + 6} y1="438" x2={315 - waistInset + 6} y2="438" stroke={P.forest} strokeWidth="2"/>
+              <line x1={308 - waistInset + 6} y1="434" x2={308 - waistInset + 6} y2="442" stroke={P.forest} strokeWidth="2"/>
+              <line x1={316 - waistInset + 6} y1="434" x2={316 - waistInset + 6} y2="442" stroke={P.forest} strokeWidth="2"/>
               <text x="360" y="442" fontSize="13" fill={P.ink} fontWeight="700"
                 style={{ fontFamily: FONT_SANS }}>
                 Waist · drag ↔
               </text>
             </g>
-            {/* SLEEVE handle */}
+            {/* SLEEVE handle (vertical drag) — matches hem's prominent circular node */}
             <g
               onPointerDown={startDrag("sleeve")}
               style={{ cursor: "ns-resize" }}
+              role="slider"
+              aria-label="Drag to shorten or lengthen the sleeve"
+              tabIndex={0}
             >
-              <circle cx="156" cy={sleeveY + 18} r="11"
+              <line x1="140" y1={sleeveY + 16} x2="188" y2={sleeveY + 16}
+                stroke={P.cream} strokeWidth="2" opacity="0.85"/>
+              <circle cx="156" cy={sleeveY + 16} r="22" fill="rgba(0,0,0,0.001)"/>
+              <circle cx="156" cy={sleeveY + 16} r="14"
                 fill={P.cream} stroke={P.forest} strokeWidth="2.5"/>
-              <line x1="153" y1={sleeveY + 18} x2="159" y2={sleeveY + 18} stroke={P.forest} strokeWidth="2"/>
+              <line x1="150" y1={sleeveY + 12} x2="150" y2={sleeveY + 20} stroke={P.forest} strokeWidth="2"/>
+              <line x1="162" y1={sleeveY + 12} x2="162" y2={sleeveY + 20} stroke={P.forest} strokeWidth="2"/>
               <text x="14" y={sleeveY + 4} fontSize="13" fill={P.ink} fontWeight="700"
                 style={{ fontFamily: FONT_SANS }}>
-                Sleeve ↕
+                Sleeve · drag ↕
               </text>
             </g>
           </g>
@@ -620,15 +657,24 @@ function ToolSection() {
               boxShadow: "0 24px 60px rgba(45,55,42,0.06)",
             }}>
               <ProductHeader product={product}/>
-              <div style={{ marginTop: 14 }}>
+              <div style={{
+                marginTop: 10, display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "6px 12px", borderRadius: 999,
+                background: "rgba(107,142,90,0.12)",
+                border: `1px solid rgba(107,142,90,0.28)`,
+                color: P.forestDeep, fontSize: 12, fontWeight: 700,
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: P.forest }}/>
+                Drag the green handles to adjust hem, waist, or sleeve.
+              </div>
+              <div style={{ marginTop: 12 }}>
                 <BodyGarmentPreview
                   alterations={alterations}
                   onChange={setAlterations}
                 />
               </div>
               <div style={{ marginTop: 12, fontSize: 12, color: P.warmGray }}>
-                Drag the circular handles on the hem, waist, or sleeve. Numbers update live in the
-                alteration brief on the right.
+                Numbers update live in the alteration brief on the right.
               </div>
             </div>
 
@@ -805,7 +851,7 @@ function SendToTailorCTA() {
         Order the piece from the retailer yourself. Submit this alteration brief and we’ll
         guide you to ship it to <strong>123 Main Street</strong>. No browsing, no checkout here.
       </div>
-      <a href="#shipping" style={{
+      <a href="#shipping" onClick={handleAnchorClick("shipping")} style={{
         marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8,
         background: P.cream, color: P.ink,
         padding: "10px 16px", borderRadius: 999,
@@ -1125,10 +1171,10 @@ function Footer() {
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", opacity: 0.7 }}>Site</div>
           <div style={{ marginTop: 6, display: "grid", gap: 4, fontSize: 14 }}>
-            <a href="#tool" style={{ color: P.oat, textDecoration: "none" }}>Try the tool</a>
-            <a href="#how" style={{ color: P.oat, textDecoration: "none" }}>How it works</a>
-            <a href="#shipping" style={{ color: P.oat, textDecoration: "none" }}>Shipping</a>
-            <a href="#faq" style={{ color: P.oat, textDecoration: "none" }}>FAQ</a>
+            <a href="#tool" onClick={handleAnchorClick("tool")} style={{ color: P.oat, textDecoration: "none" }}>Try the tool</a>
+            <a href="#how" onClick={handleAnchorClick("how")} style={{ color: P.oat, textDecoration: "none" }}>How it works</a>
+            <a href="#shipping" onClick={handleAnchorClick("shipping")} style={{ color: P.oat, textDecoration: "none" }}>Shipping</a>
+            <a href="#faq" onClick={handleAnchorClick("faq")} style={{ color: P.oat, textDecoration: "none" }}>FAQ</a>
           </div>
         </div>
         <div>
